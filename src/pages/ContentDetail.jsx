@@ -16,6 +16,7 @@ import StatusPill from "../components/StatusPill";
 import Avatar from "../components/Avatar";
 import Modal from "../components/Modal";
 import PreviewButton from "../components/PreviewButton";
+import { useMediaUpload } from "../lib/mediaUpload";
 
 const CHANNEL_ICONS = { smartphone: Smartphone, globe: Globe, radio: Radio, tv: Tv, mail: Mail, "message-square": MessageSquare };
 
@@ -88,8 +89,9 @@ export default function ContentDetail() {
   const [rawChannels] = useLocalStorage("cms.settings.channels", DEFAULT_CHANNELS);
   const channels = useMemo(() => normalizeChannels(rawChannels), [rawChannels]);
   const [taxonomies] = useLocalStorage("cms.taxonomies", seedTaxonomies);
-  const [media] = useLocalStorage("cms.media", seedMedia);
+  const [media, setMedia] = useLocalStorage("cms.media", seedMedia);
   const users = seedUsers();
+  const mediaUpload = useMediaUpload({ media, setMedia, userId: users[0]?.id });
 
   const entry = entries.find((e) => e.id === id);
   const [title, setTitle] = useState(entry?.title ?? "");
@@ -263,7 +265,7 @@ export default function ContentDetail() {
   const bodyField = coreField("body") ?? type?.fields.find((f) => f.name === "body");
   const showBody = !type || Boolean(bodyField);
   const extraFields = (type?.fields ?? []).filter((f) => !f.core && !["title", "slug", "body"].includes(f.name));
-  const fieldCtx = { taxonomies, media, entries, contentTypes, entryId: entry.id };
+  const fieldCtx = { taxonomies, media, entries, contentTypes, entryId: entry.id, uploadMedia: mediaUpload.upload };
   const author = users.find((u) => u.id === entry.updatedBy);
   const displayStatus = normalizeEntryStatus(entry.status, workflowSteps);
   const currentStep = workflowSteps.find((s) => s.id === displayStatus);

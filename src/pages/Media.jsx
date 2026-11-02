@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Upload, List, LayoutGrid, Trash2 } from "lucide-react";
+import { useRef, useState } from "react";
+import { Upload, List, LayoutGrid, Trash2, X } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
 import { seedMedia, seedUsers, getUser } from "../lib/seed";
@@ -8,6 +8,8 @@ import DataTable from "../components/DataTable";
 import Avatar from "../components/Avatar";
 import { FilterBar } from "../components/FilterBar";
 import SegmentedControl from "../components/SegmentedControl";
+import MediaThumb from "../components/MediaThumb";
+import { useMediaUpload } from "../lib/mediaUpload";
 
 function formatDate(iso, locale) {
   return new Date(iso).toLocaleDateString(locale, { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -24,6 +26,21 @@ export default function Media() {
   const [selected, setSelected] = useState(new Set());
   const [view, setView] = useState("list");
   const [filterValues, setFilterValues] = useState({ kind: null, uploadedBy: null });
+  const [message, setMessage] = useState("");
+  const [dropping, setDropping] = useState(false);
+  const fileRef = useRef(null);
+  const { upload, busy } = useMediaUpload({ media, setMedia, userId: seedUsers()[0]?.id });
+
+  async function handleFiles(fileList) {
+    if (!fileList.length || busy) return;
+    setMessage("");
+    const { added, message: problems } = await upload(fileList);
+    setMessage(problems);
+    // Show the new files even if a filter or search would hide them.
+    if (added.length) { setSearch(""); setFilterValues({ kind: null, uploadedBy: null }); }
+  }
+
+  const hasFiles = (e) => [...(e.dataTransfer?.types ?? [])].includes("Files");
 
   const kindOptions = [...new Set(media.map((m) => m.kind))].map((k) => ({ value: k, label: k }));
   const filterFields = [
@@ -53,7 +70,7 @@ export default function Media() {
       sortValue: (r) => r.name,
       render: (r) => (
         <span className="inline-flex items-center gap-2.5">
-          <span className="wf-image block h-8 w-8 border border-gray-300" />
+          <MediaThumb item={r} className="block h-8 w-8 border border-gray-300" />
           <span className="font-medium text-gray-900">{r.name}</span>
         </span>
       ),
@@ -77,7 +94,12 @@ export default function Media() {
   ];
 
   return (
-    <div className="flex-1 overflow-y-auto p-6">
+    <div
+      className={`relative flex-1 overflow-y-auto p-6 ${dropping ? "outline-2 -outline-offset-8 outline-dashed outline-gray-400" : ""}`}
+      onDragOver={(e) => { if (hasFiles(e)) { e.preventDefault(); setDropping(true); } }}
+      onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setDropping(false); }}
+      onDrop={(e) => { if (hasFiles(e)) { e.preventDefault(); setDropping(false); handleFiles([...e.dataTransfer.files]); } }}
+    >
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-semibold text-gray-900">{t("Media library")}</h1>
@@ -92,11 +114,30 @@ export default function Media() {
               { value: "grid", label: "Icons", icon: LayoutGrid },
             ]}
           />
-          <button className="flex items-center gap-1.5 rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700">
-            <Upload size={15} /> {t("Upload")}
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            multiple
+            hidden
+            onChange={(e) => { handleFiles([...e.target.files]); e.target.value = ""; }}
+          />
+          <button
+            onClick={() => fileRef.current?.click()}
+            disabled={busy}
+            className="flex items-center gap-1.5 rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-60"
+          >
+            <Upload size={15} /> {busy ? t("Uploading…") : t("Upload")}
           </button>
         </div>
       </div>
+
+      {message && (
+        <div role="alert" className="mb-4 flex items-start justify-between gap-3 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800 ring-1 ring-inset ring-amber-200">
+          <span>{message}</span>
+          <button onClick={() => setMessage("")} aria-label={t("Dismiss")} className="shrink-0 rounded p-0.5 hover:bg-amber-100"><X size={14} /></button>
+        </div>
+      )}
 
       <div className="mb-4 max-w-md">
         <FilterBar
@@ -122,7 +163,7 @@ export default function Media() {
                 key={r.id}
                 className="group overflow-hidden rounded-lg border border-gray-300 bg-white hover:border-gray-400 hover:shadow-sm"
               >
-                <div className="wf-image aspect-square border-b border-gray-300" />
+                <MediaThumb item={r} className="aspect-square w-full border-b border-gray-300" />
                 <div className="p-2.5">
                   <p className="truncate text-sm font-medium text-gray-900" title={r.name}>{r.name}</p>
                   <div className="mt-1 flex items-center justify-between text-xs text-gray-400">

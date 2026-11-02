@@ -140,7 +140,7 @@ function OpeningHours({ value, onChange }) {
 }
 
 // `ctx` carries what editors need from the rest of the CMS:
-// { taxonomies, media, entries, contentTypes, entryId }
+// { taxonomies, media, entries, contentTypes, entryId, uploadMedia }
 export default function FieldEditor({ field, value, onChange, ctx }) {
   const { t } = useI18n();
 
@@ -184,10 +184,10 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
       return <input type="date" value={value ?? ""} onChange={(e) => onChange(e.target.value)} className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm" />;
 
     case "Media":
-      return <MediaPicker media={ctx.media} value={value} onChange={onChange} />;
+      return <MediaPicker media={ctx.media} value={value} onChange={onChange} onUpload={ctx.uploadMedia} />;
 
     case "Media list":
-      return <MediaPicker media={ctx.media} value={value} onChange={onChange} multiple />;
+      return <MediaPicker media={ctx.media} value={value} onChange={onChange} onUpload={ctx.uploadMedia} multiple />;
 
     case "Reference": {
       const target = ctx.contentTypes.find((ct) => ct.name === field.targetName || ct.id === field.targetTypeId);

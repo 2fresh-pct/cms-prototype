@@ -162,6 +162,12 @@ export const CS = {
   // Media
   "Media library": "Knihovna médií",
   "Upload": "Nahrát",
+  "Uploading…": "Nahrávání…",
+  "Dismiss": "Zavřít",
+  "Only images can be uploaded. Skipped: {names}": "Nahrát lze pouze obrázky. Přeskočeno: {names}",
+  "Larger than 10 MB, skipped: {names}": "Větší než 10 MB, přeskočeno: {names}",
+  "Couldn't read: {names}": "Nelze načíst: {names}",
+  "Not enough browser storage for these files in the prototype. Delete some uploads and try again.": "V prototypu není v prohlížeči dost místa pro tyto soubory. Smažte některé nahrané soubory a zkuste to znovu.",
   "List": "Seznam",
   "Icons": "Ikony",
   "Size": "Velikost",

@@ -3,6 +3,7 @@ import { useI18n } from "../lib/i18n";
 import { flattenTerms } from "../lib/seed";
 import { RichTextView } from "./RichTextEditor";
 import { WEEKDAYS } from "./FieldEditor";
+import MediaThumb from "./MediaThumb";
 
 export const isEmpty = (v) =>
   v == null || v === "" || (Array.isArray(v) && v.filter((x) => x !== "" && x != null).length === 0) ||
@@ -11,7 +12,7 @@ export const isEmpty = (v) =>
 function Image({ item, ratio = "aspect-[16/9]" }) {
   return (
     <figure>
-      <div className={`wf-image w-full rounded-md border border-gray-300 ${ratio}`} role="img" aria-label={item.name} />
+      <MediaThumb item={item} className={`w-full rounded-md border border-gray-300 ${ratio}`} />
       <figcaption className="mt-1 text-xs text-gray-400">{item.name}</figcaption>
     </figure>
   );

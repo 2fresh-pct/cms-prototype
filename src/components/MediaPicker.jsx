@@ -1,22 +1,26 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, GripVertical, ImagePlus, X } from "lucide-react";
+import { Check, GripVertical, ImagePlus, Upload, X } from "lucide-react";
 import { useI18n } from "../lib/i18n";
 import Modal from "./Modal";
+import MediaThumb from "./MediaThumb";
 
 const formatSize = (kb) => (kb > 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${kb} KB`);
 
 function Thumb({ item, size = 48 }) {
-  return <div className="wf-image shrink-0 rounded border border-gray-300" style={{ width: size, height: size }} aria-hidden title={item?.name} />;
+  return <MediaThumb item={item} className="shrink-0 rounded border border-gray-300" style={{ width: size, height: size }} title={item?.name} />;
 }
 
-function Library({ open, onClose, media, selected, multiple, onConfirm }) {
+function Library({ open, onClose, media, selected, multiple, onConfirm, onUpload }) {
   const { t } = useI18n();
   const [draft, setDraft] = useState(selected);
   const [search, setSearch] = useState("");
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+  const fileRef = useRef(null);
 
   // A fresh draft each time the dialog opens.
   const [wasOpen, setWasOpen] = useState(false);
-  if (open && !wasOpen) { setWasOpen(true); setDraft(selected); setSearch(""); }
+  if (open && !wasOpen) { setWasOpen(true); setDraft(selected); setSearch(""); setMessage(""); }
   if (!open && wasOpen) setWasOpen(false);
 
   // Bring the current choice into view when the dialog opens.
@@ -26,6 +30,21 @@ function Library({ open, onClose, media, selected, multiple, onConfirm }) {
   }, [open]);
 
   const shown = media.filter((m) => !search || m.name.toLowerCase().includes(search.toLowerCase()));
+
+  // Uploaded files are added to the library and selected straight away.
+  async function handleFiles(fileList) {
+    if (!fileList.length) return;
+    setBusy(true);
+    setMessage("");
+    const { added, message: problems } = await onUpload(fileList);
+    setBusy(false);
+    setMessage(problems);
+    if (added.length) {
+      setDraft((d) => (multiple ? [...d, ...added.map((m) => m.id)] : [added[0].id]));
+      setSearch("");
+      gridRef.current?.scrollTo({ top: 0 }); // new files are listed first
+    }
+  }
 
   function pick(id) {
     if (!multiple) return setDraft([id]);
@@ -52,13 +71,36 @@ function Library({ open, onClose, media, selected, multiple, onConfirm }) {
         </>
       }
     >
-      <input
-        autoFocus
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder={t("Search media…")}
-        className="mb-3 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
-      />
+      <div className="mb-3 flex items-center gap-2">
+        {onUpload && (
+          <>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              multiple
+              hidden
+              onChange={(e) => { handleFiles([...e.target.files]); e.target.value = ""; }}
+            />
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => fileRef.current?.click()}
+              className="flex shrink-0 items-center gap-1.5 rounded-md border border-gray-300 bg-white px-2.5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            >
+              <Upload size={14} /> {busy ? t("Uploading…") : t("Upload")}
+            </button>
+          </>
+        )}
+        <input
+          autoFocus
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder={t("Search media…")}
+          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+        />
+      </div>
+      {message && <p role="alert" className="mb-3 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800 ring-1 ring-inset ring-amber-200">{message}</p>}
       <div ref={gridRef} className="grid max-h-[55vh] grid-cols-2 gap-3 overflow-y-auto pr-1 sm:grid-cols-3 md:grid-cols-4">
         {shown.map((m) => {
           const index = draft.indexOf(m.id);
@@ -72,7 +114,7 @@ function Library({ open, onClose, media, selected, multiple, onConfirm }) {
               onDoubleClick={() => { if (!multiple) onConfirm([m.id]); }}
               className={`relative overflow-hidden rounded-lg border bg-white text-left ${isSelected ? "border-gray-800 ring-2 ring-gray-800" : "border-gray-300 hover:border-gray-400"}`}
             >
-              <div className="wf-image aspect-square border-b border-gray-300" />
+              <MediaThumb item={m} className="aspect-square w-full border-b border-gray-300" />
               <div className="p-2">
                 <p className="truncate text-xs font-medium text-gray-900" title={m.name}>{m.name}</p>
                 <p className="text-xs text-gray-400">{formatSize(m.sizeKb)}</p>
@@ -93,7 +135,7 @@ function Library({ open, onClose, media, selected, multiple, onConfirm }) {
 
 // Chooses one file (value: id) or an ordered list (value: ids) from the media
 // library in a dialog.
-export default function MediaPicker({ media, value, onChange, multiple = false }) {
+export default function MediaPicker({ media, value, onChange, onUpload, multiple = false }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [dragId, setDragId] = useState(null);
@@ -171,7 +213,7 @@ export default function MediaPicker({ media, value, onChange, multiple = false }
                     dragId === id ? "opacity-40" : ""
                   } ${overId === id && dragId !== id ? "border-gray-800 ring-2 ring-gray-800" : "border-gray-300"}`}
                 >
-                  <div className="wf-image aspect-square border-b border-gray-300" />
+                  <MediaThumb item={byId[id]} className="aspect-square w-full border-b border-gray-300" />
                   <p className="truncate px-1.5 py-1 text-xs text-gray-700" title={byId[id]?.name}>{byId[id]?.name ?? t("Missing file")}</p>
                   <span className="absolute left-1 top-1 flex h-5 items-center rounded bg-white/90 px-0.5 text-gray-500 ring-1 ring-gray-300" aria-hidden>
                     <GripVertical size={12} />
@@ -197,7 +239,7 @@ export default function MediaPicker({ media, value, onChange, multiple = false }
         </div>
       )}
 
-      <Library open={open} onClose={() => setOpen(false)} media={media} selected={ids} multiple={multiple} onConfirm={confirm} />
+      <Library open={open} onClose={() => setOpen(false)} media={media} selected={ids} multiple={multiple} onConfirm={confirm} onUpload={onUpload} />
     </div>
   );
 }
