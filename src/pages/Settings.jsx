@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, ArrowUp, ArrowDown, Trash2, Plus, Check, Smartphone, Globe, Radio, Tv, Mail, MessageSquare } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowRight, ArrowUp, ArrowDown, Trash2, Plus, Check, Smartphone, Globe, Radio, Tv, Mail, MessageSquare, Download, Upload } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n, UI_LANGUAGES } from "../lib/i18n";
 import { seedUsers, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, WORKFLOW_COLOR_PALETTE, DEFAULT_CHANNELS, normalizeChannels } from "../lib/seed";
 import DataTable from "../components/DataTable";
 import Avatar from "../components/Avatar";
+import Modal from "../components/Modal";
 
 const TABS = [
   { id: "general", label: "General" },
@@ -12,6 +13,7 @@ const TABS = [
   { id: "channels", label: "Channels" },
   { id: "users", label: "Users & roles" },
   { id: "api", label: "API keys" },
+  { id: "data", label: "Data" },
 ];
 
 const CHANNEL_ICONS = { smartphone: Smartphone, globe: Globe, radio: Radio, tv: Tv, mail: Mail, "message-square": MessageSquare };
@@ -372,6 +374,88 @@ function UsersPanel() {
   );
 }
 
+// Everything the prototype stores lives in this browser's localStorage, so a
+// different browser or site (e.g. the deployed copy) starts from the sample
+// data. Export / import moves a whole workspace between them as one file.
+const DATA_FILE = "cms-prototype-data";
+
+function DataPanel() {
+  const { t } = useI18n();
+  const fileRef = useRef(null);
+  const [pending, setPending] = useState(null); // parsed import awaiting confirmation
+  const [error, setError] = useState("");
+
+  const keys = () => Object.keys(localStorage).filter((k) => k.startsWith("cms."));
+
+  function exportData() {
+    const data = {};
+    for (const k of keys()) {
+      try { data[k] = JSON.parse(localStorage.getItem(k)); } catch { /* skip unreadable value */ }
+    }
+    const blob = new Blob([JSON.stringify({ app: DATA_FILE, version: 1, exportedAt: new Date().toISOString(), data })], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${DATA_FILE}-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  async function chooseFile(file) {
+    setError("");
+    if (!file) return;
+    try {
+      const parsed = JSON.parse(await file.text());
+      const entries = Object.entries(parsed?.data ?? {}).filter(([k]) => k.startsWith("cms."));
+      if (parsed?.app !== DATA_FILE || entries.length === 0) throw new Error("not a data file");
+      setPending({ name: file.name, entries, entryCount: parsed.data["cms.entries"]?.length ?? 0, typeCount: parsed.data["cms.contentTypes"]?.length ?? 0 });
+    } catch {
+      setError(t("That isn't a data file exported from this prototype."));
+    }
+  }
+
+  function importData() {
+    try {
+      // Replace, not merge: anything the file doesn't hold falls back to the sample data.
+      for (const k of keys()) localStorage.removeItem(k);
+      for (const [k, v] of pending.entries) localStorage.setItem(k, JSON.stringify(v));
+    } catch {
+      setPending(null);
+      setError(t("Not enough browser storage to import this file."));
+      return;
+    }
+    window.location.reload();
+  }
+
+  const button = "flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50";
+  return (
+    <div className="max-w-lg space-y-5">
+      <p className="text-sm text-gray-600">
+        {t("Content, content types, taxonomies, media and settings are stored in this browser only. To get the same workspace in another browser or on the deployed site, export it here and import the file there.")}
+      </p>
+      <div className="flex items-center gap-2">
+        <button onClick={exportData} className={button}><Download size={14} /> {t("Export data")}</button>
+        <button onClick={() => fileRef.current?.click()} className={button}><Upload size={14} /> {t("Import data")}</button>
+        <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={(e) => { chooseFile(e.target.files[0]); e.target.value = ""; }} />
+      </div>
+      {error && <p role="alert" className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800 ring-1 ring-inset ring-amber-200">{error}</p>}
+
+      <Modal
+        open={Boolean(pending)}
+        onClose={() => setPending(null)}
+        title={t("Replace everything in this browser?")}
+        footer={
+          <>
+            <button onClick={() => setPending(null)} className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100">{t("Cancel")}</button>
+            <button onClick={importData} className="rounded-md bg-gray-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-800">{t("Replace and reload")}</button>
+          </>
+        }
+      >
+        {pending && t("{file} holds {entries} content items and {types} content types. Importing replaces all content, types, taxonomies, media and settings currently in this browser. This can't be undone.", { file: pending.name, entries: pending.entryCount, types: pending.typeCount })}
+      </Modal>
+    </div>
+  );
+}
+
 function ApiKeysPanel() {
   const columns = [
     { key: "name", header: "Name", render: (r) => <span className="font-medium text-gray-900">{r.name}</span> },
@@ -416,6 +500,7 @@ export default function Settings() {
         {tab === "channels" && <ChannelsPanel />}
         {tab === "users" && <UsersPanel />}
         {tab === "api" && <ApiKeysPanel />}
+        {tab === "data" && <DataPanel />}
       </div>
     </div>
   );
