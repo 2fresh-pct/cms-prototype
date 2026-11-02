@@ -179,7 +179,7 @@ export default function RichTextEditor({ value, onChange, placeholder, minHeight
 }
 
 // Read-only rendering for the version history view.
-export function RichTextView({ value }) {
+export function RichTextView({ value, className = "text-sm text-gray-700" }) {
   const editor = useEditor({
     extensions: extensions(),
     content: toEditorHtml(value),
@@ -188,5 +188,5 @@ export function RichTextView({ value }) {
   });
   useEffect(() => { editor?.commands.setContent(toEditorHtml(value)); }, [editor, value]);
   if (!value) return <p className="text-sm text-gray-700">—</p>;
-  return editor ? <EditorContent editor={editor} className="text-sm text-gray-700" /> : null;
+  return editor ? <EditorContent editor={editor} className={className} /> : null;
 }

@@ -5,6 +5,7 @@ import {
   seedEntries, seedContentTypes, seedUsers, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps,
   DEFAULT_CHANNELS, normalizeChannels,
 } from "../lib/seed";
+import { RichTextView } from "../components/RichTextEditor";
 import { Signal, Wifi, BatteryFull, ChevronLeft } from "lucide-react";
 
 function DraftBanner({ compact }) {
@@ -36,7 +37,7 @@ function WebsiteMock({ entry, channel, isPublished, author, typeName }) {
           {t("By {name}", { name: author?.name })} · {entry.locale?.toUpperCase()}
         </p>
         <div className="space-y-4 text-gray-700">
-          {entry.body ? <p>{entry.body}</p> : <p className="italic text-gray-400">{t("No body content yet.")}</p>}
+          {entry.body ? <RichTextView value={entry.body} className="text-base text-gray-700" /> : <p className="italic text-gray-400">{t("No body content yet.")}</p>}
         </div>
       </main>
       <footer className="border-t border-gray-100 px-6 py-6 text-center text-xs text-gray-400">
@@ -66,7 +67,7 @@ function AppMock({ entry, channel, isPublished, typeName }) {
           <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-gray-400">{typeName}</p>
           <h1 className="mb-3 text-xl font-semibold leading-snug">{entry.title}</h1>
           <div className="space-y-3 text-sm text-gray-600">
-            {entry.body ? <p>{entry.body}</p> : <p className="italic text-gray-400">{t("No body content yet.")}</p>}
+            {entry.body ? <RichTextView value={entry.body} className="text-sm text-gray-600" /> : <p className="italic text-gray-400">{t("No body content yet.")}</p>}
           </div>
         </div>
       </div>
