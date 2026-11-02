@@ -1,7 +1,8 @@
-// A Media field holds one file (an id) or, when it allows several, an ordered
-// list of ids. "Media list" is the older spelling of a Media field that allows
-// several; it is kept so saved content types keep working.
-export const holdsSeveral = (field) => field.type === "Media list" || (field.type === "Media" && field.multiple === true);
+// A Media field holds an ordered list of files unless it is set to `multiple:
+// false`, in which case it holds a single id. "Media list" is the older
+// spelling of a Media field that allows several; it is kept so saved content
+// types keep working.
+export const holdsSeveral = (field) => field.type === "Media list" || (field.type === "Media" && field.multiple !== false);
 
 // Tolerates a field being switched between one and several files after it has
 // values: a single id and a list of ids are both read as a list.

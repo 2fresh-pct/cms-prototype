@@ -13,6 +13,22 @@ const MIGRATIONS = {
     mergeById("cms.media", POI_MEDIA);
     mergeById("cms.entries", POI_ENTRIES);
   },
+  // Media fields now hold several files unless set to `multiple: false`, so the
+  // seeded fields that are meant to hold one file are pinned to a single file.
+  "media-single-fields": () => {
+    const single = { "ct-poi": ["primaryImage", "mapIllustration"], ct3: ["ogImage"], ct4: ["image"] };
+    const raw = localStorage.getItem("cms.contentTypes");
+    if (!raw) return; // not seeded yet: the seed already pins them
+    const types = JSON.parse(raw);
+    if (!Array.isArray(types)) return;
+    const next = types.map((ct) => ({
+      ...ct,
+      fields: ct.fields.map((f) =>
+        f.type === "Media" && f.multiple === undefined && single[ct.id]?.includes(f.name) ? { ...f, multiple: false } : f
+      ),
+    }));
+    localStorage.setItem("cms.contentTypes", JSON.stringify(next));
+  },
 };
 
 function mergeById(key, items) {

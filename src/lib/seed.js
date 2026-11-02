@@ -255,9 +255,9 @@ const CONTENT_TYPE_DEFS = CONTENT_TYPES.map((ct, i) => ({
   fields: i < 2
     ? [{ name: "title", type: "Text" }, { name: "slug", type: "Text" }, { name: "body", type: "Rich text" }, { name: "seo", type: "Reference" }]
     : i === 2
-      ? [{ name: "metaTitle", type: "Text" }, { name: "metaDescription", type: "Text" }, { name: "ogImage", type: "Media" }]
+      ? [{ name: "metaTitle", type: "Text" }, { name: "metaDescription", type: "Text" }, { name: "ogImage", type: "Media", multiple: false }]
       : i === 3
-        ? [{ name: "headline", type: "Text" }, { name: "image", type: "Media" }, { name: "cta", type: "Text" }]
+        ? [{ name: "headline", type: "Text" }, { name: "image", type: "Media", multiple: false }, { name: "cta", type: "Text" }]
         : [{ name: "title", type: "Text" }, { name: "author", type: "Text" }, { name: "body", type: "Rich text" }],
   entryCount: 0,
 }));

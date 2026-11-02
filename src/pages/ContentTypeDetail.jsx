@@ -245,7 +245,7 @@ function ContentTypeEditor({ id }) {
                       <label className="flex items-center gap-1.5">
                         <input
                           type="checkbox"
-                          checked={f.multiple === true}
+                          checked={f.multiple !== false}
                           onChange={(e) => updateField(i, { multiple: e.target.checked })}
                           className="h-3.5 w-3.5 rounded border-gray-300 accent-violet-600"
                         />

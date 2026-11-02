@@ -15,10 +15,10 @@ export const POI_FIELDS = [
   field("summary", "Summary", "Short text", "Content", { localized: true }),
   field("history", "History", "Rich text", "Content", { localized: true }),
   field("contentSections", "Content sections", "Sections", "Content", { localized: true }),
-  field("primaryImage", "Primary image", "Media", "Content", { localized: "partly" }),
+  field("primaryImage", "Primary image", "Media", "Content", { localized: "partly", multiple: false }),
   field("image", "Images", "Media list", "Content", { localized: "partly" }),
   field("virtualTour", "Virtual tour", "Link", "Content", { localized: true }),
-  field("mapIllustration", "Map illustration", "Media", "Content", { localized: "partly" }),
+  field("mapIllustration", "Map illustration", "Media", "Content", { localized: "partly", multiple: false }),
 
   field("address", "Address", "Address", "Location", { localized: "partly" }),
   field("geo", "Coordinates", "Coordinates", "Location"),
