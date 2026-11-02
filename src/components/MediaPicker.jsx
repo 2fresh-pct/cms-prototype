@@ -131,9 +131,9 @@ export default function MediaPicker({ media, value, onChange, multiple = false }
     <div>
       {!multiple && (
         ids.length === 0 ? (
-          <div className="flex items-center justify-between gap-3 rounded-md border border-dashed border-gray-300 px-3 py-3">
-            <span className="text-sm text-gray-400">{t("No file chosen")}</span>
+          <div className="flex items-center gap-3 rounded-md border border-dashed border-gray-300 px-3 py-3">
             {chooseButton("Choose from library")}
+            <span className="text-sm text-gray-400">{t("No file chosen")}</span>
           </div>
         ) : (
           <div className="flex items-center gap-3 rounded-md border border-gray-300 p-2">
@@ -153,7 +153,10 @@ export default function MediaPicker({ media, value, onChange, multiple = false }
       {multiple && (
         <div className="space-y-2">
           {ids.length === 0 ? (
-            <div className="rounded-md border border-dashed border-gray-300 px-3 py-3 text-sm text-gray-400">{t("No files chosen")}</div>
+            <div className="flex items-center gap-3 rounded-md border border-dashed border-gray-300 px-3 py-3">
+              {chooseButton("Choose from library")}
+              <span className="text-sm text-gray-400">{t("No files chosen")}</span>
+            </div>
           ) : (
             <div className="flex flex-wrap gap-2">
               {ids.map((id) => (
@@ -185,10 +188,12 @@ export default function MediaPicker({ media, value, onChange, multiple = false }
               ))}
             </div>
           )}
-          <div className="flex items-center gap-3">
-            {chooseButton(ids.length === 0 ? "Choose from library" : "Add or remove files")}
-            {ids.length > 1 && <span className="text-xs text-gray-400">{t("Drag to reorder")}</span>}
-          </div>
+          {ids.length > 0 && (
+            <div className="flex items-center gap-3">
+              {chooseButton("Add or remove files")}
+              {ids.length > 1 && <span className="text-xs text-gray-400">{t("Drag to reorder")}</span>}
+            </div>
+          )}
         </div>
       )}
 
