@@ -2,10 +2,11 @@ import { useParams } from "react-router-dom";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
 import {
-  seedEntries, seedContentTypes, seedUsers, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps,
+  seedEntries, seedContentTypes, seedUsers, seedTaxonomies, seedMedia, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps,
   DEFAULT_CHANNELS, normalizeChannels,
 } from "../lib/seed";
-import { RichTextView } from "../components/RichTextEditor";
+import { Fragment } from "react";
+import FieldView, { isEmpty } from "../components/FieldView";
 import { Signal, Wifi, BatteryFull, ChevronLeft } from "lucide-react";
 
 function DraftBanner({ compact }) {
@@ -17,7 +18,43 @@ function DraftBanner({ compact }) {
   );
 }
 
-function WebsiteMock({ entry, channel, isPublished, author, typeName }) {
+// Everything the entry holds, in the content type's field order: the core
+// title/slug/body slots first, then the remaining fields that have a value,
+// grouped by the field's `group`.
+function EntryFields({ entry, type, ctx, compact }) {
+  const { t } = useI18n();
+  const fields = type?.fields ?? [];
+  const bodyField = fields.find((f) => f.core === "body") ?? fields.find((f) => f.name === "body");
+  const extra = fields.filter((f) => !f.core && !["title", "slug", "body"].includes(f.name));
+  const shown = extra.filter((f) => !isEmpty(entry.fieldValues?.[f.name]));
+  const hasBody = !isEmpty(entry.body);
+  const h = compact ? "text-[11px]" : "text-xs";
+
+  return (
+    <div className={compact ? "space-y-4" : "space-y-6"}>
+      {bodyField || !type ? (
+        hasBody
+          ? <FieldView field={{ type: "Rich text" }} value={entry.body} ctx={ctx} compact={compact} />
+          : <p className="italic text-gray-400">{t("No body content yet.")}</p>
+      ) : null}
+      {shown.map((f, i) => (
+        <Fragment key={f.name}>
+          {f.group && f.group !== shown[i - 1]?.group && (
+            <h2 className={`border-t border-gray-200 pt-5 font-semibold text-gray-900 ${compact ? "text-base" : "text-xl"}`}>{t(f.group)}</h2>
+          )}
+          <div>
+            {f.type !== "Sections" && f.type !== "Media" && (
+              <p className={`mb-1.5 font-medium uppercase tracking-wide text-gray-400 ${h}`}>{t(f.label ?? f.name)}</p>
+            )}
+            <FieldView field={f} value={entry.fieldValues?.[f.name]} ctx={ctx} compact={compact} />
+          </div>
+        </Fragment>
+      ))}
+    </div>
+  );
+}
+
+function WebsiteMock({ entry, channel, isPublished, author, typeName, type, ctx }) {
   const { t } = useI18n();
   return (
     <div className="min-h-screen bg-white text-gray-900">
@@ -36,9 +73,7 @@ function WebsiteMock({ entry, channel, isPublished, author, typeName }) {
         <p className="mb-8 text-sm text-gray-400">
           {t("By {name}", { name: author?.name })} · {entry.locale?.toUpperCase()}
         </p>
-        <div className="space-y-4 text-gray-700">
-          {entry.body ? <RichTextView value={entry.body} className="text-base text-gray-700" /> : <p className="italic text-gray-400">{t("No body content yet.")}</p>}
-        </div>
+        <EntryFields entry={entry} type={type} ctx={ctx} />
       </main>
       <footer className="border-t border-gray-100 px-6 py-6 text-center text-xs text-gray-400">
         © 2026 {channel.name}
@@ -47,7 +82,7 @@ function WebsiteMock({ entry, channel, isPublished, author, typeName }) {
   );
 }
 
-function AppMock({ entry, channel, isPublished, typeName }) {
+function AppMock({ entry, channel, isPublished, typeName, type, ctx }) {
   const { t } = useI18n();
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 p-8">
@@ -66,9 +101,7 @@ function AppMock({ entry, channel, isPublished, typeName }) {
         <div className="flex-1 overflow-y-auto px-4 py-5">
           <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-gray-400">{typeName}</p>
           <h1 className="mb-3 text-xl font-semibold leading-snug">{entry.title}</h1>
-          <div className="space-y-3 text-sm text-gray-600">
-            {entry.body ? <RichTextView value={entry.body} className="text-sm text-gray-600" /> : <p className="italic text-gray-400">{t("No body content yet.")}</p>}
-          </div>
+          <EntryFields entry={entry} type={type} ctx={ctx} compact />
         </div>
       </div>
     </div>
@@ -80,6 +113,8 @@ export default function Preview() {
   const { channelId, entryId } = useParams();
   const [entries] = useLocalStorage("cms.entries", seedEntries);
   const [contentTypes] = useLocalStorage("cms.contentTypes", seedContentTypes);
+  const [taxonomies] = useLocalStorage("cms.taxonomies", seedTaxonomies);
+  const [media] = useLocalStorage("cms.media", seedMedia);
   const [rawWorkflowSteps] = useLocalStorage("cms.settings.workflowSteps", DEFAULT_WORKFLOW_STEPS);
   const workflowSteps = normalizeWorkflowSteps(rawWorkflowSteps);
   const [rawChannels] = useLocalStorage("cms.settings.channels", DEFAULT_CHANNELS);
@@ -101,10 +136,11 @@ export default function Preview() {
   const author = users.find((u) => u.id === entry.updatedBy);
   const publishStepId = workflowSteps[workflowSteps.length - 1]?.id;
   const isPublished = entry.status === publishStepId;
+  const ctx = { taxonomies, media, entries, contentTypes };
 
   return channel.icon === "smartphone" ? (
-    <AppMock entry={entry} channel={channel} isPublished={isPublished} typeName={type ? t(type.name) : ""} />
+    <AppMock entry={entry} channel={channel} isPublished={isPublished} typeName={type ? t(type.name) : ""} type={type} ctx={ctx} />
   ) : (
-    <WebsiteMock entry={entry} channel={channel} isPublished={isPublished} author={author} typeName={type ? t(type.name) : ""} />
+    <WebsiteMock entry={entry} channel={channel} isPublished={isPublished} author={author} typeName={type ? t(type.name) : ""} type={type} ctx={ctx} />
   );
 }

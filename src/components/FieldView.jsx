@@ -1,0 +1,127 @@
+import { Fragment } from "react";
+import { useI18n } from "../lib/i18n";
+import { flattenTerms } from "../lib/seed";
+import { RichTextView } from "./RichTextEditor";
+import { WEEKDAYS } from "./FieldEditor";
+
+export const isEmpty = (v) =>
+  v == null || v === "" || (Array.isArray(v) && v.filter((x) => x !== "" && x != null).length === 0) ||
+  (typeof v === "object" && !Array.isArray(v) && Object.values(v).every((x) => x == null || x === ""));
+
+function Image({ item, ratio = "aspect-[16/9]" }) {
+  return (
+    <figure>
+      <div className={`wf-image w-full rounded-md border border-gray-300 ${ratio}`} role="img" aria-label={item.name} />
+      <figcaption className="mt-1 text-xs text-gray-400">{item.name}</figcaption>
+    </figure>
+  );
+}
+
+function Chips({ names }) {
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {names.map((n) => (
+        <span key={n} className="rounded-full border border-gray-300 px-2.5 py-0.5 text-xs text-gray-600">{n}</span>
+      ))}
+    </div>
+  );
+}
+
+// Read-only, published-style rendering of one field value, used by the preview.
+export default function FieldView({ field: f, value, ctx, compact }) {
+  const { t } = useI18n();
+  const text = compact ? "text-sm" : "text-base";
+
+  switch (f.type) {
+    case "Rich text":
+      return <RichTextView value={value} className={`${text} text-gray-700`} />;
+    case "Sections":
+      return (
+        <div className="space-y-5">
+          {value.map((s, i) => (
+            <section key={i}>
+              {s.heading && <h3 className="mb-1 text-lg font-semibold text-gray-900">{s.heading}</h3>}
+              {s.text && <p className={`${text} whitespace-pre-line text-gray-700`}>{s.text}</p>}
+            </section>
+          ))}
+        </div>
+      );
+    case "Media": {
+      const item = ctx.media.find((m) => m.id === value);
+      return item ? <Image item={item} /> : null;
+    }
+    case "Media list":
+      return (
+        <div className={`grid gap-3 ${compact ? "grid-cols-1" : "grid-cols-2"}`}>
+          {value.map((id) => ctx.media.find((m) => m.id === id)).filter(Boolean).map((m) => <Image key={m.id} item={m} />)}
+        </div>
+      );
+    case "Taxonomy": {
+      const tx = ctx.taxonomies.find((x) => x.id === f.taxonomyId);
+      const flat = tx ? flattenTerms(tx.terms) : [];
+      return <Chips names={value.map((id) => flat.find((x) => x.id === id)?.name).filter(Boolean)} />;
+    }
+    case "Reference":
+      return <Chips names={value.map((id) => ctx.entries.find((e) => e.id === id)?.title).filter(Boolean)} />;
+    case "Opening hours":
+      return (
+        <dl className={`grid grid-cols-[7rem_1fr] gap-y-1 ${text} text-gray-700`}>
+          {WEEKDAYS.map(([key, label]) => (
+            <Fragment key={key}>
+              <dt className="text-gray-500">{t(label)}</dt>
+              <dd>{value[key] ? `${value[key].open}–${value[key].close}` : t("Closed")}</dd>
+            </Fragment>
+          ))}
+        </dl>
+      );
+    case "Date ranges":
+      return (
+        <ul className={`space-y-1 ${text} text-gray-700`}>
+          {value.map((r, i) => (
+            <li key={i}>
+              {r.from === r.to ? r.from : `${r.from} – ${r.to}`}
+              {r.note && <span className="text-gray-500"> · {r.note}</span>}
+            </li>
+          ))}
+        </ul>
+      );
+    case "Text list":
+      return (
+        <ul className={`list-disc space-y-1 pl-5 ${text} text-gray-700`}>
+          {value.filter(Boolean).map((v, i) => <li key={i}>{v}</li>)}
+        </ul>
+      );
+    case "Key-value":
+      return (
+        <dl className={`grid grid-cols-[8rem_1fr] gap-y-1 ${text} text-gray-700`}>
+          {value.map((p, i) => (
+            <Fragment key={i}>
+              <dt className="text-gray-500">{p.key}</dt>
+              <dd>{p.value}</dd>
+            </Fragment>
+          ))}
+        </dl>
+      );
+    case "Address":
+      return (
+        <address className={`${text} not-italic text-gray-700`}>
+          {[value.street, [value.postalCode, value.city].filter(Boolean).join(" "), value.country]
+            .filter(Boolean).map((l, i) => <div key={i}>{l}</div>)}
+        </address>
+      );
+    case "Coordinates":
+      return <p className={`${text} text-gray-700`}>{value.lat}, {value.lng}</p>;
+    case "Link":
+      return value.url ? <span className={`${text} text-gray-900 underline`}>{value.label || value.url}</span> : null;
+    case "Boolean":
+      return <p className={`${text} text-gray-700`}>{value ? t("Yes") : t("No")}</p>;
+    case "Select":
+      return <p className={`${text} text-gray-700`}>{t(value)}</p>;
+    case "Number":
+      return <p className={`${text} text-gray-700`}>{f.unit ? `${value} ${t(f.unit)}` : value}</p>;
+    case "ID":
+      return <code className="text-xs text-gray-500">{value}</code>;
+    default:
+      return <p className={`${text} whitespace-pre-line text-gray-700`}>{String(value)}</p>;
+  }
+}
