@@ -51,10 +51,14 @@ function ToolButton({ label, active, disabled, onClick, children }) {
 
 const Divider = () => <span className="mx-1 h-4 w-px bg-gray-300" />;
 
-function Toolbar({ editor }) {
+// `onCommit` saves straight away: the link panel takes focus out of the editor,
+// so there may be no later blur to save an applied or removed link.
+function Toolbar({ editor, onCommit }) {
   const { t } = useI18n();
   const [linkOpen, setLinkOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
+  const [linkText, setLinkText] = useState("");
+  const linkRange = useRef({ from: 0, to: 0 });
   const s = useEditorState({
     editor,
     selector: ({ editor: e }) => ({
@@ -74,22 +78,47 @@ function Toolbar({ editor }) {
   });
   const run = (fn) => () => fn(editor.chain().focus()).run();
 
+  // The panel edits the range that was selected (or the whole link the caret is
+  // in) when it opened; with nothing selected it inserts the text as a new link.
   function openLink() {
+    if (editor.isActive("link")) editor.chain().extendMarkRange("link").run();
+    const { from, to } = editor.state.selection;
+    linkRange.current = { from, to };
+    setLinkText(editor.state.doc.textBetween(from, to, " "));
     setLinkUrl(editor.getAttributes("link").href ?? "");
     setLinkOpen(true);
   }
 
   function removeLink() {
-    editor.chain().focus().extendMarkRange("link").unsetLink().run();
+    const { from, to } = linkRange.current;
+    editor.chain().focus().setTextSelection({ from, to }).unsetLink().run();
     setLinkOpen(false);
+    onCommit();
   }
 
   function applyLink() {
-    const url = linkUrl.trim();
-    if (url) editor.chain().focus().extendMarkRange("link").setLink({ href: /^(https?:|mailto:|tel:|\/)/.test(url) ? url : `https://${url}` }).run();
-    else editor.chain().focus().extendMarkRange("link").unsetLink().run();
+    const { from, to } = linkRange.current;
+    const typed = linkUrl.trim();
+    const href = /^(https?:|mailto:|tel:|\/|#)/.test(typed) ? typed : `https://${typed}`;
+    const original = editor.state.doc.textBetween(from, to, " ");
+    const text = linkText.trim();
+    const chain = editor.chain().focus();
+    if (!typed) {
+      if (from !== to) chain.setTextSelection({ from, to }).unsetLink().run();
+    } else if (from !== to && (!text || text === original)) {
+      chain.setTextSelection({ from, to }).setLink({ href }).run(); // keeps bold/italic inside the text
+    } else {
+      chain.insertContentAt({ from, to }, { type: "text", text: text || typed, marks: [{ type: "link", attrs: { href } }] }).unsetMark("link").run();
+    }
     setLinkOpen(false);
+    onCommit();
   }
+
+  const canApply = linkUrl.trim() !== "" || linkRange.current.from !== linkRange.current.to;
+  const onLinkKey = (e) => {
+    if (e.key === "Enter") { e.preventDefault(); if (canApply) applyLink(); }
+    if (e.key === "Escape") setLinkOpen(false);
+  };
 
   return (
     <div className="rounded-t-md border-b border-gray-300 bg-gray-50">
@@ -131,20 +160,34 @@ function Toolbar({ editor }) {
       )}
 
       {linkOpen && (
-        <div className="flex items-center gap-2 border-t border-gray-200 px-2 py-1.5">
-          <input
-            autoFocus
-            value={linkUrl}
-            onChange={(e) => setLinkUrl(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); applyLink(); } if (e.key === "Escape") setLinkOpen(false); }}
-            placeholder={t("Link URL")}
-            className="flex-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-sm focus:border-violet-400 focus:outline-none"
-          />
-          <button type="button" onClick={applyLink} className="rounded-md bg-gray-700 px-2.5 py-1 text-xs font-medium text-white hover:bg-gray-800">{t("Apply")}</button>
-          {s.link && (
-            <button type="button" onClick={removeLink} className="rounded-md border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50">{t("Remove link")}</button>
-          )}
-          <button type="button" onClick={() => setLinkOpen(false)} className="rounded-md px-2 py-1 text-xs text-gray-500 hover:bg-gray-200">{t("Cancel")}</button>
+        <div className="space-y-2 border-t border-gray-200 px-2 py-2">
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              autoFocus={linkRange.current.from === linkRange.current.to}
+              value={linkText}
+              onChange={(e) => setLinkText(e.target.value)}
+              onKeyDown={onLinkKey}
+              aria-label={t("Link text")}
+              placeholder={t("Link text")}
+              className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm focus:border-violet-400 focus:outline-none"
+            />
+            <input
+              autoFocus={linkRange.current.from !== linkRange.current.to}
+              value={linkUrl}
+              onChange={(e) => setLinkUrl(e.target.value)}
+              onKeyDown={onLinkKey}
+              aria-label={t("Link URL")}
+              placeholder={t("Link URL")}
+              className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm focus:border-violet-400 focus:outline-none"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <button type="button" disabled={!canApply} onClick={applyLink} className="rounded-md bg-gray-700 px-2.5 py-1 text-xs font-medium text-white hover:bg-gray-800 disabled:opacity-40">{t("Apply")}</button>
+            <button type="button" onClick={() => setLinkOpen(false)} className="rounded-md px-2 py-1 text-xs text-gray-500 hover:bg-gray-200">{t("Cancel")}</button>
+            {s.link && (
+              <button type="button" onClick={removeLink} className="rounded-md border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50">{t("Remove link")}</button>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -155,24 +198,25 @@ function Toolbar({ editor }) {
 // if the content really changed, so merely clicking in doesn't create history.
 export default function RichTextEditor({ value, onChange, placeholder, minHeight = 160 }) {
   const baseline = useRef(null);
+  const commit = (e) => {
+    const html = e.isEmpty ? "" : e.getHTML();
+    const before = baseline.current === "<p></p>" ? "" : baseline.current;
+    if (html === before) return;
+    baseline.current = html || "<p></p>";
+    onChange(html);
+  };
   const editor = useEditor({
     extensions: extensions(placeholder),
     content: toEditorHtml(value),
     editorProps: { attributes: { class: "rte-content" } },
     onCreate: ({ editor: e }) => { baseline.current = e.getHTML(); },
-    onBlur: ({ editor: e }) => {
-      const html = e.isEmpty ? "" : e.getHTML();
-      const before = baseline.current === "<p></p>" ? "" : baseline.current;
-      if (html === before) return;
-      baseline.current = html || "<p></p>";
-      onChange(html);
-    },
+    onBlur: ({ editor: e }) => commit(e),
   });
 
   if (!editor) return null;
   return (
     <div className="rounded-md border border-gray-300 bg-white focus-within:border-violet-400">
-      <Toolbar editor={editor} />
+      <Toolbar editor={editor} onCommit={() => commit(editor)} />
       <EditorContent editor={editor} style={{ minHeight }} className="px-3 py-2 text-sm text-gray-800" />
     </div>
   );

@@ -338,6 +338,7 @@ export const CS = {
   "Regular text": "Běžný text",
   "Remove link": "Odebrat odkaz",
   "Link URL": "Adresa odkazu",
+  "Link text": "Text odkazu",
   "Drag to reorder": "Pořadí změníte přetažením",
   "Unsaved changes": "Neuložené změny",
   "Save": "Uložit",
