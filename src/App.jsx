@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import TopNav from "./components/TopNav";
+import SyncBanner from "./components/SyncBanner";
 import Content from "./pages/Content";
 import ContentDetail from "./pages/ContentDetail";
 import Catalogue from "./pages/Catalogue";
@@ -27,6 +28,7 @@ export default function App() {
   return (
     <div className="flex h-screen flex-col bg-gray-50">
       <TopNav />
+      <SyncBanner />
       <main className="flex min-h-0 flex-1 flex-col">
         <Routes>
           <Route path="/" element={<Navigate to="/content" replace />} />

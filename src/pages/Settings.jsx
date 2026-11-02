@@ -6,6 +6,7 @@ import { seedUsers, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, WORKFLOW_COL
 import DataTable from "../components/DataTable";
 import Avatar from "../components/Avatar";
 import Modal from "../components/Modal";
+import { isSharedKey, isSyncEnabled, markDirty, overwriteShared, sharedKeys } from "../lib/sync";
 
 const TABS = [
   { id: "general", label: "General" },
@@ -385,11 +386,10 @@ function DataPanel() {
   const [pending, setPending] = useState(null); // parsed import awaiting confirmation
   const [error, setError] = useState("");
 
-  const keys = () => Object.keys(localStorage).filter((k) => k.startsWith("cms."));
 
   function exportData() {
     const data = {};
-    for (const k of keys()) {
+    for (const k of sharedKeys()) {
       try { data[k] = JSON.parse(localStorage.getItem(k)); } catch { /* skip unreadable value */ }
     }
     const blob = new Blob([JSON.stringify({ app: DATA_FILE, version: 1, exportedAt: new Date().toISOString(), data })], { type: "application/json" });
@@ -405,7 +405,7 @@ function DataPanel() {
     if (!file) return;
     try {
       const parsed = JSON.parse(await file.text());
-      const entries = Object.entries(parsed?.data ?? {}).filter(([k]) => k.startsWith("cms."));
+      const entries = Object.entries(parsed?.data ?? {}).filter(([k]) => isSharedKey(k));
       if (parsed?.app !== DATA_FILE || entries.length === 0) throw new Error("not a data file");
       setPending({ name: file.name, entries, entryCount: parsed.data["cms.entries"]?.length ?? 0, typeCount: parsed.data["cms.contentTypes"]?.length ?? 0 });
     } catch {
@@ -413,16 +413,18 @@ function DataPanel() {
     }
   }
 
-  function importData() {
+  async function importData() {
     try {
       // Replace, not merge: anything the file doesn't hold falls back to the sample data.
-      for (const k of keys()) localStorage.removeItem(k);
+      for (const k of sharedKeys()) localStorage.removeItem(k);
       for (const [k, v] of pending.entries) localStorage.setItem(k, JSON.stringify(v));
     } catch {
       setPending(null);
       setError(t("Not enough browser storage to import this file."));
       return;
     }
+    // With a shared workspace connected, the imported content becomes the shared copy.
+    if (isSyncEnabled()) { markDirty(); await overwriteShared(); }
     window.location.reload();
   }
 
@@ -451,6 +453,7 @@ function DataPanel() {
         }
       >
         {pending && t("{file} holds {entries} content items and {types} content types. Importing replaces all content, types, taxonomies, media and settings currently in this browser. This can't be undone.", { file: pending.name, entries: pending.entryCount, types: pending.typeCount })}
+        {pending && isSyncEnabled() && <p className="mt-2 font-medium text-gray-800">{t("It also replaces the shared workspace for everyone who uses it.")}</p>}
       </Modal>
     </div>
   );

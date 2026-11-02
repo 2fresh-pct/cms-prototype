@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { markDirty } from "./sync";
 
 export function useLocalStorage(key, initialValue) {
   const [value, setValue] = useState(() => {
@@ -13,8 +14,16 @@ export function useLocalStorage(key, initialValue) {
     return initial;
   });
 
+  // Only a real change counts as an edit to sync; the first run just writes back
+  // what was read (or seeded).
+  const written = useRef(JSON.stringify(value));
   useEffect(() => {
-    localStorage.setItem(key, JSON.stringify(value));
+    const next = JSON.stringify(value);
+    localStorage.setItem(key, next);
+    if (next !== written.current) {
+      written.current = next;
+      markDirty();
+    }
   }, [key, value]);
 
   const reset = useCallback(() => {
