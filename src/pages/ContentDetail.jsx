@@ -259,7 +259,9 @@ export default function ContentDetail() {
   const coreField = (kind) => type?.fields.find((f) => f.core === kind);
   const titleField = coreField("title");
   const slugField = coreField("slug");
-  const bodyField = coreField("body");
+  // Types predating `core` name their body field "body"; an unknown type keeps the slot.
+  const bodyField = coreField("body") ?? type?.fields.find((f) => f.name === "body");
+  const showBody = !type || Boolean(bodyField);
   const extraFields = (type?.fields ?? []).filter((f) => !f.core && !["title", "slug", "body"].includes(f.name));
   const fieldCtx = { taxonomies, media, entries, contentTypes, entryId: entry.id };
   const author = users.find((u) => u.id === entry.updatedBy);
@@ -331,9 +333,11 @@ export default function ContentDetail() {
             <DetailField label="Slug" required={slugField?.required} localized={slugField?.localized}>
               <p className="text-sm text-gray-500">/{viewEntry.title?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}</p>
             </DetailField>
-            <DetailField label={bodyField?.label ?? "Body"} required={bodyField?.required} localized={bodyField?.localized}>
-              <RichTextView key={selectedVersionId ?? "current"} value={viewEntry.body} />
-            </DetailField>
+            {showBody && (
+              <DetailField label={bodyField?.label ?? "Body"} required={bodyField?.required} localized={bodyField?.localized}>
+                <RichTextView key={selectedVersionId ?? "current"} value={viewEntry.body} />
+              </DetailField>
+            )}
             {extraFields.map((f, i) => (
               <Fragment key={f.name}>
                 <GroupHeading group={f.group} prev={extraFields[i - 1]?.group} />
@@ -387,15 +391,17 @@ export default function ContentDetail() {
                 className="w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-500"
               />
             </DetailField>
-            <DetailField label={bodyField?.label ?? "Body"} required={bodyField?.required} localized={bodyField?.localized}>
-              <RichTextEditor
-                key={`${entry.id}-body`}
-                value={entry.body}
-                placeholder={t("Rich text content goes here…")}
-                onChange={(html) => update({ body: html })}
-                minHeight={220}
-              />
-            </DetailField>
+            {showBody && (
+              <DetailField label={bodyField?.label ?? "Body"} required={bodyField?.required} localized={bodyField?.localized}>
+                <RichTextEditor
+                  key={`${entry.id}-body`}
+                  value={entry.body}
+                  placeholder={t("Rich text content goes here…")}
+                  onChange={(html) => update({ body: html })}
+                  minHeight={220}
+                />
+              </DetailField>
+            )}
 
             {extraFields.map((f, i) => (
               <Fragment key={f.name}>
