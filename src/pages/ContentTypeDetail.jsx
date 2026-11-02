@@ -148,7 +148,7 @@ function ContentTypeEditor({ id }) {
                     overIndex === i && dragIndex !== null && dragIndex !== i ? "border-gray-800 ring-2 ring-gray-800" : "border-gray-300"
                   }`}
                 >
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-wrap items-end gap-2">
                     <span
                       draggable
                       title={t("Drag to reorder")}
@@ -163,39 +163,48 @@ function ContentTypeEditor({ id }) {
                     >
                       <GripVertical size={15} />
                     </span>
-                    <select
-                      value={f.type}
-                      onChange={(e) => {
-                        const nextType = e.target.value;
-                        updateField(i, {
-                          type: nextType,
-                          taxonomyId: nextType === "Taxonomy" ? (f.taxonomyId ?? taxonomies[0]?.id) : undefined,
-                        });
-                      }}
-                      className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm"
-                    >
-                      {FIELD_TYPE_LIST.map((ft) => (
-                        <option key={ft} value={ft}>{t(ft)}</option>
-                      ))}
-                    </select>
-                    {f.type === "Taxonomy" && (
+                    <div>
+                      <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">{t("Type")}</label>
                       <select
-                        value={f.taxonomyId ?? ""}
-                        onChange={(e) => updateField(i, { taxonomyId: e.target.value })}
-                        className="rounded-md border border-violet-200 bg-violet-50 px-2 py-1 text-sm text-violet-700"
+                        value={f.type}
+                        onChange={(e) => {
+                          const nextType = e.target.value;
+                          updateField(i, {
+                            type: nextType,
+                            taxonomyId: nextType === "Taxonomy" ? (f.taxonomyId ?? taxonomies[0]?.id) : undefined,
+                          });
+                        }}
+                        className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm"
                       >
-                        <option value="" disabled>{t("Choose taxonomy…")}</option>
-                        {taxonomies.map((tx) => (
-                          <option key={tx.id} value={tx.id}>{tx.name}</option>
+                        {FIELD_TYPE_LIST.map((ft) => (
+                          <option key={ft} value={ft}>{t(ft)}</option>
                         ))}
                       </select>
+                    </div>
+                    {f.type === "Taxonomy" && (
+                      <div>
+                        <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">{t("Taxonomy")}</label>
+                        <select
+                          value={f.taxonomyId ?? ""}
+                          onChange={(e) => updateField(i, { taxonomyId: e.target.value })}
+                          className="rounded-md border border-violet-200 bg-violet-50 px-2 py-1 text-sm text-violet-700"
+                        >
+                          <option value="" disabled>{t("Choose taxonomy…")}</option>
+                          {taxonomies.map((tx) => (
+                            <option key={tx.id} value={tx.id}>{tx.name}</option>
+                          ))}
+                        </select>
+                      </div>
                     )}
-                    <input
-                      value={f.label ?? f.name}
-                      onChange={(e) => updateField(i, { label: e.target.value })}
-                      aria-label={t("Label")}
-                      className="flex-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-sm"
-                    />
+                    <div className="min-w-0 flex-1">
+                      <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">{t("Name")}</label>
+                      <input
+                        value={f.label ?? f.name}
+                        onChange={(e) => updateField(i, { label: e.target.value })}
+                        aria-label={t("Label")}
+                        className="w-full rounded-md border border-gray-300 bg-white px-2 py-1 text-sm"
+                      />
+                    </div>
                     <button onClick={() => removeField(i)} className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-red-600">
                       <Trash2 size={14} />
                     </button>
