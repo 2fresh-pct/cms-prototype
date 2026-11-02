@@ -134,8 +134,8 @@ function ContentTypeEditor({ id }) {
           <div>
             <div className="mb-2 flex items-center justify-between">
               <label className="text-xs font-medium uppercase tracking-wide text-gray-400">{t("Fields")}</label>
-              <button onClick={addField} className="flex items-center gap-1 text-xs font-medium text-violet-600 hover:text-violet-700">
-                <Plus size={13} /> {t("Add field")}
+              <button onClick={addField} className="flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                <Plus size={14} /> {t("Add field")}
               </button>
             </div>
             <div className="space-y-2">
