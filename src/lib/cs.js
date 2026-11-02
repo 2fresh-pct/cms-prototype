@@ -246,6 +246,7 @@ export const CS = {
   "Sections": "Sekce",
   "ID": "ID",
   "Required": "Povinné",
+  "The type of a saved field can't be changed. Add a new field instead.": "Typ uloženého pole nelze změnit. Přidejte místo toho nové pole.",
   "Required in some cases": "Povinné v některých případech",
   "Localized": "Lokalizované",
   "Partly localized": "Částečně lokalizované",

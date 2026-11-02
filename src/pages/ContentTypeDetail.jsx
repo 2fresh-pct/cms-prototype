@@ -71,8 +71,17 @@ function ContentTypeEditor({ id }) {
     setDraft(type);
   }
 
+  // A field's type is only editable until the type is saved with it; after that
+  // existing entries hold values of that type. Names are also unique against the
+  // saved fields so a new field is never mistaken for a removed saved one.
+  const savedNames = new Set(type.fields.map((f) => f.name));
+  const typeLocked = (f) => savedNames.has(f.name);
+
   function addField() {
-    update({ fields: [...draft.fields, { name: `field${draft.fields.length + 1}`, label: "New field", type: "Text" }] });
+    const used = new Set([...savedNames, ...draft.fields.map((f) => f.name)]);
+    let n = draft.fields.length + 1;
+    while (used.has(`field${n}`)) n += 1;
+    update({ fields: [...draft.fields, { name: `field${n}`, label: "New field", type: "Text" }] });
   }
 
   function removeField(i) {
@@ -167,6 +176,8 @@ function ContentTypeEditor({ id }) {
                       <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">{t("Type")}</label>
                       <select
                         value={f.type}
+                        disabled={typeLocked(f)}
+                        title={typeLocked(f) ? t("The type of a saved field can't be changed. Add a new field instead.") : undefined}
                         onChange={(e) => {
                           const nextType = e.target.value;
                           updateField(i, {
@@ -174,7 +185,7 @@ function ContentTypeEditor({ id }) {
                             taxonomyId: nextType === "Taxonomy" ? (f.taxonomyId ?? taxonomies[0]?.id) : undefined,
                           });
                         }}
-                        className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm"
+                        className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
                       >
                         {FIELD_TYPE_LIST.map((ft) => (
                           <option key={ft} value={ft}>{t(ft)}</option>
