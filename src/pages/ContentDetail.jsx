@@ -288,7 +288,7 @@ export default function ContentDetail() {
   const viewAuthor = users.find((u) => u.id === viewEntry.updatedBy);
 
   return (
-    <div className="flex-1 overflow-y-auto p-6">
+    <div className="flex min-h-0 flex-1 flex-col p-6">
       <PageHeader
         crumbs={["Content", title || entry.title]}
         onBack={() => navigate(-1)}
@@ -321,9 +321,10 @@ export default function ContentDetail() {
         }
       />
 
-      <div className="flex gap-6">
+      {/* The content pane and the side panel scroll independently; the header stays put. */}
+      <div className="flex min-h-0 flex-1 gap-6">
         {historyMode ? (
-          <div className="flex-1 space-y-5 rounded-lg border border-gray-300 bg-white p-5">
+          <div className="min-h-0 flex-1 space-y-5 overflow-y-auto rounded-lg border border-gray-300 bg-white p-5">
             <div className="rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800 ring-1 ring-inset ring-amber-200">
               {selectedVersion
                 ? t("Viewing a read-only past version. Use Back to resume editing.")
@@ -377,7 +378,7 @@ export default function ContentDetail() {
             </DetailField>
           </div>
         ) : (
-          <div className="flex-1 space-y-5 rounded-lg border border-gray-300 bg-white p-5">
+          <div className="min-h-0 flex-1 space-y-5 overflow-y-auto rounded-lg border border-gray-300 bg-white p-5">
             <DetailField label={titleField?.label ?? "Title"} required={titleField?.required} localized={titleField?.localized}>
               <input
                 value={title}
@@ -423,7 +424,7 @@ export default function ContentDetail() {
         )}
 
         {historyMode ? (
-          <div className="w-80 shrink-0 space-y-3 rounded-lg border border-gray-300 bg-white p-6">
+          <div className="max-h-full w-80 shrink-0 space-y-3 self-start overflow-y-auto rounded-lg border border-gray-300 bg-white p-6">
             <button
               onClick={exitHistory}
               className="flex w-full items-center justify-center gap-1.5 rounded-md bg-gray-700 px-3 py-2.5 text-sm font-medium text-white hover:bg-gray-800"
@@ -474,7 +475,7 @@ export default function ContentDetail() {
             </div>
           </div>
         ) : (
-          <div className="w-80 shrink-0 space-y-6 rounded-lg border border-gray-300 bg-white p-6">
+          <div className="max-h-full w-80 shrink-0 space-y-6 self-start overflow-y-auto rounded-lg border border-gray-300 bg-white p-6">
             <DetailField label="Status">
               <select
                 value={displayStatus}
