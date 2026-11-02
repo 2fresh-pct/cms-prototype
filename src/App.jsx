@@ -27,7 +27,7 @@ export default function App() {
   return (
     <div className="flex h-screen flex-col bg-gray-50">
       <TopNav />
-      <main className="min-h-0 flex-1">
+      <main className="flex min-h-0 flex-1 flex-col">
         <Routes>
           <Route path="/" element={<Navigate to="/content" replace />} />
           <Route path="/content" element={<Content />} />

@@ -53,6 +53,8 @@ const Divider = () => <span className="mx-1 h-4 w-px bg-gray-300" />;
 
 // `onCommit` saves straight away: the link panel takes focus out of the editor,
 // so there may be no later blur to save an applied or removed link.
+// Stays in view while the editor scrolls under the page header; -top-6 cancels
+// the page content's p-6 so the bar sits flush with the top of the scroll area.
 function Toolbar({ editor, onCommit }) {
   const { t } = useI18n();
   const [linkOpen, setLinkOpen] = useState(false);
@@ -121,7 +123,7 @@ function Toolbar({ editor, onCommit }) {
   };
 
   return (
-    <div className="rounded-t-md border-b border-gray-300 bg-gray-50">
+    <div className="sticky -top-6 z-10 rounded-t-md border-b border-gray-300 bg-gray-50">
       <div className="flex flex-wrap items-center gap-0.5 px-1.5 py-1">
         <ToolButton label={t("Regular text")} active={s.paragraph} onClick={run((c) => c.setParagraph())}><Type size={14} /></ToolButton>
         <ToolButton label={t("Heading")} active={s.h2} onClick={run((c) => c.toggleHeading({ level: 2 }))}><Heading2 size={15} /></ToolButton>
