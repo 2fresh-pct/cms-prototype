@@ -7,6 +7,7 @@ import {
 } from "../lib/seed";
 import { Fragment } from "react";
 import FieldView, { isEmpty } from "../components/FieldView";
+import { holdsSeveral } from "../lib/media";
 import { Signal, Wifi, BatteryFull, ChevronLeft } from "lucide-react";
 
 function DraftBanner({ compact }) {
@@ -43,7 +44,7 @@ function EntryFields({ entry, type, ctx, compact }) {
             <h2 className={`border-t border-gray-200 pt-5 font-semibold text-gray-900 ${compact ? "text-base" : "text-xl"}`}>{t(f.group)}</h2>
           )}
           <div>
-            {f.type !== "Sections" && f.type !== "Media" && (
+            {f.type !== "Sections" && !(f.type === "Media" && !holdsSeveral(f)) && (
               <p className={`mb-1.5 font-medium uppercase tracking-wide text-gray-400 ${h}`}>{t(f.label ?? f.name)}</p>
             )}
             <FieldView field={f} value={entry.fieldValues?.[f.name]} ctx={ctx} compact={compact} />

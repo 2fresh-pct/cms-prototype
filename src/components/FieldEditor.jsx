@@ -5,6 +5,7 @@ import { flattenTerms } from "../lib/seed";
 import { htmlToText } from "../lib/richtext";
 import RichTextEditor from "./RichTextEditor";
 import MediaPicker from "./MediaPicker";
+import { holdsSeveral, mediaIds } from "../lib/media";
 
 const INPUT = "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none";
 const INPUT_SM = "rounded-md border border-gray-300 bg-white px-2 py-1.5 text-sm focus:border-violet-400 focus:outline-none";
@@ -184,10 +185,8 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
       return <input type="date" value={value ?? ""} onChange={(e) => onChange(e.target.value)} className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm" />;
 
     case "Media":
-      return <MediaPicker media={ctx.media} value={value} onChange={onChange} onUpload={ctx.uploadMedia} />;
-
     case "Media list":
-      return <MediaPicker media={ctx.media} value={value} onChange={onChange} onUpload={ctx.uploadMedia} multiple />;
+      return <MediaPicker media={ctx.media} value={value} onChange={onChange} onUpload={ctx.uploadMedia} multiple={holdsSeveral(field)} />;
 
     case "Reference": {
       const target = ctx.contentTypes.find((ct) => ct.name === field.targetName || ct.id === field.targetTypeId);
@@ -325,8 +324,8 @@ export function fieldValueText(f, value, ctx, tr) {
     }
     case "Rich text": return htmlToText(value) || empty;
     case "Boolean": return value ? tr("Yes") : tr("No");
-    case "Media": return ctx.media.find((m) => m.id === value)?.name ?? empty;
-    case "Media list": return value.map((id) => ctx.media.find((m) => m.id === id)?.name).filter(Boolean).join(", ") || empty;
+    case "Media":
+    case "Media list": return mediaIds(value).map((id) => ctx.media.find((m) => m.id === id)?.name).filter(Boolean).join(", ") || empty;
     case "Reference": return value.map((id) => ctx.entries.find((e) => e.id === id)?.title).filter(Boolean).join(", ") || empty;
     case "Select": return tr(value);
     case "Number": return f.unit ? `${value} ${tr(f.unit)}` : String(value);

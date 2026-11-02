@@ -4,6 +4,7 @@ import { flattenTerms } from "../lib/seed";
 import { RichTextView } from "./RichTextEditor";
 import { WEEKDAYS } from "./FieldEditor";
 import MediaThumb from "./MediaThumb";
+import { holdsSeveral, mediaIds } from "../lib/media";
 
 export const isEmpty = (v) =>
   v == null || v === "" || (Array.isArray(v) && v.filter((x) => x !== "" && x != null).length === 0) ||
@@ -47,16 +48,16 @@ export default function FieldView({ field: f, value, ctx, compact }) {
           ))}
         </div>
       );
-    case "Media": {
-      const item = ctx.media.find((m) => m.id === value);
-      return item ? <Image item={item} /> : null;
-    }
-    case "Media list":
+    case "Media":
+    case "Media list": {
+      const items = mediaIds(value).map((id) => ctx.media.find((m) => m.id === id)).filter(Boolean);
+      if (!holdsSeveral(f)) return items[0] ? <Image item={items[0]} /> : null;
       return (
         <div className={`grid gap-3 ${compact ? "grid-cols-1" : "grid-cols-2"}`}>
-          {value.map((id) => ctx.media.find((m) => m.id === id)).filter(Boolean).map((m) => <Image key={m.id} item={m} />)}
+          {items.map((m) => <Image key={m.id} item={m} />)}
         </div>
       );
+    }
     case "Taxonomy": {
       const tx = ctx.taxonomies.find((x) => x.id === f.taxonomyId);
       const flat = tx ? flattenTerms(tx.terms) : [];

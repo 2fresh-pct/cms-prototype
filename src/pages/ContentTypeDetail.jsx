@@ -187,7 +187,7 @@ function ContentTypeEditor({ id }) {
                         }}
                         className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
                       >
-                        {FIELD_TYPE_LIST.map((ft) => (
+                        {FIELD_TYPE_LIST.filter((ft) => ft !== "Media list" || f.type === "Media list").map((ft) => (
                           <option key={ft} value={ft}>{t(ft)}</option>
                         ))}
                       </select>
@@ -241,6 +241,17 @@ function ContentTypeEditor({ id }) {
                       />
                       {f.localized === "partly" ? t("Partly localized") : t("Localized")}
                     </label>
+                    {f.type === "Media" && (
+                      <label className="flex items-center gap-1.5">
+                        <input
+                          type="checkbox"
+                          checked={f.multiple === true}
+                          onChange={(e) => updateField(i, { multiple: e.target.checked })}
+                          className="h-3.5 w-3.5 rounded border-gray-300 accent-violet-600"
+                        />
+                        {t("Allow several files")}
+                      </label>
+                    )}
                     {f.type === "Taxonomy" && (
                       <label className="flex items-center gap-1.5">
                         <input

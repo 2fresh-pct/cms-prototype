@@ -256,6 +256,7 @@ export const CS = {
   "Required in some cases": "Povinné v některých případech",
   "Localized": "Lokalizované",
   "Partly localized": "Částečně lokalizované",
+  "Allow several files": "Povolit více souborů",
   "Allow several terms": "Povolit více pojmů",
   "Translated per language version": "Překládá se pro každou jazykovou verzi",
   "Partly translated per language version": "Částečně se překládá pro každou jazykovou verzi",

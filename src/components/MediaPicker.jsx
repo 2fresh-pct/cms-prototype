@@ -3,6 +3,7 @@ import { Check, GripVertical, ImagePlus, Upload, X } from "lucide-react";
 import { useI18n } from "../lib/i18n";
 import Modal from "./Modal";
 import MediaThumb from "./MediaThumb";
+import { mediaIds } from "../lib/media";
 
 const formatSize = (kb) => (kb > 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${kb} KB`);
 
@@ -140,7 +141,7 @@ export default function MediaPicker({ media, value, onChange, onUpload, multiple
   const [open, setOpen] = useState(false);
   const [dragId, setDragId] = useState(null);
   const [overId, setOverId] = useState(null);
-  const ids = multiple ? (value ?? []) : value ? [value] : [];
+  const ids = mediaIds(value);
   const byId = Object.fromEntries(media.map((m) => [m.id, m]));
 
   function confirm(next) {
