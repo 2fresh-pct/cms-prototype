@@ -181,6 +181,7 @@ export const CS = {
   "API keys": "API klíče",
   "Data": "Data",
   "Export data": "Exportovat data",
+  "You have unsaved changes in these settings.": "V těchto nastaveních máte neuložené změny.",
   "Unpublish": "Zrušit publikování",
   "Create new draft": "Vytvořit nový koncept",
   "Live version": "Živá verze",

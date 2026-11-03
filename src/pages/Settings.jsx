@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useBlocker } from "react-router-dom";
 import { ArrowRight, ArrowUp, ArrowDown, Trash2, Plus, Check, Lock, Smartphone, Globe, Radio, Tv, Mail, MessageSquare, Download, Upload } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n, UI_LANGUAGES } from "../lib/i18n";
@@ -7,6 +8,7 @@ import DataTable from "../components/DataTable";
 import Avatar from "../components/Avatar";
 import Modal from "../components/Modal";
 import { THEMES, getTheme, setTheme } from "../lib/theme";
+import SaveIndicator from "../components/SaveIndicator";
 import { isSharedKey, isSyncEnabled, markDirty, overwriteShared, sharedKeys } from "../lib/sync";
 
 const TABS = [
@@ -28,6 +30,67 @@ const API_KEYS = [
   { id: "k2", name: "Staging", prefix: "sk_test_91bd…", createdAt: "2026-05-14", lastUsed: "2026-08-09" },
   { id: "k3", name: "Local dev", prefix: "sk_test_02ee…", createdAt: "2026-07-30", lastUsed: "2026-08-12" },
 ];
+
+// Settings are edited as a draft and only stored when Save is pressed: nothing
+// autosaves. `useSettingsDraft` holds the draft for one stored value;
+// `SettingsForm` shows the title, the unsaved/saved indicator and the Save and
+// Discard buttons. The page-level guard (see Settings) asks before a tab switch,
+// navigation or closing the tab throws a draft away.
+const IDENTITY = (v) => v;
+
+function useSettingsDraft(key, initial, normalize = IDENTITY) {
+  const [raw, setRaw] = useLocalStorage(key, initial);
+  const saved = useMemo(() => normalize(raw), [raw, normalize]);
+  const [draft, setDraftState] = useState(saved);
+  const [justSaved, setJustSaved] = useState(false);
+  const dirty = JSON.stringify(draft) !== JSON.stringify(saved);
+
+  return {
+    draft,
+    setDraft: (next) => { setDraftState(next); setJustSaved(false); },
+    dirty,
+    justSaved,
+    // Written straight to storage too: saving from the leave dialog unmounts this
+    // page in the same step, before the storage hook's own effect would run.
+    save: () => {
+      localStorage.setItem(key, JSON.stringify(draft));
+      setRaw(draft);
+      markDirty();
+      setJustSaved(true);
+    },
+    discard: () => { setDraftState(saved); setJustSaved(false); },
+  };
+}
+
+function SettingsForm({ title, form, guardRef, children }) {
+  const { t } = useI18n();
+  guardRef.current = form;
+  return (
+    <>
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <h1 className="text-xl font-semibold text-gray-900">{t(title)}</h1>
+          <SaveIndicator status={form.dirty ? "unsaved" : form.justSaved ? "saved" : null} />
+        </div>
+        <div className="flex items-center gap-2">
+          {form.dirty && (
+            <button onClick={form.discard} className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100">
+              {t("Discard changes")}
+            </button>
+          )}
+          <button
+            onClick={form.save}
+            disabled={!form.dirty}
+            className="rounded-md bg-gray-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {t("Save")}
+          </button>
+        </div>
+      </div>
+      {children}
+    </>
+  );
+}
 
 // Miniature of each look, drawn with fixed colours so it doesn't follow the
 // active theme.
@@ -58,23 +121,22 @@ function ThemePreview({ id }) {
   );
 }
 
-// The look is remembered in this browser only; it applies at once.
-function ThemeChooser() {
+// The look is remembered in this browser only; chosen here, applied on Save.
+function ThemeChooser({ value, onChange }) {
   const { t } = useI18n();
-  const [theme, setThemeState] = useState(getTheme);
   return (
     <div>
       <label className="mb-1 block text-sm font-medium text-gray-700">{t("Theme")}</label>
       <div className="grid grid-cols-3 gap-3" role="radiogroup" aria-label={t("Theme")}>
         {THEMES.map((th) => {
-          const active = theme === th.id;
+          const active = value === th.id;
           return (
             <button
               key={th.id}
               type="button"
               role="radio"
               aria-checked={active}
-              onClick={() => { setTheme(th.id); setThemeState(th.id); }}
+              onClick={() => onChange(th.id)}
               className={`rounded-lg border bg-white p-2 text-left ${active ? "border-gray-700 ring-2 ring-gray-800" : "border-gray-300 hover:border-gray-400"}`}
             >
               <ThemePreview id={th.id} />
@@ -89,62 +151,81 @@ function ThemeChooser() {
   );
 }
 
-function GeneralPanel() {
+function GeneralPanel({ guardRef }) {
   const { t, lang, setLang } = useI18n();
-  const [name, setName] = useLocalStorage("cms.settings.workspaceName", "Cargo Workspace");
-  const [locale, setLocale] = useLocalStorage("cms.settings.defaultLocale", "en");
+  const [savedName, setSavedName] = useLocalStorage("cms.settings.workspaceName", "Cargo Workspace");
+  const [savedLocale, setSavedLocale] = useLocalStorage("cms.settings.defaultLocale", "en");
+  const savedTheme = getTheme();
+  const saved = { name: savedName, locale: savedLocale, lang, theme: savedTheme };
+  const [draft, setDraftState] = useState(saved);
+  const [justSaved, setJustSaved] = useState(false);
+  const dirty = JSON.stringify(draft) !== JSON.stringify(saved);
+  const set = (patch) => { setDraftState({ ...draft, ...patch }); setJustSaved(false); };
+
+  const form = {
+    dirty,
+    justSaved,
+    save: () => {
+      localStorage.setItem("cms.settings.workspaceName", JSON.stringify(draft.name));
+      localStorage.setItem("cms.settings.defaultLocale", JSON.stringify(draft.locale));
+      setSavedName(draft.name);
+      setSavedLocale(draft.locale);
+      markDirty();
+      // Only what was changed, so an untouched theme keeps following the default.
+      if (draft.lang !== saved.lang) setLang(draft.lang);
+      if (draft.theme !== saved.theme) setTheme(draft.theme);
+      setJustSaved(true);
+    },
+    discard: () => { setDraftState(saved); setJustSaved(false); },
+  };
 
   return (
-    <div className="max-w-2xl space-y-5">
-      <div>
-        <label className="mb-1 block text-sm font-medium text-gray-700">{t("Workspace name")}</label>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
-        />
+    <SettingsForm title="General" form={form} guardRef={guardRef}>
+      <div className="max-w-2xl space-y-5">
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700">{t("Workspace name")}</label>
+          <input
+            value={draft.name}
+            onChange={(e) => set({ name: e.target.value })}
+            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700">{t("Default locale")}</label>
+          <select
+            value={draft.locale}
+            onChange={(e) => set({ locale: e.target.value })}
+            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+          >
+            <option value="en">{t("English")} (en)</option>
+            <option value="cs">{t("Czech")} (cs)</option>
+            <option value="de">{t("German")} (de)</option>
+          </select>
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700">{t("Interface language")}</label>
+          <select
+            value={draft.lang}
+            onChange={(e) => set({ lang: e.target.value })}
+            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+          >
+            {UI_LANGUAGES.map((l) => (
+              <option key={l.id} value={l.id}>{l.label}</option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-gray-500">{t("The language of the CMS menus and labels. Content languages are set separately.")}</p>
+        </div>
+        <ThemeChooser value={draft.theme} onChange={(theme) => set({ theme })} />
       </div>
-      <div>
-        <label className="mb-1 block text-sm font-medium text-gray-700">{t("Default locale")}</label>
-        <select
-          value={locale}
-          onChange={(e) => setLocale(e.target.value)}
-          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
-        >
-          <option value="en">{t("English")} (en)</option>
-          <option value="cs">{t("Czech")} (cs)</option>
-          <option value="de">{t("German")} (de)</option>
-        </select>
-      </div>
-      <div>
-        <label className="mb-1 block text-sm font-medium text-gray-700">{t("Interface language")}</label>
-        <select
-          value={lang}
-          onChange={(e) => setLang(e.target.value)}
-          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
-        >
-          {UI_LANGUAGES.map((l) => (
-            <option key={l.id} value={l.id}>{l.label}</option>
-          ))}
-        </select>
-        <p className="mt-1 text-xs text-gray-500">{t("The language of the CMS menus and labels. Content languages are set separately.")}</p>
-      </div>
-      <ThemeChooser />
-      <button className="rounded-md bg-gray-600 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700">
-        {t("Save changes")}
-      </button>
-    </div>
+    </SettingsForm>
   );
 }
 
-function WorkflowPanel() {
+function WorkflowPanel({ guardRef }) {
   const { t } = useI18n();
-  const [rawSteps, setSteps] = useLocalStorage("cms.settings.workflowSteps", DEFAULT_WORKFLOW_STEPS);
-  const steps = useMemo(() => normalizeWorkflowSteps(rawSteps), [rawSteps]);
-
-  useEffect(() => {
-    if (rawSteps.some((s) => typeof s === "string" || !s.color)) setSteps(steps);
-  }, [rawSteps, steps]);
+  const form = useSettingsDraft("cms.settings.workflowSteps", DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps);
+  const steps = form.draft;
+  const setSteps = form.setDraft;
 
   function updateStep(i, patch) {
     setSteps(steps.map((s, idx) => (idx === i ? { ...s, ...patch } : s)));
@@ -175,6 +256,7 @@ function WorkflowPanel() {
   }
 
   return (
+    <SettingsForm title="Workflow" form={form} guardRef={guardRef}>
     <div className="max-w-lg">
       <p className="mb-4 text-sm text-gray-500">
         {t("Define the stages content moves through between Draft and Published, in order, with a color for each. Draft and Published are fixed; content reaches Published only through the Publish action.")}
@@ -259,17 +341,15 @@ function WorkflowPanel() {
         <Plus size={14} /> {t("Add step")}
       </button>
     </div>
+    </SettingsForm>
   );
 }
 
-function ChannelsPanel() {
+function ChannelsPanel({ guardRef }) {
   const { t } = useI18n();
-  const [rawChannels, setChannels] = useLocalStorage("cms.settings.channels", DEFAULT_CHANNELS);
-  const channels = useMemo(() => normalizeChannels(rawChannels), [rawChannels]);
-
-  useEffect(() => {
-    if (rawChannels.some((c) => !c.id || !c.color)) setChannels(channels);
-  }, [rawChannels, channels]);
+  const form = useSettingsDraft("cms.settings.channels", DEFAULT_CHANNELS, normalizeChannels);
+  const channels = form.draft;
+  const setChannels = form.setDraft;
 
   function updateChannel(i, patch) {
     setChannels(channels.map((c, idx) => (idx === i ? { ...c, ...patch } : c)));
@@ -301,6 +381,7 @@ function ChannelsPanel() {
   }
 
   return (
+    <SettingsForm title="Channels" form={form} guardRef={guardRef}>
     <div className="max-w-lg">
       <p className="mb-4 text-sm text-gray-500">
         {t("Define the channels a piece of content can publish to. Most content goes out on every channel; some is channel-specific.")}
@@ -400,14 +481,17 @@ function ChannelsPanel() {
         <Plus size={14} /> {t("Add channel")}
       </button>
     </div>
+    </SettingsForm>
   );
 }
 
-function UsersPanel() {
+function UsersPanel({ guardRef }) {
   const { t } = useI18n();
-  const [users, setUsers] = useLocalStorage("cms.settings.users", () =>
+  const form = useSettingsDraft("cms.settings.users", () =>
     seedUsers().map((u, i) => ({ ...u, role: ROLES[i % ROLES.length] }))
   );
+  const users = form.draft;
+  const setUsers = form.setDraft;
   const [selected, setSelected] = useState(new Set());
 
   function setRole(id, role) {
@@ -448,9 +532,11 @@ function UsersPanel() {
   ];
 
   return (
-    <div className="rounded-lg border border-gray-300 bg-white">
-      <DataTable columns={columns} rows={users} selected={selected} onSelectedChange={setSelected} />
-    </div>
+    <SettingsForm title="Users & roles" form={form} guardRef={guardRef}>
+      <div className="rounded-lg border border-gray-300 bg-white">
+        <DataTable columns={columns} rows={users} selected={selected} onSelectedChange={setSelected} />
+      </div>
+    </SettingsForm>
   );
 }
 
@@ -555,6 +641,40 @@ function ApiKeysPanel() {
 export default function Settings() {
   const { t } = useI18n();
   const [tab, setTab] = useState("general");
+  const [pendingTab, setPendingTab] = useState(null);
+  // The open form page reports its draft here (see SettingsForm), so tab
+  // switches, in-app navigation and closing the tab can ask before losing it.
+  const guardRef = useRef({ dirty: false });
+
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) => Boolean(guardRef.current?.dirty) && currentLocation.pathname !== nextLocation.pathname
+  );
+  useEffect(() => {
+    const warn = (e) => { if (guardRef.current?.dirty) { e.preventDefault(); e.returnValue = ""; } };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, []);
+
+  function goToTab(id) {
+    guardRef.current = { dirty: false };
+    setTab(id);
+  }
+  function selectTab(id) {
+    if (id === tab) return;
+    if (guardRef.current?.dirty) setPendingTab(id);
+    else goToTab(id);
+  }
+
+  const leaving = blocker.state === "blocked" || pendingTab !== null;
+  function keepEditing() {
+    blocker.reset?.();
+    setPendingTab(null);
+  }
+  function leave() {
+    if (pendingTab !== null) { const id = pendingTab; setPendingTab(null); goToTab(id); }
+    else blocker.proceed?.();
+  }
+  const title = TABS.find((tb) => tb.id === tab)?.label;
 
   return (
     <div className="flex h-full min-h-0">
@@ -564,7 +684,7 @@ export default function Settings() {
           {TABS.map((tb) => (
             <button
               key={tb.id}
-              onClick={() => setTab(tb.id)}
+              onClick={() => selectTab(tb.id)}
               className={`flex w-full items-center rounded-md px-2 py-1.5 text-left text-sm ${
                 tab === tb.id ? "bg-gray-200 font-medium text-gray-900" : "text-gray-700 hover:bg-gray-100"
               }`}
@@ -576,14 +696,41 @@ export default function Settings() {
       </aside>
 
       <div className="flex-1 overflow-y-auto p-6">
-        <h1 className="mb-4 text-xl font-semibold text-gray-900">{t(TABS.find((tb) => tb.id === tab)?.label)}</h1>
-        {tab === "general" && <GeneralPanel />}
-        {tab === "workflow" && <WorkflowPanel />}
-        {tab === "channels" && <ChannelsPanel />}
-        {tab === "users" && <UsersPanel />}
+        {tab === "general" && <GeneralPanel guardRef={guardRef} />}
+        {tab === "workflow" && <WorkflowPanel guardRef={guardRef} />}
+        {tab === "channels" && <ChannelsPanel guardRef={guardRef} />}
+        {tab === "users" && <UsersPanel guardRef={guardRef} />}
+        {(tab === "api" || tab === "data") && <h1 className="mb-4 text-xl font-semibold text-gray-900">{t(title)}</h1>}
         {tab === "api" && <ApiKeysPanel />}
         {tab === "data" && <DataPanel />}
       </div>
+
+      <Modal
+        open={leaving}
+        onClose={keepEditing}
+        title={t("Save your changes?")}
+        footer={
+          <>
+            <button onClick={keepEditing} className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100">
+              {t("Keep editing")}
+            </button>
+            <button
+              onClick={() => { guardRef.current?.discard?.(); leave(); }}
+              className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
+            >
+              {t("Discard changes")}
+            </button>
+            <button
+              onClick={() => { guardRef.current?.save?.(); leave(); }}
+              className="rounded-md bg-gray-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-800"
+            >
+              {t("Save changes")}
+            </button>
+          </>
+        }
+      >
+        {t("You have unsaved changes in these settings.")}
+      </Modal>
     </div>
   );
 }
