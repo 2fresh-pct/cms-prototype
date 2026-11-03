@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, ArrowUp, ArrowDown, Trash2, Plus, Check, Smartphone, Globe, Radio, Tv, Mail, MessageSquare, Download, Upload } from "lucide-react";
+import { ArrowRight, ArrowUp, ArrowDown, Trash2, Plus, Check, Lock, Smartphone, Globe, Radio, Tv, Mail, MessageSquare, Download, Upload } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n, UI_LANGUAGES } from "../lib/i18n";
 import { seedUsers, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, WORKFLOW_COLOR_PALETTE, DEFAULT_CHANNELS, normalizeChannels } from "../lib/seed";
@@ -150,27 +150,34 @@ function WorkflowPanel() {
     setSteps(steps.map((s, idx) => (idx === i ? { ...s, ...patch } : s)));
   }
 
+  // The first (Draft) and last (Published) steps are fixed; the steps between
+  // them can be edited, reordered among themselves and removed.
+  const lastIndex = steps.length - 1;
+  const isFixed = (i) => i === 0 || i === lastIndex;
+
   function moveStep(i, dir) {
     const j = i + dir;
-    if (j < 0 || j >= steps.length) return;
+    if (isFixed(i) || j < 1 || j >= lastIndex) return;
     const next = [...steps];
     [next[i], next[j]] = [next[j], next[i]];
     setSteps(next);
   }
 
   function removeStep(i) {
-    if (steps.length <= 1) return;
+    if (isFixed(i)) return;
     setSteps(steps.filter((_, idx) => idx !== i));
   }
 
+  // New steps go just before Published.
   function addStep() {
-    setSteps([...steps, { id: `step-${Date.now()}`, name: t("Step {n}", { n: steps.length + 1 }), color: WORKFLOW_COLOR_PALETTE[steps.length % WORKFLOW_COLOR_PALETTE.length] }]);
+    const step = { id: `step-${Date.now()}`, name: t("Step {n}", { n: steps.length }), color: WORKFLOW_COLOR_PALETTE[steps.length % WORKFLOW_COLOR_PALETTE.length] };
+    setSteps([...steps.slice(0, lastIndex), step, steps[lastIndex]]);
   }
 
   return (
     <div className="max-w-lg">
       <p className="mb-4 text-sm text-gray-500">
-        {t("Define the stages content moves through from draft to published, in order, with a color for each.")}
+        {t("Define the stages content moves through between Draft and Published, in order, with a color for each. Draft and Published are fixed; content reaches Published only through the Publish action.")}
       </p>
 
       <div className="mb-5 flex flex-wrap items-center gap-1.5">
@@ -188,7 +195,18 @@ function WorkflowPanel() {
       </div>
 
       <div className="space-y-2">
-        {steps.map((s, i) => (
+        {steps.map((s, i) => isFixed(i) ? (
+          <div key={s.id} className="flex items-center gap-2 rounded-md border border-gray-300 bg-gray-50 p-2">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-500">
+              {i + 1}
+            </span>
+            <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: s.color }} />
+            <span className="flex-1 text-sm font-medium text-gray-800">{t(s.name)}</span>
+            <span className="flex items-center gap-1 text-xs text-gray-400">
+              <Lock size={12} /> {i === 0 ? t("Always the first step") : t("Always the last step")}
+            </span>
+          </div>
+        ) : (
           <div key={s.id} className="space-y-2 rounded-md border border-gray-300 bg-white p-2">
             <div className="flex items-center gap-2">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-500">
@@ -201,21 +219,20 @@ function WorkflowPanel() {
               />
               <button
                 onClick={() => moveStep(i, -1)}
-                disabled={i === 0}
+                disabled={i <= 1}
                 className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30"
               >
                 <ArrowUp size={14} />
               </button>
               <button
                 onClick={() => moveStep(i, 1)}
-                disabled={i === steps.length - 1}
+                disabled={i >= lastIndex - 1}
                 className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30"
               >
                 <ArrowDown size={14} />
               </button>
               <button
                 onClick={() => removeStep(i)}
-                disabled={steps.length <= 1}
                 className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-red-600 disabled:opacity-30"
               >
                 <Trash2 size={14} />

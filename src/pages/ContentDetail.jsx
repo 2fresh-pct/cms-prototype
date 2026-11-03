@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Smartphone, Globe, Radio, Tv, Mail, MessageSquare, Clock, History, ArrowLeft, MessageCircle, X, Languages, Send } from "lucide-react";
+import { Smartphone, Globe, Radio, Tv, Mail, MessageSquare, Clock, History, ArrowLeft, MessageCircle, X, Languages, Send, FilePlus } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
 import {
@@ -10,7 +10,8 @@ import {
 } from "../lib/seed";
 import PageHeader from "../components/PageHeader";
 import DetailField from "../components/DetailField";
-import FieldEditor, { fieldValueText } from "../components/FieldEditor";
+import FieldEditor from "../components/FieldEditor";
+import FieldView, { isEmpty } from "../components/FieldView";
 import RichTextEditor, { RichTextView } from "../components/RichTextEditor";
 import StatusPill from "../components/StatusPill";
 import Avatar from "../components/Avatar";
@@ -98,6 +99,7 @@ export default function ContentDetail() {
   const [saveStatus, setSaveStatus] = useState("saved");
   const saveTimeoutRef = useRef(null);
   const [pendingPublish, setPendingPublish] = useState(false);
+  const [pendingUnpublish, setPendingUnpublish] = useState(false);
   const [publishMode, setPublishMode] = useState("now");
   const [scheduledAt, setScheduledAt] = useState("");
   const [pendingChannels, setPendingChannels] = useState([]);
@@ -141,13 +143,15 @@ export default function ContentDetail() {
 
   // Applies a patch to one entry and appends a history snapshot if anything
   // really changed. Pure, so several entries can be updated in one write.
-  function applyPatch(target, patch) {
-    const changeSummaries = Object.keys(patch)
-      .map((key) => describeChange(key, patch[key], target, { workflowSteps, channels, fields: contentTypes.find((c) => c.id === target.contentTypeId)?.fields ?? [] }))
-      .filter(Boolean);
+  function applyPatch(target, patch, summary) {
+    const changeSummaries = summary
+      ? [summary]
+      : Object.keys(patch)
+          .map((key) => describeChange(key, patch[key], target, { workflowSteps, channels, fields: contentTypes.find((c) => c.id === target.contentTypeId)?.fields ?? [] }))
+          .filter(Boolean);
 
     const merged = { ...target, ...patch };
-    const { history: _omit, ...snapshot } = merged;
+    const { history: _omit, live: _live, ...snapshot } = merged;
     const newHistoryEntry = changeSummaries.length > 0
       ? [{ id: `h${Date.now()}-${target.id}`, timestamp: new Date().toISOString(), userId: users[0]?.id, summary: changeSummaries.join(", "), snapshot }]
       : [];
@@ -155,6 +159,8 @@ export default function ContentDetail() {
   }
 
   function update(patch) {
+    // A published item has no editable instance: only comments can still change.
+    if (isPublished && Object.keys(patch).some((k) => k !== "comments")) return;
     setEntries(entries.map((e) => (e.id === id ? applyPatch(e, patch) : e)));
     setSaveStatus("saving");
     clearTimeout(saveTimeoutRef.current);
@@ -183,12 +189,38 @@ export default function ContentDetail() {
     setPendingChannels((prev) => (prev.includes(channelId) ? prev.filter((id) => id !== channelId) : [...prev, channelId]));
   }
 
+  // Draft and the steps in between can be picked here; Published is reached
+  // only through the Publish dialog.
   function handleStatusChange(value) {
-    if (value === publishStepId && value !== displayStatus) {
-      openPublishDialog();
-      return;
-    }
     update({ status: value });
+  }
+
+  function flashSaved() {
+    setSaveStatus("saving");
+    clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => setSaveStatus("saved"), 600);
+  }
+
+  // A published item can't be edited. "Create new draft" starts an editable
+  // draft at the first step (same content) while the published version stays
+  // live, kept as `live`; publishing the draft replaces it.
+  function createDraft() {
+    const { history: _h, live: _l, ...content } = entry;
+    setEntries(entries.map((e) =>
+      e.id === id
+        ? applyPatch(e, { status: workflowSteps[0]?.id, scheduledPublishAt: null, live: { ...content, publishedAt: entry.updatedAt } }, "New draft created; the published version stays live")
+        : e
+    ));
+    flashSaved();
+  }
+
+  // Takes the live version offline; a published item goes back to an editable
+  // draft, a draft that sits over a live version just loses that live version.
+  function confirmUnpublish() {
+    const patch = isPublished ? { status: workflowSteps[0]?.id, scheduledPublishAt: null, live: null } : { live: null };
+    setEntries(entries.map((e) => (e.id === id ? applyPatch(e, patch, "Unpublished") : e)));
+    flashSaved();
+    setPendingUnpublish(false);
   }
 
   // Each language version stays its own entry (own status, history, comments):
@@ -198,7 +230,7 @@ export default function ContentDetail() {
     const channelsValue = channels.every((c) => pendingChannels.includes(c.id)) ? ALL_CHANNELS : pendingChannels;
     const patch = publishMode === "schedule" && scheduledAt
       ? { scheduledPublishAt: new Date(scheduledAt).toISOString(), channels: channelsValue }
-      : { status: publishStepId, scheduledPublishAt: null, channels: channelsValue };
+      : { status: publishStepId, scheduledPublishAt: null, channels: channelsValue, live: null };
     setEntries(entries.map((e) => (pendingVersionIds.includes(e.id) ? applyPatch(e, patch) : e)));
     setSaveStatus("saving");
     clearTimeout(saveTimeoutRef.current);
@@ -265,10 +297,14 @@ export default function ContentDetail() {
   const bodyField = coreField("body") ?? type?.fields.find((f) => f.name === "body");
   const showBody = !type || Boolean(bodyField);
   const extraFields = (type?.fields ?? []).filter((f) => !f.core && !["title", "slug", "body"].includes(f.name));
-  const fieldCtx = { taxonomies, media, entries, contentTypes, workflowSteps, entryId: entry.id, locale: entry.locale, uploadMedia: mediaUpload.upload };
+  const fieldCtx = { taxonomies, media, entries, contentTypes, workflowSteps, publishStepId, entryId: entry.id, locale: entry.locale, uploadMedia: mediaUpload.upload };
   const author = users.find((u) => u.id === entry.updatedBy);
   const displayStatus = normalizeEntryStatus(entry.status, workflowSteps);
   const currentStep = workflowSteps.find((s) => s.id === displayStatus);
+  const publishedStep = workflowSteps[workflowSteps.length - 1];
+  const isPublished = displayStatus === publishStepId;
+  // Published content is shown read-only; so is any past version in history.
+  const readOnly = historyMode || isPublished;
   const publishedChannelIds = resolvePublishedChannelIds(entry.channels, channels);
   const entryIsAllChannels = isAllChannels(entry.channels);
 
@@ -309,7 +345,7 @@ export default function ContentDetail() {
               channels={channels}
               defaultChannelId={channels.find((c) => c.icon === "globe")?.id ?? channels[0]?.id}
             />
-            {!historyMode && (
+            {!readOnly && (
               <button
                 onClick={openPublishDialog}
                 className="flex items-center gap-1.5 rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700"
@@ -323,12 +359,14 @@ export default function ContentDetail() {
 
       {/* The content pane and the side panel scroll independently; the header stays put. */}
       <div className="flex min-h-0 flex-1 gap-6">
-        {historyMode ? (
+        {readOnly ? (
           <div className="min-h-0 flex-1 space-y-5 overflow-y-auto rounded-lg border border-gray-300 bg-white p-5">
             <div className="rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800 ring-1 ring-inset ring-amber-200">
-              {selectedVersion
-                ? t("Viewing a read-only past version. Use Back to resume editing.")
-                : t("Viewing a read-only snapshot of the current version. Use Back to resume editing.")}
+              {!historyMode
+                ? t("This item is published, so it can't be edited. Create a new draft to make changes; the published version stays live meanwhile.")
+                : selectedVersion
+                  ? t("Viewing a read-only past version. Use Back to resume editing.")
+                  : t("Viewing a read-only snapshot of the current version. Use Back to resume editing.")}
             </div>
             <DetailField label={titleField?.label ?? "Title"} required={titleField?.required} localized={titleField?.localized}>
               <p className="text-sm text-gray-900">{viewEntry.title}</p>
@@ -345,7 +383,9 @@ export default function ContentDetail() {
               <Fragment key={f.name}>
                 <GroupHeading group={f.group} prev={extraFields[i - 1]?.group} />
                 <DetailField label={f.label ?? f.name} required={f.required} localized={f.localized}>
-                  <p className="text-sm text-gray-700">{fieldValueText(f, viewEntry.fieldValues?.[f.name], fieldCtx, t)}</p>
+                  {isEmpty(viewEntry.fieldValues?.[f.name])
+                    ? <p className="text-sm text-gray-400">—</p>
+                    : <FieldView field={f} value={viewEntry.fieldValues?.[f.name]} ctx={fieldCtx} compact />}
                 </DetailField>
               </Fragment>
             ))}
@@ -480,18 +520,53 @@ export default function ContentDetail() {
         ) : (
           <div className="max-h-full w-80 shrink-0 space-y-6 self-start overflow-y-auto rounded-lg border border-gray-300 bg-white p-6">
             <DetailField label="Status">
-              <select
-                value={displayStatus}
-                onChange={(e) => handleStatusChange(e.target.value)}
-                className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm"
-              >
-                {workflowSteps.map((s) => (
-                  <option key={s.id} value={s.id}>{t(s.name)}</option>
-                ))}
-              </select>
-              <div className="mt-2">
-                <StatusPill status={currentStep?.name ?? entry.status} color={currentStep?.color} />
-              </div>
+              {isPublished ? (
+                <>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <StatusPill status={currentStep?.name ?? entry.status} color={currentStep?.color} />
+                    <button
+                      onClick={() => setPendingUnpublish(true)}
+                      className="rounded-md border border-gray-300 bg-white px-2.5 py-0.5 text-xs font-medium text-red-600 hover:bg-red-50"
+                    >
+                      {t("Unpublish")}
+                    </button>
+                  </div>
+                  <button
+                    onClick={createDraft}
+                    className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700"
+                  >
+                    <FilePlus size={14} /> {t("Create new draft")}
+                  </button>
+                  <p className="mt-2 text-xs text-gray-400">{t("Published content can't be changed. A new draft leaves this version live until you publish the draft.")}</p>
+                </>
+              ) : (
+                <>
+                  <select
+                    value={displayStatus}
+                    onChange={(e) => handleStatusChange(e.target.value)}
+                    className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm"
+                  >
+                    {workflowSteps.slice(0, -1).map((s) => (
+                      <option key={s.id} value={s.id}>{t(s.name)}</option>
+                    ))}
+                  </select>
+                  <div className="mt-2">
+                    <StatusPill status={currentStep?.name ?? entry.status} color={currentStep?.color} />
+                  </div>
+                  {entry.live && (
+                    <div className="mt-3 flex flex-wrap items-center gap-2 rounded-md bg-gray-50 px-2.5 py-2 ring-1 ring-inset ring-gray-200">
+                      <span className="text-xs text-gray-500">{t("Live version")}</span>
+                      <StatusPill status={publishedStep?.name ?? "Published"} color={publishedStep?.color} />
+                      <button
+                        onClick={() => setPendingUnpublish(true)}
+                        className="rounded-md border border-gray-300 bg-white px-2.5 py-0.5 text-xs font-medium text-red-600 hover:bg-red-50"
+                      >
+                        {t("Unpublish")}
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
               {entry.scheduledPublishAt && (
                 <p className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-gray-500">
                   <Clock size={12} />
@@ -689,6 +764,26 @@ export default function ContentDetail() {
             );
           })}
         </div>
+      </Modal>
+
+      <Modal
+        open={pendingUnpublish}
+        onClose={() => setPendingUnpublish(false)}
+        title={t('Unpublish "{title}"?', { title: entry.title })}
+        footer={
+          <>
+            <button onClick={() => setPendingUnpublish(false)} className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100">
+              {t("Cancel")}
+            </button>
+            <button onClick={confirmUnpublish} className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50">
+              {t("Unpublish")}
+            </button>
+          </>
+        }
+      >
+        {isPublished
+          ? t("The published version goes offline and the item becomes an editable draft again.")
+          : t("The published version goes offline. The draft you are working on is kept.")}
       </Modal>
 
       <Modal

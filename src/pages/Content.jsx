@@ -34,6 +34,7 @@ export default function Content() {
   const channelsById = useMemo(() => Object.fromEntries(channels.map((c) => [c.id, c])), [channels]);
   const users = useMemo(() => seedUsers(), []);
   const usersById = useMemo(() => Object.fromEntries(users.map((u) => [u.id, u])), [users]);
+  const publishStepId = workflowSteps[workflowSteps.length - 1]?.id;
   const typesById = useMemo(() => Object.fromEntries(contentTypes.map((t) => [t.id, t])), [contentTypes]);
 
   // Self-heal entries whose status predates the Workflow feature (or names a
@@ -160,13 +161,13 @@ export default function Content() {
 
   function withHistory(entry, patch, summary) {
     const merged = { ...entry, ...patch, updatedAt: new Date().toISOString(), updatedBy: users[0]?.id };
-    const { history: _omit, ...snapshot } = merged;
+    const { history: _omit, live: _live, ...snapshot } = merged;
     return { ...merged, history: [...(entry.history ?? []), { id: `h${Date.now()}-${entry.id}`, timestamp: merged.updatedAt, userId: users[0]?.id, summary, snapshot }] };
   }
 
   function changeStatusOfSelected(step) {
     setEntries(entries.map((e) =>
-      selected.has(e.id) && e.status !== step.id
+      selected.has(e.id) && e.status !== step.id && e.status !== publishStepId
         ? withHistory(e, { status: step.id }, `Status changed to "${step.name}"`)
         : e
     ));
@@ -178,7 +179,7 @@ export default function Content() {
     const stamp = Date.now();
     const copies = entries.filter((e) => selected.has(e.id)).map((e, i) => {
       const id = `e${stamp}-${i}`;
-      const { history: _h, comments: _c, scheduledPublishAt: _s, ...rest } = e;
+      const { history: _h, comments: _c, scheduledPublishAt: _s, live: _l, ...rest } = e;
       const copy = { ...rest, id, groupId: id, title: `${e.title} (${t("copy")})`, status: workflowSteps[0]?.id, updatedAt: new Date().toISOString(), updatedBy: users[0]?.id };
       return { ...copy, history: [{ id: `h${stamp}-${i}`, timestamp: copy.updatedAt, userId: users[0]?.id, summary: "Entry created", snapshot: copy }] };
     });
@@ -193,7 +194,7 @@ export default function Content() {
 
   const bulkActions = [
     { heading: "Change status" },
-    ...workflowSteps.map((step) => ({ label: step.name, noTranslate: true, color: step.color, onSelect: () => changeStatusOfSelected(step) })),
+    ...workflowSteps.slice(0, -1).map((step) => ({ label: step.name, noTranslate: true, color: step.color, onSelect: () => changeStatusOfSelected(step) })),
     { heading: "More" },
     { label: "Duplicate", icon: Copy, onSelect: duplicateSelected },
     {
@@ -250,7 +251,14 @@ export default function Content() {
       sortValue: (r) => r.status,
       render: (r) => {
         const step = workflowSteps.find((s) => s.id === r.status);
-        return <StatusPill status={step?.name ?? r.status} color={step?.color} />;
+        // An item with a newer draft over a live version shows both.
+        const liveStep = r.live && r.status !== publishStepId ? workflowSteps[workflowSteps.length - 1] : null;
+        return (
+          <span className="inline-flex flex-wrap items-center gap-1.5">
+            <StatusPill status={step?.name ?? r.status} color={step?.color} />
+            {liveStep && <StatusPill status={liveStep.name} color={liveStep.color} />}
+          </span>
+        );
       },
     },
     {

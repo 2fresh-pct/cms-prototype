@@ -32,7 +32,7 @@ const WORKFLOW_COLORS = [
 ];
 
 const WORKFLOW_STEPS = [
-  { id: "wf1", name: "Draft", color: WORKFLOW_COLORS[0] },
+  { id: "wf1", name: "Draft", color: WORKFLOW_COLORS[1] },
   { id: "wf2", name: "Copywriting", color: WORKFLOW_COLORS[3] },
   { id: "wf3", name: "Media", color: WORKFLOW_COLORS[6] },
   { id: "wf4", name: "Review 1", color: WORKFLOW_COLORS[8] },
@@ -41,12 +41,27 @@ const WORKFLOW_STEPS = [
   { id: "wf7", name: "Published", color: WORKFLOW_COLORS[4] },
 ];
 
+// The first step is always the red "Draft" and the last always the green
+// "Published": they can't be renamed, recoloured, moved or removed, and are
+// forced here whatever is stored. Only the steps between them are editable.
+// An item moves from Draft through those steps and reaches Published only via
+// the Publish action.
+export const DRAFT_COLOR = WORKFLOW_COLORS[1]; // red
+export const PUBLISHED_COLOR = WORKFLOW_COLORS[4]; // green
+
 export function normalizeWorkflowSteps(steps) {
-  if (!Array.isArray(steps) || steps.length === 0) return WORKFLOW_STEPS;
-  return steps.map((s, i) =>
+  const source = !Array.isArray(steps) || steps.length === 0 ? WORKFLOW_STEPS : steps;
+  let list = source.map((s, i) =>
     typeof s === "string"
       ? { id: `step-${i}`, name: s, color: WORKFLOW_COLORS[i % WORKFLOW_COLORS.length] }
       : { id: s.id ?? `step-${i}`, name: s.name, color: s.color ?? WORKFLOW_COLORS[i % WORKFLOW_COLORS.length] }
+  );
+  if (list.length < 2) list = [...list, WORKFLOW_STEPS[WORKFLOW_STEPS.length - 1]];
+  const last = list.length - 1;
+  return list.map((s, i) =>
+    i === 0 ? { ...s, name: "Draft", color: DRAFT_COLOR }
+    : i === last ? { ...s, name: "Published", color: PUBLISHED_COLOR }
+    : s
   );
 }
 
