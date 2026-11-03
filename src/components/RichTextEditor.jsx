@@ -58,7 +58,7 @@ const Divider = () => <span className="mx-1 h-4 w-px bg-gray-300" />;
 // so there may be no later blur to save an applied or removed link.
 // Stays in view while the content pane scrolls; -top-5 cancels the pane's p-5
 // so the bar sits flush with the top of the scroll area.
-function Toolbar({ editor, onCommit, media, onUpload }) {
+function Toolbar({ editor, onCommit, media, onUpload, locale }) {
   const { t } = useI18n();
   const [linkOpen, setLinkOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
@@ -122,13 +122,14 @@ function Toolbar({ editor, onCommit, media, onUpload }) {
     onCommit();
   }
 
-  // The picked library item is inserted by reference; its name is a starting
-  // point for the alt text, which can be edited once the image is selected.
+  // The picked library item is inserted by reference. Its alt text in the
+  // entry's language (set on the media detail page) is the starting point, else
+  // the file name; either can be edited once the image is selected.
   function insertImage(ids) {
     setImageOpen(false);
     const item = media.find((m) => m.id === ids[0]);
     if (!item) return;
-    const alt = item.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
+    const alt = item.alt?.[locale] || item.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
     editor.chain().focus().insertContent({ type: "mediaImage", attrs: { mediaId: item.id, alt } }).run();
     onCommit();
   }
@@ -240,7 +241,7 @@ function Toolbar({ editor, onCommit, media, onUpload }) {
 
 // Writes back when focus leaves the editor (like the other fields), and only
 // if the content really changed, so merely clicking in doesn't create history.
-export default function RichTextEditor({ value, onChange, placeholder, minHeight = 160, media, onUpload }) {
+export default function RichTextEditor({ value, onChange, placeholder, minHeight = 160, media, onUpload, locale }) {
   const baseline = useRef(null);
   const mediaRef = useRef(media ?? []);
   mediaRef.current = media ?? [];
@@ -265,7 +266,7 @@ export default function RichTextEditor({ value, onChange, placeholder, minHeight
   if (!editor) return null;
   return (
     <div className="rounded-md border border-gray-300 bg-white focus-within:border-violet-400">
-      <Toolbar editor={editor} onCommit={() => commit(editor)} media={media} onUpload={onUpload} />
+      <Toolbar editor={editor} onCommit={() => commit(editor)} media={media} onUpload={onUpload} locale={locale} />
       <EditorContent editor={editor} style={{ minHeight }} className="px-3 py-2 text-sm text-gray-800" />
     </div>
   );

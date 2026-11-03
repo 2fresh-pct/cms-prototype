@@ -10,6 +10,7 @@ import ContentTypeDetail from "./pages/ContentTypeDetail";
 import Taxonomies from "./pages/Taxonomies";
 import TaxonomyDetail from "./pages/TaxonomyDetail";
 import Media from "./pages/Media";
+import MediaDetail from "./pages/MediaDetail";
 import Settings from "./pages/Settings";
 import Preview from "./pages/Preview";
 
@@ -41,6 +42,7 @@ export default function App() {
           <Route path="/taxonomies" element={<Taxonomies />} />
           <Route path="/taxonomies/:id" element={<TaxonomyDetail />} />
           <Route path="/media" element={<Media />} />
+          <Route path="/media/:id" element={<MediaDetail />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </main>

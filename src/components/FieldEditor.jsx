@@ -142,7 +142,7 @@ function OpeningHours({ value, onChange }) {
 }
 
 // `ctx` carries what editors need from the rest of the CMS:
-// { taxonomies, media, entries, contentTypes, workflowSteps, entryId, uploadMedia }
+// { taxonomies, media, entries, contentTypes, workflowSteps, entryId, locale, uploadMedia }
 export default function FieldEditor({ field, value, onChange, ctx }) {
   const { t } = useI18n();
 
@@ -154,7 +154,7 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
       return <textarea rows={2} defaultValue={value ?? ""} onBlur={(e) => onChange(e.target.value)} className={`${INPUT} resize-none`} />;
 
     case "Rich text":
-      return <RichTextEditor value={value} onChange={onChange} minHeight={110} media={ctx.media} onUpload={ctx.uploadMedia} />;
+      return <RichTextEditor value={value} onChange={onChange} minHeight={110} media={ctx.media} onUpload={ctx.uploadMedia} locale={ctx.locale} />;
 
     case "Number":
       return (

@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Upload, List, LayoutGrid, Trash2, X } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
@@ -20,6 +21,7 @@ function formatSize(kb) {
 }
 
 export default function Media() {
+  const navigate = useNavigate();
   const { t, dateLocale } = useI18n();
   const [media, setMedia] = useLocalStorage("cms.media", seedMedia);
   const [search, setSearch] = useState("");
@@ -70,7 +72,7 @@ export default function Media() {
       sortValue: (r) => r.name,
       render: (r) => (
         <span className="inline-flex items-center gap-2.5">
-          <MediaThumb item={r} className="block h-8 w-8 border border-gray-300" />
+          <MediaThumb item={r} className="block h-16 w-16 shrink-0 rounded border border-gray-300" />
           <span className="font-medium text-gray-900">{r.name}</span>
         </span>
       ),
@@ -152,7 +154,7 @@ export default function Media() {
 
       {view === "list" ? (
         <div className="rounded-lg border border-gray-300 bg-white">
-          <DataTable columns={columns} rows={filtered} selected={selected} onSelectedChange={setSelected} defaultSort={{ key: "updatedAt", dir: "desc" }} />
+          <DataTable columns={columns} rows={filtered} selected={selected} onSelectedChange={setSelected} onRowClick={(row) => navigate(`/media/${row.id}`)} defaultSort={{ key: "updatedAt", dir: "desc" }} />
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
@@ -161,7 +163,11 @@ export default function Media() {
             return (
               <div
                 key={r.id}
-                className="group overflow-hidden rounded-lg border border-gray-300 bg-white hover:border-gray-400 hover:shadow-sm"
+                role="link"
+                tabIndex={0}
+                onClick={() => navigate(`/media/${r.id}`)}
+                onKeyDown={(e) => { if (e.key === "Enter") navigate(`/media/${r.id}`); }}
+                className="group cursor-pointer overflow-hidden rounded-lg border border-gray-300 bg-white hover:border-gray-400 hover:shadow-sm"
               >
                 <MediaThumb item={r} className="aspect-square w-full border-b border-gray-300" />
                 <div className="p-2.5">
