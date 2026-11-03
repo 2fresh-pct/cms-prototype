@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate, useBlocker } from "react-router-dom";
 import { GripVertical, Plus, Trash2 } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
@@ -8,6 +8,8 @@ import { TYPE_ICON_KEYS, typeIcon } from "../lib/typeIcons";
 import PageHeader from "../components/PageHeader";
 import DetailField from "../components/DetailField";
 import Modal from "../components/Modal";
+import GroupTabs from "../components/GroupTabs";
+import { GENERAL, groupsOf } from "../lib/groups";
 
 export default function ContentTypeDetail() {
   const { id } = useParams();
@@ -26,12 +28,17 @@ function ContentTypeEditor({ id }) {
 
   const type = contentTypes.find((ct) => ct.id === id);
   const entryCount = entries.filter((e) => e.contentTypeId === id).length;
-  const [draft, setDraft] = useState(type);
+  // Types saved before groups were listed explicitly get them from their fields,
+  // so opening one doesn't count as a change.
+  const baseline = useMemo(() => (type ? { ...type, groups: groupsOf(type) } : undefined), [type]);
+  const [draft, setDraft] = useState(baseline);
   const [justSaved, setJustSaved] = useState(false);
+  const [activeGroup, setActiveGroup] = useState(GENERAL);
+  const [focusGroupName, setFocusGroupName] = useState(false);
   const [dragIndex, setDragIndex] = useState(null);
   const [overIndex, setOverIndex] = useState(null);
 
-  const dirty = Boolean(type) && JSON.stringify(draft) !== JSON.stringify(type);
+  const dirty = Boolean(type) && JSON.stringify(draft) !== JSON.stringify(baseline);
   const blocker = useBlocker(dirty);
 
   // Closing or reloading the tab with unsaved changes asks first, too.
@@ -70,7 +77,7 @@ function ContentTypeEditor({ id }) {
   }
 
   function discard() {
-    setDraft(type);
+    setDraft(baseline);
   }
 
   // A field's type is only editable until the type is saved with it; after that
@@ -83,7 +90,7 @@ function ContentTypeEditor({ id }) {
     const used = new Set([...savedNames, ...draft.fields.map((f) => f.name)]);
     let n = draft.fields.length + 1;
     while (used.has(`field${n}`)) n += 1;
-    update({ fields: [...draft.fields, { name: `field${n}`, label: "New field", type: "Text" }] });
+    update({ fields: [...draft.fields, { name: `field${n}`, label: "New field", type: "Text", group: activeName }] });
   }
 
   function removeField(i) {
@@ -105,6 +112,50 @@ function ContentTypeEditor({ id }) {
 
   function updateField(i, patch) {
     update({ fields: draft.fields.map((f, idx) => (idx === i ? { ...f, ...patch } : f)) });
+  }
+
+  // Groups are the tabs fields sit under (see lib/groups). A field with no group
+  // is in "General", which is not a real group and so can't be renamed or deleted.
+  const groups = draft.groups ?? [];
+  const hasGeneral = draft.fields.some((f) => !f.group || !groups.includes(f.group));
+  const tabIds = [...(hasGeneral || groups.length === 0 ? [GENERAL] : []), ...groups];
+  const activeId = tabIds.includes(activeGroup) ? activeGroup : tabIds[0];
+  const activeName = activeId === GENERAL ? null : activeId;
+  const inActive = (f) => (activeName === null ? !f.group || !groups.includes(f.group) : f.group === activeName);
+
+  function addGroup() {
+    let name = t("New group");
+    for (let n = 2; groups.includes(name); n += 1) name = `${t("New group")} ${n}`;
+    update({ groups: [...groups, name] });
+    setActiveGroup(name);
+    setFocusGroupName(true);
+  }
+
+  // Renaming keeps the group's fields in it; an empty or taken name is refused.
+  function renameGroup(from, to) {
+    const name = to.trim();
+    if (!name || name === from || groups.includes(name)) return false;
+    update({
+      groups: groups.map((g) => (g === from ? name : g)),
+      fields: draft.fields.map((f) => (f.group === from ? { ...f, group: name } : f)),
+    });
+    setActiveGroup(name);
+    return true;
+  }
+
+  // Deleting a group never deletes its fields: they go back to General.
+  function deleteGroup(name) {
+    update({
+      groups: groups.filter((g) => g !== name),
+      fields: draft.fields.map((f) => (f.group === name ? { ...f, group: null } : f)),
+    });
+    setActiveGroup(GENERAL);
+  }
+
+  function moveGroup(from, to) {
+    const next = groups.filter((g) => g !== from);
+    next.splice(next.indexOf(to) + (groups.indexOf(from) < groups.indexOf(to) ? 1 : 0), 0, from);
+    update({ groups: next });
   }
 
   
@@ -149,8 +200,44 @@ function ContentTypeEditor({ id }) {
                 <Plus size={14} /> {t("Add field")}
               </button>
             </div>
+            <div className="mb-3">
+              <GroupTabs
+                tabs={tabIds.map((id) => ({ id, label: id === GENERAL ? "General" : id }))}
+                active={activeId}
+                onSelect={setActiveGroup}
+                onMove={moveGroup}
+                fixedId={GENERAL}
+                trailing={
+                  <button onClick={addGroup} className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100">
+                    <Plus size={13} /> {t("Add group")}
+                  </button>
+                }
+              />
+              {activeName !== null && (
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <label className="text-xs text-gray-400" htmlFor="group-name">{t("Group name")}</label>
+                  <input
+                    id="group-name"
+                    key={activeName}
+                    defaultValue={activeName}
+                    autoFocus={focusGroupName}
+                    onFocus={(e) => { if (focusGroupName) { e.target.select(); setFocusGroupName(false); } }}
+                    onBlur={(e) => { if (!renameGroup(activeName, e.target.value)) e.target.value = activeName; }}
+                    onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+                    className="w-48 rounded-md border border-gray-300 bg-white px-2 py-1 text-sm focus:border-violet-400 focus:outline-none"
+                  />
+                  <button
+                    onClick={() => deleteGroup(activeName)}
+                    className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-red-600"
+                  >
+                    <Trash2 size={13} /> {t("Delete group")}
+                  </button>
+                  <span className="text-xs text-gray-400">{t("Its fields move to General.")}</span>
+                </div>
+              )}
+            </div>
             <div className="space-y-2">
-              {draft.fields.map((f, i) => (
+              {draft.fields.map((f, i) => !inActive(f) ? null : (
                 <div
                   key={i}
                   onDragOver={(e) => { if (dragIndex !== null) { e.preventDefault(); if (overIndex !== i) setOverIndex(i); } }}
@@ -247,7 +334,17 @@ function ContentTypeEditor({ id }) {
                   )}
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
                     <code className="rounded bg-gray-100 px-1.5 py-0.5 text-gray-600">{f.name}</code>
-                    {f.group && <span>{t(f.group)}</span>}
+                    <label className="flex items-center gap-1.5">
+                      {t("Group")}
+                      <select
+                        value={f.group && groups.includes(f.group) ? f.group : ""}
+                        onChange={(e) => updateField(i, { group: e.target.value || null })}
+                        className="rounded border border-gray-300 bg-white px-1.5 py-0.5 text-xs text-gray-700"
+                      >
+                        <option value="">{t("General")}</option>
+                        {groups.map((g) => <option key={g} value={g}>{t(g)}</option>)}
+                      </select>
+                    </label>
                     <label className="flex items-center gap-1.5">
                       <input
                         type="checkbox"
@@ -291,8 +388,8 @@ function ContentTypeEditor({ id }) {
                   </div>
                 </div>
               ))}
-              {draft.fields.length === 0 && (
-                <p className="py-4 text-center text-sm text-gray-400">{t("No fields yet.")}</p>
+              {!draft.fields.some(inActive) && (
+                <p className="py-4 text-center text-sm text-gray-400">{activeName === null ? t("No fields yet.") : t("No fields in this group yet.")}</p>
               )}
             </div>
           </div>

@@ -16,6 +16,8 @@ import RichTextEditor, { RichTextView } from "../components/RichTextEditor";
 import StatusPill from "../components/StatusPill";
 import Avatar from "../components/Avatar";
 import Modal from "../components/Modal";
+import GroupTabs from "../components/GroupTabs";
+import { GENERAL, sectionsOf } from "../lib/groups";
 import PreviewButton from "../components/PreviewButton";
 import { useMediaUpload } from "../lib/mediaUpload";
 
@@ -108,6 +110,7 @@ export default function ContentDetail() {
   const [selectedVersionId, setSelectedVersionId] = useState(null); // null = current live version
   const [commentDraft, setCommentDraft] = useState("");
   const [langDialogOpen, setLangDialogOpen] = useState(false);
+  const [activeGroup, setActiveGroup] = useState(GENERAL);
 
   useEffect(() => () => clearTimeout(saveTimeoutRef.current), []);
 
@@ -297,6 +300,14 @@ export default function ContentDetail() {
   const bodyField = coreField("body") ?? type?.fields.find((f) => f.name === "body");
   const showBody = !type || Boolean(bodyField);
   const extraFields = (type?.fields ?? []).filter((f) => !f.core && !["title", "slug", "body"].includes(f.name));
+  // Fields outside the title / slug / body slots are shown in tabs, one per group.
+  const sections = sectionsOf(type, extraFields);
+  const activeSection = sections.find((s) => (s.name ?? GENERAL) === activeGroup) ?? sections[0];
+  const visibleFields = sections.length > 1 ? activeSection.fields : extraFields;
+  const groupTabs = sections.length > 1 && (
+    <GroupTabs tabs={sections.map((s) => ({ id: s.name ?? GENERAL, label: s.name ?? "General" }))} active={activeSection.name ?? GENERAL} onSelect={setActiveGroup} />
+  );
+  const singleGroupHeading = sections.length === 1 && sections[0].name ? <GroupHeading group={sections[0].name} /> : null;
   const fieldCtx = { taxonomies, media, entries, contentTypes, workflowSteps, publishStepId, entryId: entry.id, locale: entry.locale, uploadMedia: mediaUpload.upload };
   const author = users.find((u) => u.id === entry.updatedBy);
   const displayStatus = normalizeEntryStatus(entry.status, workflowSteps);
@@ -389,9 +400,10 @@ export default function ContentDetail() {
                 <RichTextView key={selectedVersionId ?? "current"} value={viewEntry.body} media={media} />
               </DetailField>
             )}
-            {extraFields.map((f, i) => (
+            {groupTabs}
+            {singleGroupHeading}
+            {visibleFields.map((f) => (
               <Fragment key={f.name}>
-                <GroupHeading group={f.group} prev={extraFields[i - 1]?.group} />
                 <DetailField label={f.label ?? f.name} required={f.required} localized={f.localized}>
                   {isEmpty(viewEntry.fieldValues?.[f.name])
                     ? <p className="text-sm text-gray-400">—</p>
@@ -459,9 +471,10 @@ export default function ContentDetail() {
               </DetailField>
             )}
 
-            {extraFields.map((f, i) => (
+            {groupTabs}
+            {singleGroupHeading}
+            {visibleFields.map((f) => (
               <Fragment key={f.name}>
-                <GroupHeading group={f.group} prev={extraFields[i - 1]?.group} />
                 <DetailField label={f.label ?? f.name} required={f.required} localized={f.localized}>
                   <FieldEditor
                     key={`${entry.id}-${f.name}`}
