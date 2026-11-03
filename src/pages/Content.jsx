@@ -8,6 +8,7 @@ import { seedEntries, seedContentTypes, seedUsers, LOCALE_LIST, LOCALE_LABELS, L
 import Sidebar from "../components/Sidebar";
 import DataTable from "../components/DataTable";
 import BulkActionsMenu from "../components/BulkActionsMenu";
+import Modal from "../components/Modal";
 import StatusPill from "../components/StatusPill";
 import Avatar from "../components/Avatar";
 import { FilterBar } from "../components/FilterBar";
@@ -118,8 +119,15 @@ export default function Content() {
     return true;
   });
 
+  // The type picked in the sidebar (if any) is preselected.
+  function openCreate() {
+    setDraftTitle("");
+    setDraftType(filter.typeId ?? contentTypes[0]?.id);
+    setAdding(true);
+  }
+
   function addEntry() {
-    if (!draftTitle.trim()) return;
+    if (!draftTitle.trim() || !draftType) return;
     const id = `e${Date.now()}`;
     const newEntry = {
       id,
@@ -141,6 +149,7 @@ export default function Content() {
     ]);
     setDraftTitle("");
     setAdding(false);
+    navigate(`/content/${id}`);
   }
 
   const selectedIds = [...selected];
@@ -340,7 +349,7 @@ export default function Content() {
               <ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
             </div>
             <button
-              onClick={() => setAdding((v) => !v)}
+              onClick={openCreate}
               className="flex items-center gap-1.5 rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700"
             >
               <Plus size={15} /> {t("Create new")}
@@ -361,33 +370,60 @@ export default function Content() {
           />
         </div>
 
-        {adding && (
-          <div className="mb-4 flex items-center gap-2 rounded-lg border border-gray-300 bg-white p-3">
-            <input
-              autoFocus
-              value={draftTitle}
-              onChange={(e) => setDraftTitle(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && addEntry()}
-              placeholder={t("Entry title…")}
-              className="flex-1 rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm focus:border-violet-400 focus:outline-none"
-            />
-            <select
-              value={draftType}
-              onChange={(e) => setDraftType(e.target.value)}
-              className="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm"
-            >
-              {contentTypes.map((ct) => (
-                <option key={ct.id} value={ct.id}>{t(ct.name)}</option>
-              ))}
-            </select>
-            <button onClick={addEntry} className="rounded-md bg-gray-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700">
-              {t("Create")}
-            </button>
-            <button onClick={() => setAdding(false)} className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100">
-              {t("Cancel")}
-            </button>
+        <Modal
+          open={adding}
+          onClose={() => setAdding(false)}
+          title={t("New content item")}
+          maxWidth="max-w-md"
+          footer={
+            <>
+              <button onClick={() => setAdding(false)} className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100">{t("Cancel")}</button>
+              <button
+                onClick={addEntry}
+                disabled={!draftTitle.trim() || !draftType}
+                className="rounded-md bg-gray-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-40"
+              >
+                {t("Create")}
+              </button>
+            </>
+          }
+        >
+          <div className="space-y-4">
+            <div>
+              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Title")}</label>
+              <input
+                autoFocus
+                value={draftTitle}
+                onChange={(e) => setDraftTitle(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && addEntry()}
+                className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Content type")}</label>
+              <div className="grid max-h-60 grid-cols-2 gap-1.5 overflow-y-auto">
+                {contentTypes.map((ct) => {
+                  const Icon = typeIcon(ct.icon);
+                  const active = draftType === ct.id;
+                  return (
+                    <button
+                      key={ct.id}
+                      type="button"
+                      onClick={() => setDraftType(ct.id)}
+                      aria-pressed={active}
+                      className={`flex items-center gap-2 rounded-md border px-2.5 py-2 text-left text-sm ${
+                        active ? "border-gray-700 bg-gray-100 text-gray-900" : "border-gray-300 text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      <Icon size={15} className="shrink-0" />
+                      <span className="truncate">{t(ct.name)}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
-        )}
+        </Modal>
 
         <div className="rounded-lg border border-gray-300 bg-white">
           <DataTable

@@ -181,6 +181,7 @@ export const CS = {
   "API keys": "API klíče",
   "Data": "Data",
   "Export data": "Exportovat data",
+  "New content item": "Nová položka obsahu",
   "New content type": "Nový typ obsahu",
   "A content type with this name already exists.": "Typ obsahu s tímto názvem už existuje.",
   "Link content items": "Propojit položky obsahu",
