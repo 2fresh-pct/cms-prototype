@@ -1,4 +1,4 @@
-import { BlobPreconditionFailedError, get, head, put } from "@vercel/blob";
+import { BlobNotFoundError, BlobPreconditionFailedError, get, head, put } from "@vercel/blob";
 
 // One JSON document holds the whole shared workspace. Writes are conditional on
 // the ETag the writer last saw, so a browser can't silently overwrite changes
@@ -14,17 +14,18 @@ async function withAccess(run) {
   if (access) return run(access);
   try {
     const result = await run("private");
-    access = "private";
+    if (result != null) access = "private"; // "not found" says nothing about the store type
     return result;
   } catch (err) {
     if (err instanceof BlobPreconditionFailedError) throw err;
     const result = await run("public");
-    access = "public";
+    if (result != null) access = "public";
     return result;
   }
 }
 
-const isMissing = (err) => err?.name === "BlobNotFoundError" || /not.?found/i.test(err?.message ?? "");
+const isMissing = (err) =>
+  err instanceof BlobNotFoundError || /not.?found|does not exist|doesn'?t exist/i.test(err?.message ?? "");
 
 const blobStore = {
   async read() {
@@ -40,9 +41,16 @@ const blobStore = {
   async etag() {
     try {
       return (await head(PATH)).etag;
-    } catch (err) {
-      if (isMissing(err)) return null;
-      throw err;
+    } catch {
+      // head() can reject for reasons that depend on the store type; get()
+      // reports a missing file as null, so ask it instead.
+      const found = await withAccess((a) => get(PATH, { access: a, useCache: false })).catch((err) => {
+        if (isMissing(err)) return null;
+        throw err;
+      });
+      if (!found || found.statusCode !== 200) return null;
+      await found.stream?.cancel?.();
+      return found.blob.etag;
     }
   },
 

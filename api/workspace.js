@@ -49,6 +49,7 @@ export default async function handler(req, res) {
   } catch (err) {
     if (err instanceof ConflictError) return send(res, 409, { error: "conflict" });
     console.error("workspace api:", err);
-    return send(res, 500, { error: "server-error" });
+    // The name and message help diagnose a store set-up problem; they hold no data.
+    return send(res, 500, { error: "server-error", detail: `${err?.name ?? "Error"}: ${String(err?.message ?? err).slice(0, 300)}` });
   }
 }
