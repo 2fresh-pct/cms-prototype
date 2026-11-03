@@ -34,7 +34,7 @@ export default async function handler(req, res) {
         return etag === null ? send(res, 204) : send(res, 200, { etag });
       }
       const doc = await store.read();
-      return doc ? send(res, 200, { etag: doc.etag, data: doc.data }) : send(res, 204);
+      return doc ? send(res, 200, { etag: doc.etag, savedAt: doc.savedAt, data: doc.data }) : send(res, 204);
     }
 
     if (req.method === "PUT") {

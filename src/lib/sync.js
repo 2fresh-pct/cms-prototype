@@ -3,15 +3,17 @@
 //
 // localStorage stays the working copy: pages read and write it exactly as
 // before. This module loads the shared copy at startup, pushes local changes a
-// moment after they happen, and flags the cases that need a decision:
-//   conflict  this browser and the shared copy have each changed (or never met)
+// moment after they happen, and shows two notices:
 //   stale     the shared copy has newer changes than this browser
 //   error     the last save didn't reach the server (retried on the next change)
+// The browser being edited always wins: a save overwrites the shared copy
+// without asking. A browser that was never edited just takes the shared copy.
 // With no store connected (or no API, as on a plain static host) it stays off.
 
 const API = "/api/workspace";
 const K_ETAG = "cms.sync.etag"; // version of the shared copy this browser last saw
 const K_DIRTY = "cms.sync.dirty"; // local changes not yet saved to the shared copy
+const K_EDITED = "cms.sync.editedAt"; // when this browser last had a local edit
 const PUSH_DELAY_MS = 800;
 const CHECK_EVERY_MS = 30_000;
 
@@ -73,16 +75,21 @@ export async function initSync() {
     }
     if (res.status !== 200 || !isJson(res)) return;
 
-    const { etag, data } = await res.json();
+    const { etag, data, savedAt } = await res.json();
     enabled = true;
     setState("idle");
     startChecking();
+    const editedAt = Date.parse(localStorage.getItem(K_EDITED) ?? "") || 0;
     if (localEtag === etag) {
       if (dirty) schedulePush();
-    } else if (dirty || (!localEtag && hasLocal)) {
-      // Local changes the shared copy doesn't have, or a browser that has its own
-      // content but has never been connected: don't overwrite either side silently.
-      setState("conflict");
+    } else if (dirty) {
+      // Edits this browser hasn't saved yet are the ones being worked on: keep them.
+      await pushNow();
+    } else if (!localEtag && hasLocal && editedAt > (Date.parse(savedAt ?? "") || 0)) {
+      // Never connected, but edited here more recently than the shared copy was saved.
+      dirtySeq += 1;
+      localStorage.setItem(K_DIRTY, "1");
+      await pushNow();
     } else {
       adopt(data, etag);
     }
@@ -98,14 +105,14 @@ function schedulePush() {
 
 // Called whenever a workspace value changes.
 export function markDirty() {
+  localStorage.setItem(K_EDITED, new Date().toISOString());
   if (!enabled) return;
   dirtySeq += 1;
   localStorage.setItem(K_DIRTY, "1");
-  if (state.status === "conflict") return; // wait for the decision
   schedulePush();
 }
 
-export async function pushNow({ force = false } = {}) {
+export async function pushNow() {
   if (!enabled) return;
   clearTimeout(timer);
   if (saving) { schedulePush(); return; }
@@ -116,9 +123,9 @@ export async function pushNow({ force = false } = {}) {
     const res = await fetch(API, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ baseEtag: localStorage.getItem(K_ETAG), force, data: snapshot() }),
+      // force: whoever is saving now wins; the server never refuses on a version mismatch.
+      body: JSON.stringify({ baseEtag: localStorage.getItem(K_ETAG), force: true, data: snapshot() }),
     });
-    if (res.status === 409) { setState("conflict"); return; }
     if (res.status === 413) { setState("error", "too-large"); return; }
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const { etag } = await res.json();
@@ -148,7 +155,7 @@ export async function loadShared() {
 }
 
 // Makes this browser's workspace the shared copy for everyone.
-export const overwriteShared = () => pushNow({ force: true });
+export const overwriteShared = () => pushNow();
 
 async function checkRemote() {
   if (!enabled || document.visibilityState !== "visible") return;

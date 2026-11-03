@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useI18n } from "../lib/i18n";
-import { getSyncState, loadShared, overwriteShared, pushNow, subscribe } from "../lib/sync";
+import { getSyncState, loadShared, pushNow, subscribe } from "../lib/sync";
 
 const SECONDARY = "rounded-md border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50";
 
 // Shown only when the shared workspace needs attention; otherwise sync is silent.
+// Saving never asks which copy to keep: the browser being edited wins.
 export default function SyncBanner() {
   const { t } = useI18n();
   const [state, setState] = useState(getSyncState());
@@ -16,15 +17,7 @@ export default function SyncBanner() {
   }
 
   let message, actions;
-  if (state.status === "conflict") {
-    message = t("This browser and the shared workspace have different content. Choose which one to keep.");
-    actions = (
-      <>
-        <button onClick={useShared} className={SECONDARY}>{t("Use the shared workspace")}</button>
-        <button onClick={overwriteShared} className={SECONDARY}>{t("Keep this browser's content")}</button>
-      </>
-    );
-  } else if (state.status === "stale") {
+  if (state.status === "stale") {
     message = t("The shared workspace has newer changes saved from another browser.");
     actions = <button onClick={useShared} className={SECONDARY}>{t("Reload to get them")}</button>;
   } else if (state.status === "error") {
