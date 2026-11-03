@@ -1,4 +1,4 @@
-# PCT admin
+# PCT Admin
 
 A headless-CMS admin UI prototype built with React, Vite, and Tailwind CSS. All data is mocked and persisted to `localStorage`. On Vercel it can also be shared between browsers through a Vercel Blob store (see below).
 

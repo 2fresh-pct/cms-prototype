@@ -24,7 +24,7 @@ export default function TopNav() {
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-gray-800 text-white">
           <LogoMark className="h-full w-full" />
         </div>
-        <span className="logotype whitespace-nowrap text-xl text-gray-900">Prague CMS</span>
+        <span className="logotype whitespace-nowrap text-xl text-gray-900">PCT Admin</span>
       </div>
 
       <nav className="flex items-center gap-1">
