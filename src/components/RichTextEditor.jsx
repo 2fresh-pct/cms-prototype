@@ -4,13 +4,15 @@ import StarterKit from "@tiptap/starter-kit";
 import { Placeholder } from "@tiptap/extensions";
 import { Table, TableRow, TableHeader, TableCell } from "@tiptap/extension-table";
 import {
-  Type, Heading2, Heading3, Bold, Italic, List, ListOrdered, Quote, Link2, Table2, Undo2, Redo2,
+  Type, Heading2, Heading3, Bold, Italic, List, ListOrdered, Quote, Link2, Table2, Image as ImageIcon, Undo2, Redo2,
 } from "lucide-react";
 import { useI18n } from "../lib/i18n";
 import { toEditorHtml } from "../lib/richtext";
+import { MediaImage } from "../lib/mediaImage";
+import { Library } from "./MediaPicker";
 
 // The allowed palette: no colours, fonts, code or rules, only semantic structure.
-function extensions(placeholder) {
+function extensions(placeholder, getMedia = () => []) {
   return [
     StarterKit.configure({
       heading: { levels: [2, 3] },
@@ -25,6 +27,7 @@ function extensions(placeholder) {
     TableRow,
     TableHeader,
     TableCell,
+    MediaImage.configure({ getMedia }),
     ...(placeholder ? [Placeholder.configure({ placeholder })] : []),
   ];
 }
@@ -55,11 +58,12 @@ const Divider = () => <span className="mx-1 h-4 w-px bg-gray-300" />;
 // so there may be no later blur to save an applied or removed link.
 // Stays in view while the content pane scrolls; -top-5 cancels the pane's p-5
 // so the bar sits flush with the top of the scroll area.
-function Toolbar({ editor, onCommit }) {
+function Toolbar({ editor, onCommit, media, onUpload }) {
   const { t } = useI18n();
   const [linkOpen, setLinkOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
   const [linkText, setLinkText] = useState("");
+  const [imageOpen, setImageOpen] = useState(false);
   const linkRange = useRef({ from: 0, to: 0 });
   const s = useEditorState({
     editor,
@@ -74,6 +78,8 @@ function Toolbar({ editor, onCommit }) {
       quote: e.isActive("blockquote"),
       link: e.isActive("link"),
       table: e.isActive("table"),
+      image: e.isActive("mediaImage"),
+      imageAlt: e.getAttributes("mediaImage").alt ?? "",
       canUndo: e.can().undo(),
       canRedo: e.can().redo(),
     }),
@@ -116,6 +122,17 @@ function Toolbar({ editor, onCommit }) {
     onCommit();
   }
 
+  // The picked library item is inserted by reference; its name is a starting
+  // point for the alt text, which can be edited once the image is selected.
+  function insertImage(ids) {
+    setImageOpen(false);
+    const item = media.find((m) => m.id === ids[0]);
+    if (!item) return;
+    const alt = item.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
+    editor.chain().focus().insertContent({ type: "mediaImage", attrs: { mediaId: item.id, alt } }).run();
+    onCommit();
+  }
+
   const canApply = linkUrl.trim() !== "" || linkRange.current.from !== linkRange.current.to;
   const onLinkKey = (e) => {
     if (e.key === "Enter") { e.preventDefault(); if (canApply) applyLink(); }
@@ -144,6 +161,7 @@ function Toolbar({ editor, onCommit }) {
         >
           <Table2 size={15} />
         </ToolButton>
+        {media && <ToolButton label={t("Image")} active={s.image} onClick={() => setImageOpen(true)}><ImageIcon size={15} /></ToolButton>}
         <Divider />
         <ToolButton label={t("Undo")} disabled={!s.canUndo} onClick={run((c) => c.undo())}><Undo2 size={14} /></ToolButton>
         <ToolButton label={t("Redo")} disabled={!s.canRedo} onClick={run((c) => c.redo())}><Redo2 size={14} /></ToolButton>
@@ -158,6 +176,27 @@ function Toolbar({ editor, onCommit }) {
           <ToolButton label={t("Delete column")} onClick={run((c) => c.deleteColumn())}>{t("− Column")}</ToolButton>
           <ToolButton label={t("Header row")} onClick={run((c) => c.toggleHeaderRow())}>{t("Header row")}</ToolButton>
           <ToolButton label={t("Delete table")} onClick={run((c) => c.deleteTable())}>{t("Delete table")}</ToolButton>
+        </div>
+      )}
+
+      {s.image && (
+        <div className="flex items-center gap-2 border-t border-gray-200 px-2 py-1.5">
+          <button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => { editor.chain().focus().deleteSelection().run(); onCommit(); }}
+            className="shrink-0 rounded-md border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+          >
+            {t("Remove image")}
+          </button>
+          <input
+            value={s.imageAlt}
+            onChange={(e) => editor.chain().updateAttributes("mediaImage", { alt: e.target.value }).run()}
+            onBlur={onCommit}
+            aria-label={t("Alt text")}
+            placeholder={t("Alt text: describe the image for screen readers")}
+            className="w-full rounded-md border border-gray-300 bg-white px-2 py-1 text-sm focus:border-violet-400 focus:outline-none"
+          />
         </div>
       )}
 
@@ -192,14 +231,19 @@ function Toolbar({ editor, onCommit }) {
           </div>
         </div>
       )}
+      {media && (
+        <Library open={imageOpen} onClose={() => setImageOpen(false)} media={media} selected={[]} multiple={false} onConfirm={insertImage} onUpload={onUpload} />
+      )}
     </div>
   );
 }
 
 // Writes back when focus leaves the editor (like the other fields), and only
 // if the content really changed, so merely clicking in doesn't create history.
-export default function RichTextEditor({ value, onChange, placeholder, minHeight = 160 }) {
+export default function RichTextEditor({ value, onChange, placeholder, minHeight = 160, media, onUpload }) {
   const baseline = useRef(null);
+  const mediaRef = useRef(media ?? []);
+  mediaRef.current = media ?? [];
   const commit = (e) => {
     const html = e.isEmpty ? "" : e.getHTML();
     const before = baseline.current === "<p></p>" ? "" : baseline.current;
@@ -208,31 +252,37 @@ export default function RichTextEditor({ value, onChange, placeholder, minHeight
     onChange(html);
   };
   const editor = useEditor({
-    extensions: extensions(placeholder),
+    extensions: extensions(placeholder, () => mediaRef.current),
     content: toEditorHtml(value),
     editorProps: { attributes: { class: "rte-content" } },
     onCreate: ({ editor: e }) => { baseline.current = e.getHTML(); },
     onBlur: ({ editor: e }) => commit(e),
   });
 
+  // Redraw images when the library changes (an upload inserted straight away).
+  useEffect(() => { editor?.storage.mediaImage.views.forEach((redraw) => redraw()); }, [editor, media]);
+
   if (!editor) return null;
   return (
     <div className="rounded-md border border-gray-300 bg-white focus-within:border-violet-400">
-      <Toolbar editor={editor} onCommit={() => commit(editor)} />
+      <Toolbar editor={editor} onCommit={() => commit(editor)} media={media} onUpload={onUpload} />
       <EditorContent editor={editor} style={{ minHeight }} className="px-3 py-2 text-sm text-gray-800" />
     </div>
   );
 }
 
 // Read-only rendering for the version history view.
-export function RichTextView({ value, className = "text-sm text-gray-700" }) {
+export function RichTextView({ value, className = "text-sm text-gray-700", media }) {
+  const mediaRef = useRef(media ?? []);
+  mediaRef.current = media ?? [];
   const editor = useEditor({
-    extensions: extensions(),
+    extensions: extensions(undefined, () => mediaRef.current),
     content: toEditorHtml(value),
     editable: false,
     editorProps: { attributes: { class: "rte-content" } },
   });
   useEffect(() => { editor?.commands.setContent(toEditorHtml(value)); }, [editor, value]);
+  useEffect(() => { editor?.storage.mediaImage.views.forEach((redraw) => redraw()); }, [editor, media]);
   if (!value) return <p className="text-sm text-gray-700">—</p>;
   return editor ? <EditorContent editor={editor} className={className} /> : null;
 }

@@ -338,7 +338,7 @@ export default function ContentDetail() {
             </DetailField>
             {showBody && (
               <DetailField label={bodyField?.label ?? "Body"} required={bodyField?.required} localized={bodyField?.localized}>
-                <RichTextView key={selectedVersionId ?? "current"} value={viewEntry.body} />
+                <RichTextView key={selectedVersionId ?? "current"} value={viewEntry.body} media={media} />
               </DetailField>
             )}
             {extraFields.map((f, i) => (
@@ -402,6 +402,8 @@ export default function ContentDetail() {
                   placeholder={t("Rich text content goes here…")}
                   onChange={(html) => update({ body: html })}
                   minHeight={220}
+                media={media}
+                onUpload={mediaUpload.upload}
                 />
               </DetailField>
             )}

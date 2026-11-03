@@ -154,7 +154,7 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
       return <textarea rows={2} defaultValue={value ?? ""} onBlur={(e) => onChange(e.target.value)} className={`${INPUT} resize-none`} />;
 
     case "Rich text":
-      return <RichTextEditor value={value} onChange={onChange} minHeight={110} />;
+      return <RichTextEditor value={value} onChange={onChange} minHeight={110} media={ctx.media} onUpload={ctx.uploadMedia} />;
 
     case "Number":
       return (

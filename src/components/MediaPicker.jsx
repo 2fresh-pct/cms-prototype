@@ -11,7 +11,7 @@ function Thumb({ item, size = 48 }) {
   return <MediaThumb item={item} className="shrink-0 rounded border border-gray-300" style={{ width: size, height: size }} title={item?.name} />;
 }
 
-function Library({ open, onClose, media, selected, multiple, onConfirm, onUpload }) {
+export function Library({ open, onClose, media, selected, multiple, onConfirm, onUpload }) {
   const { t } = useI18n();
   const [draft, setDraft] = useState(selected);
   const [search, setSearch] = useState("");
