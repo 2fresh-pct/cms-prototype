@@ -17,6 +17,7 @@ import StatusPill from "../components/StatusPill";
 import Avatar from "../components/Avatar";
 import Modal from "../components/Modal";
 import GroupTabs from "../components/GroupTabs";
+import { slugify, slugOf } from "../lib/slug";
 import { GENERAL, sectionsOf } from "../lib/groups";
 import PreviewButton from "../components/PreviewButton";
 import { useMediaUpload } from "../lib/mediaUpload";
@@ -44,6 +45,9 @@ function describeChange(key, value, prevEntry, { workflowSteps, channels, fields
       return value !== prevEntry.title ? `Title changed to "${value}"` : null;
     case "body":
       return value !== (prevEntry.body ?? "") ? "Body updated" : null;
+    case "slug":
+      if ((value || null) === (prevEntry.slug || null)) return null;
+      return value ? `Slug changed to "/${value}"` : "Slug reset to follow the title";
     case "status": {
       if (value === prevEntry.status) return null;
       const step = workflowSteps.find((s) => s.id === value);
@@ -308,6 +312,15 @@ export default function ContentDetail() {
     <GroupTabs tabs={sections.map((s) => ({ id: s.name ?? GENERAL, label: s.name ?? "General" }))} active={activeSection.name ?? GENERAL} onSelect={setActiveGroup} />
   );
   const singleGroupHeading = sections.length === 1 && sections[0].name ? <GroupHeading group={sections[0].name} /> : null;
+  // The slug follows the title until it is edited; typing the title's own slug
+  // (or clearing the box) goes back to following it.
+  const currentSlug = slugOf(entry);
+  const slugTaken = entries.some((e) => e.id !== entry.id && e.locale === entry.locale && slugOf(e) === currentSlug);
+  function commitSlug(raw) {
+    const next = slugify(raw);
+    const follow = !next || next === slugify(entry.title);
+    if (follow ? Boolean(entry.slug) : next !== entry.slug) update({ slug: follow ? null : next });
+  }
   const fieldCtx = { taxonomies, media, entries, contentTypes, workflowSteps, publishStepId, entryId: entry.id, locale: entry.locale, uploadMedia: mediaUpload.upload };
   const author = users.find((u) => u.id === entry.updatedBy);
   const displayStatus = normalizeEntryStatus(entry.status, workflowSteps);
@@ -393,7 +406,7 @@ export default function ContentDetail() {
               <p className="text-sm text-gray-900">{viewEntry.title}</p>
             </DetailField>
             <DetailField label="Slug" required={slugField?.required} localized={slugField?.localized}>
-              <p className="text-sm text-gray-500">/{viewEntry.title?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}</p>
+              <p className="text-sm text-gray-500">/{slugOf(viewEntry)}</p>
             </DetailField>
             {showBody && (
               <DetailField label={bodyField?.label ?? "Body"} required={bodyField?.required} localized={bodyField?.localized}>
@@ -450,11 +463,25 @@ export default function ContentDetail() {
               />
             </DetailField>
             <DetailField label="Slug" required={slugField?.required} localized={slugField?.localized}>
-              <input
-                disabled
-                value={`/${entry.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`}
-                className="w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-500"
-              />
+              <div className="flex items-center rounded-md border border-gray-300 bg-white focus-within:border-violet-400">
+                <span className="select-none pl-3 text-sm text-gray-400">/</span>
+                {/* Uncontrolled and re-keyed by the value, so a title-driven slug refreshes it. */}
+                <input
+                  key={`${entry.id}-${currentSlug}`}
+                  defaultValue={currentSlug}
+                  onBlur={(e) => commitSlug(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+                  aria-label={t("Slug")}
+                  spellCheck={false}
+                  className="w-full bg-transparent py-2 pl-0.5 pr-3 text-sm text-gray-900 focus:outline-none"
+                />
+              </div>
+              {entry.slug && (
+                <button type="button" onClick={() => update({ slug: null })} className="mt-1.5 text-xs font-medium text-violet-600 hover:underline">
+                  {t("Reset to follow the title")}
+                </button>
+              )}
+              {slugTaken && <p className="mt-1.5 text-xs text-amber-700">{t("Another item in this language already uses this slug.")}</p>}
             </DetailField>
             {showBody && (
               <DetailField label={bodyField?.label ?? "Body"} required={bodyField?.required} localized={bodyField?.localized}>

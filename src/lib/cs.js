@@ -181,6 +181,8 @@ export const CS = {
   "API keys": "API klíče",
   "Data": "Data",
   "Export data": "Exportovat data",
+  "Reset to follow the title": "Vrátit na automatický podle názvu",
+  "Another item in this language already uses this slug.": "Jiná položka v tomto jazyce už tento slug používá.",
   "Group": "Skupina",
   "Add group": "Přidat skupinu",
   "Group name": "Název skupiny",
