@@ -13,7 +13,7 @@
       // Apply the saved theme before first paint (see src/lib/theme.js).
       try {
         var theme = JSON.parse(localStorage.getItem("cms.ui.theme"));
-        if (theme === "styled" || theme === "golden" || theme === "wireframe") document.documentElement.dataset.theme = theme;
+        if (theme === "golden" || theme === "wireframe") document.documentElement.dataset.theme = theme;
       } catch (e) {}
     </script>
   </head>

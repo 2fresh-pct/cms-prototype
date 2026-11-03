@@ -96,7 +96,6 @@ function SettingsForm({ title, form, guardRef, children }) {
 // active theme.
 const THEME_SWATCH = {
   wireframe: { page: "#f5f5f5", bar: "#ffffff", line: "#d4d4d4", button: "#2e2e2e", card: "#ffffff", border: "#d4d4d4" },
-  styled: { page: "#f7f7fc", bar: "#ffffff", line: "#d6d6e6", button: "#5b3fe0", card: "#ffffff", border: "#d6d6e6", shadow: "0 1px 3px rgba(43,27,115,.12)", gradient: "linear-gradient(135deg,#5b3fe0,#4f6bf0)" },
   golden: { page: "#faf6ec", bar: "#fffcf4", line: "#d8c9a8", button: "#a87708", card: "#fffcf4", border: "#d8c9a8", shadow: "0 3px 10px rgba(92,64,10,.22)", gradient: "linear-gradient(135deg,#b8860b,#946a06)" },
 };
 
@@ -127,7 +126,7 @@ function ThemeChooser({ value, onChange }) {
   return (
     <div>
       <label className="mb-1 block text-sm font-medium text-gray-700">{t("Theme")}</label>
-      <div className="grid grid-cols-3 gap-3" role="radiogroup" aria-label={t("Theme")}>
+      <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label={t("Theme")}>
         {THEMES.map((th) => {
           const active = value === th.id;
           return (

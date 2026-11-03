@@ -1,11 +1,10 @@
 // The look of the app is a per-browser preference (not part of the shared
 // workspace): `cms.ui.*` keys are never synced. "golden" is the default. "wireframe" is
-// simply the base CSS; "styled" and "golden" are layers of
+// simply the base CSS; "golden" is a layer of
 // overrides keyed on <html data-theme="…"> (see index.css). index.html applies the saved
 // choice before first paint so there is no flash of the other theme.
 export const THEMES = [
   { id: "wireframe", name: "Wireframe", description: "Greys and light outlines, flat and neutral." },
-  { id: "styled", name: "Styled", description: "Purple and blue accents, tinted greys, soft shadows." },
   { id: "golden", name: "Golden", description: "Golden accents on warm paper, deeper shadows." },
 ];
 

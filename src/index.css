@@ -103,56 +103,13 @@ body {
 }
 
 /* ---------------------------------------------------------------------------
-   Coloured themes (<html data-theme="styled"> and "golden"). Everything above
-   is the wireframe look. Each theme below supplies its palette and shadows as
-   variables; the shared rules after them turn colour back on. Chosen in
-   Settings > General > Theme (see src/lib/theme.js).
+   Golden theme (<html data-theme="golden">). Everything above is the wireframe
+   look; this layer supplies a palette and shadows as variables, and the rules
+   after it turn colour back on. Chosen in Settings > General > Theme (see
+   src/lib/theme.js).
    --------------------------------------------------------------------------- */
 
-/* Styled: purple/blue primary, cool tinted greys, soft shadows. */
-html[data-theme="styled"] {
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-
-  --color-violet-50: #f3f1ff;
-  --color-violet-100: #e8e4ff;
-  --color-violet-200: #d4ccff;
-  --color-violet-300: #b3a5ff;
-  --color-violet-400: #8f7bff;
-  --color-violet-500: #6f56f5;
-  --color-violet-600: #5b3fe0;
-  --color-violet-700: #4a30c2;
-  --color-violet-800: #3b2699;
-  --color-violet-900: #2b1b73;
-
-  --color-gray-50: #f7f7fc;
-  --color-gray-100: #f0f0f8;
-  --color-gray-200: #e5e5f1;
-  --color-gray-300: #d6d6e6;
-  --color-gray-400: #9c9cb8;
-  --color-gray-500: #6e6e8c;
-  --color-gray-600: #505069;
-  --color-gray-700: #3a3a52;
-  --color-gray-800: #26263d;
-  --color-gray-900: #17172b;
-
-  --paper: #f7f7fc;
-  --surface: #ffffff;
-  --ink: #26263d;
-  --btn-from: var(--color-violet-600);
-  --btn-to: #4f6bf0;
-  --btn-from-hover: var(--color-violet-700);
-  --btn-to-hover: #4259d8;
-  --card-shadow: 0 1px 3px rgba(43, 27, 115, 0.07), 0 1px 2px rgba(43, 27, 115, 0.05);
-  --pop-shadow: 0 10px 30px rgba(43, 27, 115, 0.2);
-  --placeholder-from: #ece8ff;
-  --placeholder-to: #dbe7ff;
-  --scrollbar: #cbc5ee;
-  --scrollbar-hover: #a99fe6;
-  --tint: #ece8ff;
-}
-
-/* Golden: gold primary on warm paper, with deeper, wider shadows on cards. */
+/* Gold primary on warm paper, with deeper, wider shadows on cards. */
 html[data-theme="golden"] {
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
@@ -195,43 +152,43 @@ html[data-theme="golden"] {
   --tint: #f7edc9;
 }
 
-html:is([data-theme="styled"], [data-theme="golden"]) { filter: none; }
-html:is([data-theme="styled"], [data-theme="golden"]) body { background-color: var(--paper); color: var(--ink); }
+html[data-theme="golden"] { filter: none; }
+html[data-theme="golden"] body { background-color: var(--paper); color: var(--ink); }
 
 /* The dark-grey accents of the wireframe (primary buttons, selected states,
    the logo tile) become the theme's primary colour. */
-html:is([data-theme="styled"], [data-theme="golden"]) .bg-gray-600,
-html:is([data-theme="styled"], [data-theme="golden"]) .bg-gray-700,
-html:is([data-theme="styled"], [data-theme="golden"]) .bg-gray-800 { background-color: var(--color-violet-600); }
-html:is([data-theme="styled"], [data-theme="golden"]) .hover\:bg-gray-700:hover,
-html:is([data-theme="styled"], [data-theme="golden"]) .hover\:bg-gray-800:hover { background-color: var(--color-violet-700); }
-html:is([data-theme="styled"], [data-theme="golden"]) .border-gray-700,
-html:is([data-theme="styled"], [data-theme="golden"]) .border-gray-800 { border-color: var(--color-violet-500); }
-html:is([data-theme="styled"], [data-theme="golden"]) .ring-gray-800 { --tw-ring-color: var(--color-violet-500); }
-html:is([data-theme="styled"], [data-theme="golden"]) .bg-violet-600 { background-image: linear-gradient(135deg, var(--btn-from), var(--btn-to)); }
-html:is([data-theme="styled"], [data-theme="golden"]) .bg-violet-600:hover { background-image: linear-gradient(135deg, var(--btn-from-hover), var(--btn-to-hover)); }
-html:is([data-theme="styled"], [data-theme="golden"]) .bg-white { background-color: var(--surface); }
+html[data-theme="golden"] .bg-gray-600,
+html[data-theme="golden"] .bg-gray-700,
+html[data-theme="golden"] .bg-gray-800 { background-color: var(--color-violet-600); }
+html[data-theme="golden"] .hover\:bg-gray-700:hover,
+html[data-theme="golden"] .hover\:bg-gray-800:hover { background-color: var(--color-violet-700); }
+html[data-theme="golden"] .border-gray-700,
+html[data-theme="golden"] .border-gray-800 { border-color: var(--color-violet-500); }
+html[data-theme="golden"] .ring-gray-800 { --tw-ring-color: var(--color-violet-500); }
+html[data-theme="golden"] .bg-violet-600 { background-image: linear-gradient(135deg, var(--btn-from), var(--btn-to)); }
+html[data-theme="golden"] .bg-violet-600:hover { background-image: linear-gradient(135deg, var(--btn-from-hover), var(--btn-to-hover)); }
+html[data-theme="golden"] .bg-white { background-color: var(--surface); }
 
 /* Soft depth instead of flat outlines. */
-html:is([data-theme="styled"], [data-theme="golden"]) .rounded-lg.border { box-shadow: var(--card-shadow); }
-html:is([data-theme="styled"], [data-theme="golden"]) .shadow-sm { box-shadow: var(--card-shadow); }
-html:is([data-theme="styled"], [data-theme="golden"]) .shadow,
-html:is([data-theme="styled"], [data-theme="golden"]) .shadow-lg { box-shadow: var(--pop-shadow); }
-html:is([data-theme="styled"], [data-theme="golden"]) .wf-pop { box-shadow: var(--pop-shadow); }
+html[data-theme="golden"] .rounded-lg.border { box-shadow: var(--card-shadow); }
+html[data-theme="golden"] .shadow-sm { box-shadow: var(--card-shadow); }
+html[data-theme="golden"] .shadow,
+html[data-theme="golden"] .shadow-lg { box-shadow: var(--pop-shadow); }
+html[data-theme="golden"] .wf-pop { box-shadow: var(--pop-shadow); }
 
 /* Image placeholders: a soft wash of the theme's colours instead of the crossed box. */
-html:is([data-theme="styled"], [data-theme="golden"]) .wf-image {
+html[data-theme="golden"] .wf-image {
   background-image: linear-gradient(135deg, var(--placeholder-from), var(--placeholder-to));
   background-color: var(--placeholder-from);
 }
 
-html:is([data-theme="styled"], [data-theme="golden"]) ::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 4px; }
-html:is([data-theme="styled"], [data-theme="golden"]) ::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-hover); }
+html[data-theme="golden"] ::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 4px; }
+html[data-theme="golden"] ::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-hover); }
 
-html:is([data-theme="styled"], [data-theme="golden"]) .rte-content[contenteditable="true"] .ProseMirror-selectednode { outline-color: var(--color-violet-500); }
-html:is([data-theme="styled"], [data-theme="golden"]) .rte-content .selectedCell { background: var(--tint); }
-html:is([data-theme="styled"], [data-theme="golden"]) .rte-content th { background: var(--color-gray-100); }
-html:is([data-theme="styled"], [data-theme="golden"]) .rte-content blockquote { border-left-color: var(--color-violet-300); }
+html[data-theme="golden"] .rte-content[contenteditable="true"] .ProseMirror-selectednode { outline-color: var(--color-violet-500); }
+html[data-theme="golden"] .rte-content .selectedCell { background: var(--tint); }
+html[data-theme="golden"] .rte-content th { background: var(--color-gray-100); }
+html[data-theme="golden"] .rte-content blockquote { border-left-color: var(--color-violet-300); }
 
 /* Paper: a faint fibre grain over the page background. */
 html[data-theme="golden"] .bg-gray-50 {
