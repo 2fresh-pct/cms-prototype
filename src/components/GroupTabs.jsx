@@ -29,7 +29,7 @@ export default function GroupTabs({ tabs, active, onSelect, onMove, trailing, fi
             className={`-mb-px rounded-t-md border px-4 py-2 text-sm ${
               isActive
                 ? "border-gray-300 border-b-white bg-white font-medium text-gray-900"
-                : "border-transparent bg-gray-100 text-gray-600 hover:text-gray-900"
+                : "border-transparent border-b-gray-300 bg-gray-100 text-gray-600 hover:text-gray-900"
             } ${dragId === tab.id ? "opacity-40" : ""} ${overId === tab.id && dragId && dragId !== tab.id ? "ring-2 ring-gray-800" : ""} ${movable ? "cursor-grab active:cursor-grabbing" : ""}`}
           >
             {t(tab.label)}
