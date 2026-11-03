@@ -357,25 +357,25 @@ export default function ContentDetail() {
         }
       />
 
-      {/* Why the content is read-only: right under the title, above both panes. */}
-      {readOnly && (
-        <div
-          role="status"
-          className="mb-4 flex shrink-0 items-start gap-3 rounded-md border border-l-4 border-amber-300 border-l-amber-500 bg-amber-100 px-4 py-3 text-sm font-medium text-amber-950"
-        >
-          {historyMode ? <History size={18} className="mt-px shrink-0 text-amber-700" /> : <Lock size={18} className="mt-px shrink-0 text-amber-700" />}
-          <span>
-            {!historyMode
-              ? t("This item is published, so it can't be edited. Create a new draft to make changes; the published version stays live meanwhile.")
-              : selectedVersion
-                ? t("Viewing a read-only past version. Use Back to resume editing.")
-                : t("Viewing a read-only snapshot of the current version. Use Back to resume editing.")}
-          </span>
-        </div>
-      )}
-
       {/* The content pane and the side panel scroll independently; the header stays put. */}
       <div className="flex min-h-0 flex-1 gap-6">
+        {/* Left column: why the content is read-only (as wide as the content card), then the card. The side panel stays in the same place either way. */}
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          {readOnly && (
+            <div
+              role="status"
+              className="mb-4 flex shrink-0 items-start gap-3 rounded-md border border-l-4 border-amber-300 border-l-amber-500 bg-amber-100 px-4 py-3 text-sm font-medium text-amber-950"
+            >
+              {historyMode ? <History size={18} className="mt-px shrink-0 text-amber-700" /> : <Lock size={18} className="mt-px shrink-0 text-amber-700" />}
+              <span>
+                {!historyMode
+                  ? t("This item is published, so it can't be edited. Create a new draft to make changes; the published version stays live meanwhile.")
+                  : selectedVersion
+                    ? t("Viewing a read-only past version. Use Back to resume editing.")
+                    : t("Viewing a read-only snapshot of the current version. Use Back to resume editing.")}
+              </span>
+            </div>
+          )}
         {readOnly ? (
           <div className="min-h-0 flex-1 space-y-5 overflow-y-auto rounded-lg border border-gray-300 bg-white p-5">
             <DetailField label={titleField?.label ?? "Title"} required={titleField?.required} localized={titleField?.localized}>
@@ -475,6 +475,7 @@ export default function ContentDetail() {
             ))}
           </div>
         )}
+        </div>
 
         {historyMode ? (
           <div className="max-h-full w-80 shrink-0 space-y-3 self-start overflow-y-auto rounded-lg border border-gray-300 bg-white p-6">
