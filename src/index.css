@@ -94,3 +94,72 @@ body {
   height: 0;
   pointer-events: none;
 }
+
+/* ---------------------------------------------------------------------------
+   Styled theme (<html data-theme="styled">): everything above is the wireframe
+   look; this layer turns the colour back on with a purple/blue primary, cool
+   tinted greys, soft shadows and rounder corners. Settings > General > Theme.
+   --------------------------------------------------------------------------- */
+html[data-theme="styled"] {
+  filter: none;
+
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+
+  --color-violet-50: #f3f1ff;
+  --color-violet-100: #e8e4ff;
+  --color-violet-200: #d4ccff;
+  --color-violet-300: #b3a5ff;
+  --color-violet-400: #8f7bff;
+  --color-violet-500: #6f56f5;
+  --color-violet-600: #5b3fe0;
+  --color-violet-700: #4a30c2;
+  --color-violet-800: #3b2699;
+  --color-violet-900: #2b1b73;
+
+  --color-gray-50: #f7f7fc;
+  --color-gray-100: #f0f0f8;
+  --color-gray-200: #e5e5f1;
+  --color-gray-300: #d6d6e6;
+  --color-gray-400: #9c9cb8;
+  --color-gray-500: #6e6e8c;
+  --color-gray-600: #505069;
+  --color-gray-700: #3a3a52;
+  --color-gray-800: #26263d;
+  --color-gray-900: #17172b;
+}
+html[data-theme="styled"] body { background-color: #f7f7fc; color: #26263d; }
+
+/* The dark-grey accents of the wireframe (primary buttons, selected states,
+   the logo tile) become the brand purple. */
+html[data-theme="styled"] .bg-gray-600,
+html[data-theme="styled"] .bg-gray-700,
+html[data-theme="styled"] .bg-gray-800 { background-color: var(--color-violet-600); }
+html[data-theme="styled"] .hover\:bg-gray-700:hover,
+html[data-theme="styled"] .hover\:bg-gray-800:hover { background-color: var(--color-violet-700); }
+html[data-theme="styled"] .border-gray-700,
+html[data-theme="styled"] .border-gray-800 { border-color: var(--color-violet-500); }
+html[data-theme="styled"] .ring-gray-800 { --tw-ring-color: var(--color-violet-500); }
+html[data-theme="styled"] .bg-violet-600 { background-image: linear-gradient(135deg, var(--color-violet-600), #4f6bf0); }
+html[data-theme="styled"] .bg-violet-600:hover { background-image: linear-gradient(135deg, var(--color-violet-700), #4259d8); }
+
+/* Soft depth instead of flat outlines. */
+html[data-theme="styled"] .rounded-lg.border { box-shadow: 0 1px 3px rgba(43, 27, 115, 0.07), 0 1px 2px rgba(43, 27, 115, 0.05); }
+html[data-theme="styled"] .shadow-sm { box-shadow: 0 1px 2px rgba(43, 27, 115, 0.08); }
+html[data-theme="styled"] .shadow,
+html[data-theme="styled"] .shadow-lg { box-shadow: 0 4px 14px rgba(43, 27, 115, 0.12); }
+html[data-theme="styled"] .wf-pop { box-shadow: 0 10px 30px rgba(43, 27, 115, 0.2); }
+
+/* Image placeholders: a soft purple-to-blue wash instead of the crossed box. */
+html[data-theme="styled"] .wf-image {
+  background-image: linear-gradient(135deg, #ece8ff, #dbe7ff);
+  background-color: #ece8ff;
+}
+
+html[data-theme="styled"] ::-webkit-scrollbar-thumb { background: #cbc5ee; border-radius: 4px; }
+html[data-theme="styled"] ::-webkit-scrollbar-thumb:hover { background: #a99fe6; }
+
+html[data-theme="styled"] .rte-content[contenteditable="true"] .ProseMirror-selectednode { outline-color: var(--color-violet-500); }
+html[data-theme="styled"] .rte-content .selectedCell { background: #ece8ff; }
+html[data-theme="styled"] .rte-content th { background: #f0f0f8; }
+html[data-theme="styled"] .rte-content blockquote { border-left-color: var(--color-violet-300); }

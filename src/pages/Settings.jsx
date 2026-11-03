@@ -6,6 +6,7 @@ import { seedUsers, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, WORKFLOW_COL
 import DataTable from "../components/DataTable";
 import Avatar from "../components/Avatar";
 import Modal from "../components/Modal";
+import { THEMES, getTheme, setTheme } from "../lib/theme";
 import { isSharedKey, isSyncEnabled, markDirty, overwriteShared, sharedKeys } from "../lib/sync";
 
 const TABS = [
@@ -27,6 +28,65 @@ const API_KEYS = [
   { id: "k2", name: "Staging", prefix: "sk_test_91bd…", createdAt: "2026-05-14", lastUsed: "2026-08-09" },
   { id: "k3", name: "Local dev", prefix: "sk_test_02ee…", createdAt: "2026-07-30", lastUsed: "2026-08-12" },
 ];
+
+// Miniature of each look, drawn with fixed colours so it doesn't follow the
+// active theme.
+const THEME_SWATCH = {
+  wireframe: { page: "#f5f5f5", bar: "#ffffff", line: "#d4d4d4", button: "#2e2e2e", card: "#ffffff", border: "#d4d4d4" },
+  styled: { page: "#f7f7fc", bar: "#ffffff", line: "#d6d6e6", button: "#5b3fe0", card: "#ffffff", border: "#d6d6e6" },
+};
+
+function ThemePreview({ id }) {
+  const c = THEME_SWATCH[id];
+  return (
+    <div aria-hidden className="h-20 overflow-hidden rounded-md border" style={{ background: c.page, borderColor: c.border }}>
+      <div className="flex h-4 items-center gap-1 px-2" style={{ background: c.bar, borderBottom: `1px solid ${c.border}` }}>
+        <span className="h-1.5 w-1.5 rounded-sm" style={{ background: c.button }} />
+        <span className="h-1 w-6 rounded" style={{ background: c.line }} />
+        <span className="h-1 w-6 rounded" style={{ background: c.line }} />
+      </div>
+      <div className="flex gap-1.5 p-2">
+        <div className="flex-1 space-y-1 rounded p-1.5" style={{ background: c.card, border: `1px solid ${c.border}`, boxShadow: id === "styled" ? "0 1px 3px rgba(43,27,115,.12)" : "none" }}>
+          <span className="block h-1 w-10 rounded" style={{ background: c.line }} />
+          <span className="block h-1 w-14 rounded" style={{ background: c.line }} />
+          <span className="mt-1 block h-3 w-8 rounded" style={{ background: c.button, backgroundImage: id === "styled" ? "linear-gradient(135deg,#5b3fe0,#4f6bf0)" : "none" }} />
+        </div>
+        <div className="w-8 rounded" style={{ background: c.card, border: `1px solid ${c.border}` }} />
+      </div>
+    </div>
+  );
+}
+
+// The look is remembered in this browser only; it applies at once.
+function ThemeChooser() {
+  const { t } = useI18n();
+  const [theme, setThemeState] = useState(getTheme);
+  return (
+    <div>
+      <label className="mb-1 block text-sm font-medium text-gray-700">{t("Theme")}</label>
+      <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label={t("Theme")}>
+        {THEMES.map((th) => {
+          const active = theme === th.id;
+          return (
+            <button
+              key={th.id}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => { setTheme(th.id); setThemeState(th.id); }}
+              className={`rounded-lg border bg-white p-2 text-left ${active ? "border-gray-700 ring-2 ring-gray-800" : "border-gray-300 hover:border-gray-400"}`}
+            >
+              <ThemePreview id={th.id} />
+              <p className="mt-2 text-sm font-medium text-gray-900">{t(th.name)}</p>
+              <p className="text-xs text-gray-500">{t(th.description)}</p>
+            </button>
+          );
+        })}
+      </div>
+      <p className="mt-1 text-xs text-gray-500">{t("Saved in this browser only; other browsers keep their own theme.")}</p>
+    </div>
+  );
+}
 
 function GeneralPanel() {
   const { t, lang, setLang } = useI18n();
@@ -68,6 +128,7 @@ function GeneralPanel() {
         </select>
         <p className="mt-1 text-xs text-gray-500">{t("The language of the CMS menus and labels. Content languages are set separately.")}</p>
       </div>
+      <ThemeChooser />
       <button className="rounded-md bg-gray-600 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700">
         {t("Save changes")}
       </button>

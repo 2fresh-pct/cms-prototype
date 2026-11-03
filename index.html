@@ -1,10 +1,17 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="wireframe">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Prague CMS</title>
+    <script>
+      // Apply the saved theme before first paint (see src/lib/theme.js).
+      try {
+        var theme = JSON.parse(localStorage.getItem("cms.ui.theme"));
+        if (theme === "styled" || theme === "wireframe") document.documentElement.dataset.theme = theme;
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

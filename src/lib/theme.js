@@ -1,0 +1,24 @@
+// The look of the app is a per-browser preference (not part of the shared
+// workspace): `cms.ui.*` keys are never synced. "wireframe" is the default and
+// is simply the base CSS; "styled" is a layer of overrides keyed on
+// <html data-theme="styled"> (see index.css). index.html applies the saved
+// choice before first paint so there is no flash of the other theme.
+export const THEMES = [
+  { id: "wireframe", name: "Wireframe", description: "Greys and light outlines, flat and neutral." },
+  { id: "styled", name: "Styled", description: "Purple and blue accents, tinted greys, soft shadows." },
+];
+
+const KEY = "cms.ui.theme";
+
+export function getTheme() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY));
+    if (THEMES.some((t) => t.id === saved)) return saved;
+  } catch { /* unreadable: use the default */ }
+  return "wireframe";
+}
+
+export function setTheme(id) {
+  document.documentElement.dataset.theme = id;
+  try { localStorage.setItem(KEY, JSON.stringify(id)); } catch { /* storage unavailable: applies for this visit only */ }
+}
