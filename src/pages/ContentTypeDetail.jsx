@@ -185,7 +185,7 @@ function ContentTypeEditor({ id }) {
                             taxonomyId: nextType === "Taxonomy" ? (f.taxonomyId ?? taxonomies[0]?.id) : undefined,
                           });
                         }}
-                        className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                        className="w-40 rounded-md border border-gray-300 bg-white px-2 py-1 text-sm disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
                       >
                         {FIELD_TYPE_LIST.filter((ft) => ft !== "Media list" || f.type === "Media list").map((ft) => (
                           <option key={ft} value={ft}>{t(ft)}</option>
@@ -207,7 +207,7 @@ function ContentTypeEditor({ id }) {
                         </select>
                       </div>
                     )}
-                    <div className="min-w-0 flex-1">
+                    <div className="w-40 shrink-0">
                       <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">{t("Name")}</label>
                       <input
                         value={f.label ?? f.name}
@@ -216,7 +216,7 @@ function ContentTypeEditor({ id }) {
                         className="w-full rounded-md border border-gray-300 bg-white px-2 py-1 text-sm"
                       />
                     </div>
-                    <button onClick={() => removeField(i)} className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-red-600">
+                    <button onClick={() => removeField(i)} className="ml-auto rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-red-600">
                       <Trash2 size={14} />
                     </button>
                   </div>
