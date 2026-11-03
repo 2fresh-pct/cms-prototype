@@ -23,6 +23,13 @@ html, body, #root {
   height: 100%;
 }
 
+/* The wordmark: a tight, bold geometric sans (loaded in index.html). */
+.logotype {
+  font-family: "Manrope", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+
 html {
   filter: grayscale(1);
 }
@@ -161,9 +168,9 @@ html[data-theme="golden"] {
   --color-violet-800: #6d4b05;
   --color-violet-900: #523904;
 
-  --color-gray-50: #f4ecdc;
-  --color-gray-100: #eee4cf;
-  --color-gray-200: #e5d9bf;
+  --color-gray-50: #faf6ec;
+  --color-gray-100: #f3ebd9;
+  --color-gray-200: #eae0c8;
   --color-gray-300: #d8c9a8;
   --color-gray-400: #a39577;
   --color-gray-500: #766a52;
@@ -172,7 +179,7 @@ html[data-theme="golden"] {
   --color-gray-800: #2b251b;
   --color-gray-900: #1c1812;
 
-  --paper: #f4ecdc;
+  --paper: #faf6ec;
   --surface: #fffcf4;
   --ink: #2b251b;
   --btn-from: #b8860b;
@@ -230,3 +237,9 @@ html:is([data-theme="styled"], [data-theme="golden"]) .rte-content blockquote { 
 html[data-theme="golden"] .bg-gray-50 {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .36 0 0 0 0 .27 0 0 0 0 .12 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
+
+/* Golden: secondary buttons (outlined ones, the Preview split button, Languages)
+   sit on white rather than the page colour. Primary buttons are untouched. */
+html[data-theme="golden"] button:is(.border-gray-300, .ring-gray-300, .bg-white):not(.bg-violet-600, .bg-gray-600, .bg-gray-700, .bg-gray-800),
+html[data-theme="golden"] .ring-gray-300.overflow-hidden { background-color: #ffffff; }
+html[data-theme="golden"] button:is(.border-gray-300, .ring-gray-300, .bg-white):not(.bg-violet-600, .bg-gray-600, .bg-gray-700, .bg-gray-800):hover { background-color: var(--color-gray-100); }
