@@ -306,7 +306,7 @@ export default function Content() {
         statusGroupLabel="Workflow step"
         statuses={statuses}
         typeGroupLabel="Content type"
-        typeItems={contentTypes.map((t) => ({ id: t.id, name: t.name, count: t.entryCount, icon: t.icon }))}
+        typeItems={contentTypes.map((t) => ({ id: t.id, name: t.name, count: entries.filter((e) => e.contentTypeId === t.id).length, icon: t.icon }))}
         channelGroupLabel="Channel"
         channelItems={channels.map((c) => ({
           id: c.id,

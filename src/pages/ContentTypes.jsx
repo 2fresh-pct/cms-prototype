@@ -4,7 +4,8 @@ import { Plus, Trash2 } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
 import { seedContentTypes, seedEntries, FIELD_TYPE_LIST } from "../lib/seed";
-import { typeIcon } from "../lib/typeIcons";
+import { typeIcon, TYPE_ICON_KEYS } from "../lib/typeIcons";
+import Modal from "../components/Modal";
 import BulkActionsMenu from "../components/BulkActionsMenu";
 import DataTable from "../components/DataTable";
 import { FilterBar } from "../components/FilterBar";
@@ -17,10 +18,50 @@ export default function ContentTypes() {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(new Set());
   const [filterValues, setFilterValues] = useState({ fieldType: null });
+  const [creating, setCreating] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newIcon, setNewIcon] = useState("file-text");
+
+  const trimmed = newName.trim();
+  const nameTaken = contentTypes.some((ct) => ct.name.toLowerCase() === trimmed.toLowerCase());
+
+  function openCreate() {
+    setNewName("");
+    setNewIcon("file-text");
+    setCreating(true);
+  }
+
+  // A new type starts with the three fields every entry shows (title, slug and
+  // body), which can be changed or removed in the editor.
+  function createType() {
+    if (!trimmed || nameTaken) return;
+    const id = `ct-${trimmed.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}-${Date.now().toString(36)}`;
+    const colors = ["#3b82f6", "#8b5cf6", "#0ea5e9", "#0d9488", "#f59e0b", "#ec4899"];
+    setContentTypes([
+      ...contentTypes,
+      {
+        id,
+        name: trimmed,
+        icon: newIcon,
+        color: colors[contentTypes.length % colors.length],
+        fields: [
+          { name: "title", label: "Title", type: "Text", core: "title", required: true, localized: true },
+          { name: "slug", label: "Slug", type: "Text", core: "slug", required: true, localized: true },
+          { name: "body", label: "Body", type: "Rich text", core: "body", localized: true },
+        ],
+        entryCount: 0,
+      },
+    ]);
+    setCreating(false);
+    navigate(`/content-types/${id}`);
+  }
 
   const filterFields = [
     { key: "fieldType", label: "Has field type", options: FIELD_TYPE_LIST.map((ft) => ({ value: ft, label: ft })) },
   ];
+
+  // Counted from the entries, so it stays right as entries are created and deleted.
+  const countOf = (ct) => entries.filter((e) => e.contentTypeId === ct.id).length;
 
   const filtered = contentTypes.filter((t) => {
     if (filterValues.fieldType && !t.fields.some((f) => f.type === filterValues.fieldType)) return false;
@@ -56,8 +97,8 @@ export default function ContentTypes() {
     {
       key: "entryCount",
       header: "Entries",
-      sortValue: (r) => r.entryCount,
-      render: (r) => <span className="text-gray-500">{r.entryCount}</span>,
+      sortValue: (r) => countOf(r),
+      render: (r) => <span className="text-gray-500">{countOf(r)}</span>,
     },
   ];
 
@@ -68,7 +109,7 @@ export default function ContentTypes() {
           <h1 className="text-xl font-semibold text-gray-900">{t("Content types")}</h1>
           <BulkActionsMenu count={selected.size} actions={bulkActions} />
         </div>
-        <button className="flex items-center gap-1.5 rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700">
+        <button onClick={openCreate} className="flex items-center gap-1.5 rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700">
           <Plus size={15} /> {t("Create new")}
         </button>
       </div>
@@ -93,6 +134,61 @@ export default function ContentTypes() {
           onRowClick={(row) => navigate(`/content-types/${row.id}`)}
         />
       </div>
+      <Modal
+        open={creating}
+        onClose={() => setCreating(false)}
+        title={t("New content type")}
+        footer={
+          <>
+            <button onClick={() => setCreating(false)} className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100">{t("Cancel")}</button>
+            <button
+              onClick={createType}
+              disabled={!trimmed || nameTaken}
+              className="rounded-md bg-gray-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-40"
+            >
+              {t("Create")}
+            </button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Name")}</label>
+            <input
+              autoFocus
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") createType(); }}
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+            />
+            {nameTaken && <p className="mt-1 text-xs text-red-600">{t("A content type with this name already exists.")}</p>}
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Icon")}</label>
+            <div className="grid grid-cols-6 gap-1.5">
+              {TYPE_ICON_KEYS.map((key) => {
+                const Icon = typeIcon(key);
+                const active = newIcon === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setNewIcon(key)}
+                    aria-label={key}
+                    aria-pressed={active}
+                    title={key}
+                    className={`flex h-9 items-center justify-center rounded-md border ${
+                      active ? "border-gray-700 bg-gray-100 text-gray-900" : "border-gray-300 text-gray-500 hover:bg-gray-50"
+                    }`}
+                  >
+                    <Icon size={16} />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

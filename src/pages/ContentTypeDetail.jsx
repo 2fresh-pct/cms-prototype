@@ -3,7 +3,7 @@ import { useParams, useNavigate, useBlocker } from "react-router-dom";
 import { GripVertical, Plus, Trash2 } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
-import { seedContentTypes, seedTaxonomies, FIELD_TYPE_LIST } from "../lib/seed";
+import { seedContentTypes, seedEntries, seedTaxonomies, FIELD_TYPE_LIST } from "../lib/seed";
 import { TYPE_ICON_KEYS, typeIcon } from "../lib/typeIcons";
 import PageHeader from "../components/PageHeader";
 import DetailField from "../components/DetailField";
@@ -22,8 +22,10 @@ function ContentTypeEditor({ id }) {
   const { t } = useI18n();
   const [contentTypes, setContentTypes] = useLocalStorage("cms.contentTypes", seedContentTypes);
   const [taxonomies] = useLocalStorage("cms.taxonomies", seedTaxonomies);
+  const [entries] = useLocalStorage("cms.entries", seedEntries);
 
   const type = contentTypes.find((ct) => ct.id === id);
+  const entryCount = entries.filter((e) => e.contentTypeId === id).length;
   const [draft, setDraft] = useState(type);
   const [justSaved, setJustSaved] = useState(false);
   const [dragIndex, setDragIndex] = useState(null);
@@ -321,7 +323,7 @@ function ContentTypeEditor({ id }) {
             </div>
           </DetailField>
           <DetailField label="Entries using this type">
-            <span className="text-sm text-gray-700">{type.entryCount}</span>
+            <span className="text-sm text-gray-700">{entryCount}</span>
           </DetailField>
         </div>
       </div>
