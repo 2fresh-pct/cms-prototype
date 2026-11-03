@@ -1,4 +1,5 @@
 import { Fragment } from "react";
+import { Link } from "react-router-dom";
 import { useI18n } from "../lib/i18n";
 import { flattenTerms } from "../lib/seed";
 import { RichTextView } from "./RichTextEditor";
@@ -19,6 +20,35 @@ function Image({ item, ratio = "aspect-[16/9]" }) {
   );
 }
 
+const formatSize = (kb) => (kb > 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${kb} KB`);
+
+// Media in the read-only entry view: the same compact tiles as the editor (192 px
+// squares for several files, a 112 px card for one), linking to the file's page.
+function MediaTiles({ items, several }) {
+  if (!several) {
+    const m = items[0];
+    return (
+      <Link to={`/media/${m.id}`} className="flex items-center gap-3 rounded-md border border-gray-300 p-2 hover:border-gray-400">
+        <MediaThumb item={m} className="shrink-0 rounded border border-gray-300" style={{ width: 112, height: 112 }} />
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium text-gray-900">{m.name}</p>
+          <p className="text-xs text-gray-400">{m.kind} · {formatSize(m.sizeKb)}</p>
+        </div>
+      </Link>
+    );
+  }
+  return (
+    <div className="flex flex-wrap gap-2">
+      {items.map((m) => (
+        <Link key={m.id} to={`/media/${m.id}`} className="block w-48 overflow-hidden rounded-md border border-gray-300 bg-white hover:border-gray-400">
+          <MediaThumb item={m} className="aspect-square w-full border-b border-gray-300" />
+          <p className="truncate px-1.5 py-1 text-xs text-gray-700" title={m.name}>{m.name}</p>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
 function Chips({ names }) {
   return (
     <div className="flex flex-wrap gap-1.5">
@@ -30,7 +60,9 @@ function Chips({ names }) {
 }
 
 // Read-only, published-style rendering of one field value, used by the preview.
-export default function FieldView({ field: f, value, ctx, compact }) {
+// `thumbnails`: show media as small tiles (entry pages) instead of the large
+// pictures used by the website/app preview.
+export default function FieldView({ field: f, value, ctx, compact, thumbnails = false }) {
   const { t } = useI18n();
   const text = compact ? "text-sm" : "text-base";
 
@@ -51,6 +83,7 @@ export default function FieldView({ field: f, value, ctx, compact }) {
     case "Media":
     case "Media list": {
       const items = mediaIds(value).map((id) => ctx.media.find((m) => m.id === id)).filter(Boolean);
+      if (thumbnails) return items.length ? <MediaTiles items={items} several={holdsSeveral(f)} /> : null;
       if (!holdsSeveral(f)) return items[0] ? <Image item={items[0]} /> : null;
       return (
         <div className={`grid gap-3 ${compact ? "grid-cols-1" : "grid-cols-2"}`}>

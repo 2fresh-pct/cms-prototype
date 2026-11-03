@@ -395,7 +395,7 @@ export default function ContentDetail() {
                 <DetailField label={f.label ?? f.name} required={f.required} localized={f.localized}>
                   {isEmpty(viewEntry.fieldValues?.[f.name])
                     ? <p className="text-sm text-gray-400">—</p>
-                    : <FieldView field={f} value={viewEntry.fieldValues?.[f.name]} ctx={fieldCtx} compact />}
+                    : <FieldView field={f} value={viewEntry.fieldValues?.[f.name]} ctx={fieldCtx} compact thumbnails />}
                 </DetailField>
               </Fragment>
             ))}
