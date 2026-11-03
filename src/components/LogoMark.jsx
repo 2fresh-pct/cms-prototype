@@ -1,0 +1,17 @@
+// The app mark (castle on a hill, from "Frame 1.svg"): a white glyph that takes
+// its colour from `currentColor` and is meant to sit on the coloured tile in the
+// top bar. Also used for public/favicon.svg.
+export default function LogoMark({ className = "" }) {
+  return (
+    <svg className={className} viewBox="0 0 35 35" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+      <path
+        d="M25.0064 29.4218H22.6731V25.9218H18.0064V29.4218H15.6731V25.9218H11.0064V29.4218H8.67312V22.4218H25.0064V29.4218Z"
+        fill="currentColor"
+      />
+      <path
+        d="M16.294 4.37032C16.4876 3.87649 17.1873 3.87663 17.381 4.37032L22.7768 18.1618L24.4573 13.4598C24.6418 12.9442 25.371 12.9443 25.5556 13.4598L27.644 19.308C27.7797 19.6879 27.4982 20.0884 27.0948 20.0884C20.2578 20.0884 13.4207 20.0884 6.5836 20.0884C6.18053 20.088 5.89884 19.6877 6.03444 19.308L8.12396 13.4598C8.30846 12.9442 9.03763 12.9443 9.22227 13.4598L10.8994 18.1573L16.294 4.37032Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}

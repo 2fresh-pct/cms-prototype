@@ -1,3 +1,4 @@
+import LogoMark from "./LogoMark";
 import { NavLink } from "react-router-dom";
 import { FileText, Layers, ListTree, Image, Settings as SettingsIcon } from "lucide-react";
 import Avatar from "./Avatar";
@@ -20,8 +21,8 @@ export default function TopNav() {
   return (
     <header className="flex h-16 shrink-0 items-center gap-1 border-b border-gray-300 bg-white px-4">
       <div className="flex items-center gap-2.5 pr-4 mr-2 border-r border-gray-300">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-gray-800 text-xl leading-none text-white logotype">
-          P
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-gray-800 text-white">
+          <LogoMark className="h-full w-full" />
         </div>
         <span className="logotype whitespace-nowrap text-xl text-gray-900">Prague CMS</span>
       </div>
