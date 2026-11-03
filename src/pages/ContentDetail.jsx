@@ -357,17 +357,21 @@ export default function ContentDetail() {
         }
       />
 
+      {/* Why the content is read-only: right under the title, above both panes. */}
+      {readOnly && (
+        <div className="mb-4 shrink-0 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800 ring-1 ring-inset ring-amber-200">
+          {!historyMode
+            ? t("This item is published, so it can't be edited. Create a new draft to make changes; the published version stays live meanwhile.")
+            : selectedVersion
+              ? t("Viewing a read-only past version. Use Back to resume editing.")
+              : t("Viewing a read-only snapshot of the current version. Use Back to resume editing.")}
+        </div>
+      )}
+
       {/* The content pane and the side panel scroll independently; the header stays put. */}
       <div className="flex min-h-0 flex-1 gap-6">
         {readOnly ? (
           <div className="min-h-0 flex-1 space-y-5 overflow-y-auto rounded-lg border border-gray-300 bg-white p-5">
-            <div className="rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800 ring-1 ring-inset ring-amber-200">
-              {!historyMode
-                ? t("This item is published, so it can't be edited. Create a new draft to make changes; the published version stays live meanwhile.")
-                : selectedVersion
-                  ? t("Viewing a read-only past version. Use Back to resume editing.")
-                  : t("Viewing a read-only snapshot of the current version. Use Back to resume editing.")}
-            </div>
             <DetailField label={titleField?.label ?? "Title"} required={titleField?.required} localized={titleField?.localized}>
               <p className="text-sm text-gray-900">{viewEntry.title}</p>
             </DetailField>
