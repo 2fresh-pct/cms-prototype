@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Smartphone, Globe, Radio, Tv, Mail, MessageSquare, Clock, History, ArrowLeft, MessageCircle, X, Languages, Send, FilePlus } from "lucide-react";
+import { Smartphone, Globe, Radio, Tv, Mail, MessageSquare, Clock, History, ArrowLeft, MessageCircle, X, Languages, Send, FilePlus, Lock } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
 import {
@@ -359,12 +359,18 @@ export default function ContentDetail() {
 
       {/* Why the content is read-only: right under the title, above both panes. */}
       {readOnly && (
-        <div className="mb-4 shrink-0 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800 ring-1 ring-inset ring-amber-200">
-          {!historyMode
-            ? t("This item is published, so it can't be edited. Create a new draft to make changes; the published version stays live meanwhile.")
-            : selectedVersion
-              ? t("Viewing a read-only past version. Use Back to resume editing.")
-              : t("Viewing a read-only snapshot of the current version. Use Back to resume editing.")}
+        <div
+          role="status"
+          className="mb-4 flex shrink-0 items-start gap-3 rounded-md border border-l-4 border-amber-300 border-l-amber-500 bg-amber-100 px-4 py-3 text-sm font-medium text-amber-950"
+        >
+          {historyMode ? <History size={18} className="mt-px shrink-0 text-amber-700" /> : <Lock size={18} className="mt-px shrink-0 text-amber-700" />}
+          <span>
+            {!historyMode
+              ? t("This item is published, so it can't be edited. Create a new draft to make changes; the published version stays live meanwhile.")
+              : selectedVersion
+                ? t("Viewing a read-only past version. Use Back to resume editing.")
+                : t("Viewing a read-only snapshot of the current version. Use Back to resume editing.")}
+          </span>
         </div>
       )}
 
