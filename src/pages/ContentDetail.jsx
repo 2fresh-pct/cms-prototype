@@ -265,7 +265,7 @@ export default function ContentDetail() {
   const bodyField = coreField("body") ?? type?.fields.find((f) => f.name === "body");
   const showBody = !type || Boolean(bodyField);
   const extraFields = (type?.fields ?? []).filter((f) => !f.core && !["title", "slug", "body"].includes(f.name));
-  const fieldCtx = { taxonomies, media, entries, contentTypes, entryId: entry.id, uploadMedia: mediaUpload.upload };
+  const fieldCtx = { taxonomies, media, entries, contentTypes, workflowSteps, entryId: entry.id, uploadMedia: mediaUpload.upload };
   const author = users.find((u) => u.id === entry.updatedBy);
   const displayStatus = normalizeEntryStatus(entry.status, workflowSteps);
   const currentStep = workflowSteps.find((s) => s.id === displayStatus);

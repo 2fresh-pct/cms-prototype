@@ -5,6 +5,7 @@ import { flattenTerms } from "../lib/seed";
 import { htmlToText } from "../lib/richtext";
 import RichTextEditor from "./RichTextEditor";
 import MediaPicker from "./MediaPicker";
+import EntryReferenceField from "./EntryReferenceField";
 import { holdsSeveral, mediaIds } from "../lib/media";
 
 const INPUT = "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none";
@@ -141,7 +142,7 @@ function OpeningHours({ value, onChange }) {
 }
 
 // `ctx` carries what editors need from the rest of the CMS:
-// { taxonomies, media, entries, contentTypes, entryId, uploadMedia }
+// { taxonomies, media, entries, contentTypes, workflowSteps, entryId, uploadMedia }
 export default function FieldEditor({ field, value, onChange, ctx }) {
   const { t } = useI18n();
 
@@ -188,29 +189,8 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
     case "Media list":
       return <MediaPicker media={ctx.media} value={value} onChange={onChange} onUpload={ctx.uploadMedia} multiple={holdsSeveral(field)} />;
 
-    case "Reference": {
-      const target = ctx.contentTypes.find((ct) => ct.name === field.targetName || ct.id === field.targetTypeId);
-      const options = target ? ctx.entries.filter((e) => e.contentTypeId === target.id) : [];
-      if (!target || options.length === 0) {
-        return <p className="text-sm text-gray-400">{t("No {type} entries to link yet.", { type: t(field.targetName ?? "target") })}</p>;
-      }
-      const selected = value ?? [];
-      return (
-        <div className="max-h-40 space-y-0.5 overflow-y-auto rounded-md border border-gray-300 bg-white p-2">
-          {options.map((e) => (
-            <label key={e.id} className="flex items-center gap-2 rounded px-1.5 py-1 text-sm text-gray-700 hover:bg-gray-50">
-              <input
-                type="checkbox"
-                checked={selected.includes(e.id)}
-                onChange={() => onChange(selected.includes(e.id) ? selected.filter((x) => x !== e.id) : [...selected, e.id])}
-                className="h-3.5 w-3.5 rounded border-gray-300 accent-violet-600"
-              />
-              {e.title}
-            </label>
-          ))}
-        </div>
-      );
-    }
+    case "Reference":
+      return <EntryReferenceField field={field} value={value} onChange={onChange} ctx={ctx} />;
 
     case "Taxonomy":
       return <TaxonomyField field={field} value={value} onChange={onChange} ctx={ctx} />;

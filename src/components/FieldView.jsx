@@ -63,8 +63,23 @@ export default function FieldView({ field: f, value, ctx, compact }) {
       const flat = tx ? flattenTerms(tx.terms) : [];
       return <Chips names={value.map((id) => flat.find((x) => x.id === id)?.name).filter(Boolean)} />;
     }
-    case "Reference":
-      return <Chips names={value.map((id) => ctx.entries.find((e) => e.id === id)?.title).filter(Boolean)} />;
+    case "Reference": {
+      const items = value.map((id) => ctx.entries.find((e) => e.id === id)).filter(Boolean);
+      return (
+        <ul className="space-y-2">
+          {items.map((e) => {
+            const type = ctx.contentTypes.find((ct) => ct.id === e.contentTypeId);
+            return (
+              <li key={e.id} className="rounded-md border border-gray-300 px-3 py-2">
+                <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400">{type ? t(type.name) : ""}</p>
+                <p className={`${text} font-medium text-gray-900`}>{e.title}</p>
+                {ctx.publishStepId && e.status !== ctx.publishStepId && <p className="text-xs text-gray-400">{t("Not published")}</p>}
+              </li>
+            );
+          })}
+        </ul>
+      );
+    }
     case "Opening hours":
       return (
         <dl className={`grid grid-cols-[7rem_1fr] gap-y-1 ${text} text-gray-700`}>

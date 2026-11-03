@@ -220,6 +220,29 @@ function ContentTypeEditor({ id }) {
                       <Trash2 size={14} />
                     </button>
                   </div>
+                  {f.type === "Reference" && (
+                    <div className="flex flex-wrap items-center gap-1.5 text-xs text-gray-500">
+                      <span className="mr-1">{t("Can link to")}</span>
+                      {contentTypes.map((ct) => {
+                        const on = f.targetTypeIds?.includes(ct.id);
+                        return (
+                          <button
+                            key={ct.id}
+                            type="button"
+                            aria-pressed={Boolean(on)}
+                            onClick={() => {
+                              const current = f.targetTypeIds ?? [];
+                              updateField(i, { targetTypeIds: on ? current.filter((x) => x !== ct.id) : [...current, ct.id] });
+                            }}
+                            className={`rounded-full border px-2.5 py-0.5 ${on ? "border-gray-800 bg-gray-800 text-white" : "border-gray-300 bg-white text-gray-600 hover:bg-gray-50"}`}
+                          >
+                            {t(ct.name)}
+                          </button>
+                        );
+                      })}
+                      {!f.targetTypeIds?.length && <span className="text-gray-400">{f.targetName ? t(f.targetName) : t("Any content type")}</span>}
+                    </div>
+                  )}
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
                     <code className="rounded bg-gray-100 px-1.5 py-0.5 text-gray-600">{f.name}</code>
                     {f.group && <span>{t(f.group)}</span>}
