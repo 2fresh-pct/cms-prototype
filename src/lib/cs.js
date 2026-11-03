@@ -181,6 +181,8 @@ export const CS = {
   "API keys": "API klíče",
   "Data": "Data",
   "Export data": "Exportovat data",
+  "Golden": "Zlatý",
+  "Golden accents on warm paper, deeper shadows.": "Zlaté akcenty na teplém papíru, výraznější stíny.",
   "Theme": "Motiv",
   "Wireframe": "Drátěný model",
   "Styled": "Stylizovaný",

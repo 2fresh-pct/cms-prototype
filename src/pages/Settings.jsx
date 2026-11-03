@@ -33,7 +33,8 @@ const API_KEYS = [
 // active theme.
 const THEME_SWATCH = {
   wireframe: { page: "#f5f5f5", bar: "#ffffff", line: "#d4d4d4", button: "#2e2e2e", card: "#ffffff", border: "#d4d4d4" },
-  styled: { page: "#f7f7fc", bar: "#ffffff", line: "#d6d6e6", button: "#5b3fe0", card: "#ffffff", border: "#d6d6e6" },
+  styled: { page: "#f7f7fc", bar: "#ffffff", line: "#d6d6e6", button: "#5b3fe0", card: "#ffffff", border: "#d6d6e6", shadow: "0 1px 3px rgba(43,27,115,.12)", gradient: "linear-gradient(135deg,#5b3fe0,#4f6bf0)" },
+  golden: { page: "#f4ecdc", bar: "#fffcf4", line: "#d8c9a8", button: "#a87708", card: "#fffcf4", border: "#d8c9a8", shadow: "0 3px 10px rgba(92,64,10,.22)", gradient: "linear-gradient(135deg,#b8860b,#946a06)" },
 };
 
 function ThemePreview({ id }) {
@@ -46,10 +47,10 @@ function ThemePreview({ id }) {
         <span className="h-1 w-6 rounded" style={{ background: c.line }} />
       </div>
       <div className="flex gap-1.5 p-2">
-        <div className="flex-1 space-y-1 rounded p-1.5" style={{ background: c.card, border: `1px solid ${c.border}`, boxShadow: id === "styled" ? "0 1px 3px rgba(43,27,115,.12)" : "none" }}>
+        <div className="flex-1 space-y-1 rounded p-1.5" style={{ background: c.card, border: `1px solid ${c.border}`, boxShadow: c.shadow ?? "none" }}>
           <span className="block h-1 w-10 rounded" style={{ background: c.line }} />
           <span className="block h-1 w-14 rounded" style={{ background: c.line }} />
-          <span className="mt-1 block h-3 w-8 rounded" style={{ background: c.button, backgroundImage: id === "styled" ? "linear-gradient(135deg,#5b3fe0,#4f6bf0)" : "none" }} />
+          <span className="mt-1 block h-3 w-8 rounded" style={{ background: c.button, backgroundImage: c.gradient ?? "none" }} />
         </div>
         <div className="w-8 rounded" style={{ background: c.card, border: `1px solid ${c.border}` }} />
       </div>
@@ -64,7 +65,7 @@ function ThemeChooser() {
   return (
     <div>
       <label className="mb-1 block text-sm font-medium text-gray-700">{t("Theme")}</label>
-      <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label={t("Theme")}>
+      <div className="grid grid-cols-3 gap-3" role="radiogroup" aria-label={t("Theme")}>
         {THEMES.map((th) => {
           const active = theme === th.id;
           return (
@@ -94,7 +95,7 @@ function GeneralPanel() {
   const [locale, setLocale] = useLocalStorage("cms.settings.defaultLocale", "en");
 
   return (
-    <div className="max-w-lg space-y-5">
+    <div className="max-w-2xl space-y-5">
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">{t("Workspace name")}</label>
         <input
