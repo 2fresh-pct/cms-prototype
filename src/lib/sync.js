@@ -74,13 +74,17 @@ function adopt(data, etag) {
   localStorage.removeItem(K_DIRTY);
 }
 
+// Versions saved by an earlier build may carry the weak "W/" prefix.
+const strong = (etag) => (etag ? etag.replace(/^W\//, "") : etag);
+const localEtagValue = () => strong(localStorage.getItem(K_ETAG));
+
 const isJson = (res) => res.headers.get("content-type")?.includes("application/json");
 
 // Runs before the app renders. Never throws: any failure leaves sync off.
 export async function initSync() {
   try {
     const res = await fetch(API, { cache: "no-store", signal: AbortSignal.timeout(5000) });
-    const localEtag = localStorage.getItem(K_ETAG);
+    const localEtag = localEtagValue();
     const dirty = Boolean(localStorage.getItem(K_DIRTY));
     const hasLocal = sharedKeys().length > 0;
 
@@ -94,7 +98,9 @@ export async function initSync() {
     }
     if (res.status !== 200 || !isJson(res)) return;
 
-    const { etag, data, savedAt } = await res.json();
+    const body = await res.json();
+    const { data, savedAt } = body;
+    const etag = strong(body.etag);
     enabled = true;
     setState("idle");
     startChecking();
@@ -148,7 +154,7 @@ export async function pushNow() {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       // force: whoever is saving now wins; the server never refuses on a version mismatch.
-      body: JSON.stringify({ baseEtag: localStorage.getItem(K_ETAG), force: true, data: snapshot() }),
+      body: JSON.stringify({ baseEtag: localEtagValue(), force: true, data: snapshot() }),
     });
     if (res.status === 413) { setState("error", "too-large"); return; }
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -169,7 +175,7 @@ export async function loadShared() {
   const res = await fetch(API, { cache: "no-store" });
   if (res.status === 200 && isJson(res)) {
     const { etag, data } = await res.json();
-    adopt(data, etag);
+    adopt(data, strong(etag));
   } else if (res.status === 204) {
     localStorage.removeItem(K_DIRTY);
   } else {
@@ -206,7 +212,7 @@ async function checkRemote() {
     const res = await fetch(`${API}?meta=1`, { cache: "no-store" });
     if (res.status !== 200) return;
     const { etag } = await res.json();
-    if (etag !== localStorage.getItem(K_ETAG) && state.status === "idle") setState("stale");
+    if (strong(etag) !== localEtagValue() && state.status === "idle") setState("stale");
   } catch { /* try again next time */ }
 }
 

@@ -7,6 +7,10 @@ const PATH = "cms-prototype/workspace.json";
 
 export class ConflictError extends Error {}
 
+// get() reports the version as a weak ETag (W/"abc") while head() and put() give
+// the strong form ("abc") for the same file. Always hand out the strong form.
+const strong = (etag) => (typeof etag === "string" ? etag.replace(/^W\//, "") : etag);
+
 // Vercel Blob stores are created as either public or private, and the SDK has
 // to be told which. Try private first and remember whichever one works.
 let access = process.env.BLOB_ACCESS || null;
@@ -35,12 +39,12 @@ const blobStore = {
     });
     if (!found || found.statusCode !== 200) return null;
     const text = await new Response(found.stream).text();
-    return { etag: found.blob.etag, ...JSON.parse(text) };
+    return { ...JSON.parse(text), etag: strong(found.blob.etag) };
   },
 
   async etag() {
     try {
-      return (await head(PATH)).etag;
+      return strong((await head(PATH)).etag);
     } catch {
       // head() can reject for reasons that depend on the store type; get()
       // reports a missing file as null, so ask it instead.
@@ -50,7 +54,7 @@ const blobStore = {
       });
       if (!found || found.statusCode !== 200) return null;
       await found.stream?.cancel?.();
-      return found.blob.etag;
+      return strong(found.blob.etag);
     }
   },
 
@@ -62,15 +66,15 @@ const blobStore = {
     try {
       if (current === null) {
         const out = await withAccess((a) => put(PATH, body, { ...options, access: a }));
-        return out.etag;
+        return strong(out.etag);
       }
       if (force) {
         const out = await withAccess((a) => put(PATH, body, { ...options, access: a, allowOverwrite: true }));
-        return out.etag;
+        return strong(out.etag);
       }
-      if (baseEtag !== current) throw new ConflictError();
-      const out = await withAccess((a) => put(PATH, body, { ...options, access: a, ifMatch: baseEtag }));
-      return out.etag;
+      if (strong(baseEtag) !== current) throw new ConflictError();
+      const out = await withAccess((a) => put(PATH, body, { ...options, access: a, ifMatch: current }));
+      return strong(out.etag);
     } catch (err) {
       if (err instanceof ConflictError) throw err;
       if (err instanceof BlobPreconditionFailedError || /already exists/i.test(err?.message ?? "")) throw new ConflictError();
