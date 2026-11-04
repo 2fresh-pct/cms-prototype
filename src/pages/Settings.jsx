@@ -9,7 +9,7 @@ import Avatar from "../components/Avatar";
 import Modal from "../components/Modal";
 import { THEMES, getTheme, setTheme } from "../lib/theme";
 import SaveIndicator from "../components/SaveIndicator";
-import { isSharedKey, isSyncEnabled, markDirty, overwriteShared, sharedKeys } from "../lib/sync";
+import { getBackup, isSharedKey, isSyncEnabled, markDirty, overwriteShared, restoreBackup, sharedKeys } from "../lib/sync";
 
 const TABS = [
   { id: "general", label: "General" },
@@ -545,7 +545,8 @@ function UsersPanel({ guardRef }) {
 const DATA_FILE = "cms-prototype-data";
 
 function DataPanel() {
-  const { t } = useI18n();
+  const { t, dateLocale } = useI18n();
+  const backup = getBackup();
   const fileRef = useRef(null);
   const [pending, setPending] = useState(null); // parsed import awaiting confirmation
   const [error, setError] = useState("");
@@ -604,6 +605,18 @@ function DataPanel() {
         <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={(e) => { chooseFile(e.target.files[0]); e.target.value = ""; }} />
       </div>
       {error && <p role="alert" className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800 ring-1 ring-inset ring-amber-200">{error}</p>}
+
+      {backup && (
+        <div className="rounded-md border border-gray-300 bg-white p-3 text-sm text-gray-700">
+          <p>
+            {t("This browser had its own content ({n} items) until the shared workspace replaced it on {when}.", {
+              n: backup.entries,
+              when: new Date(backup.savedAt).toLocaleString(dateLocale, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }),
+            })}
+          </p>
+          <button onClick={restoreBackup} className={`${button} mt-2`}>{t("Restore that content")}</button>
+        </div>
+      )}
 
       <Modal
         open={Boolean(pending)}

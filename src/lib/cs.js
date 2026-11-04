@@ -181,6 +181,8 @@ export const CS = {
   "API keys": "API klíče",
   "Data": "Data",
   "Export data": "Exportovat data",
+  "This browser had its own content ({n} items) until the shared workspace replaced it on {when}.": "Tento prohlížeč měl vlastní obsah (položek: {n}), dokud ho {when} nenahradil sdílený pracovní prostor.",
+  "Restore that content": "Obnovit tento obsah",
   "Reset to follow the title": "Vrátit na automatický podle názvu",
   "Another item in this language already uses this slug.": "Jiná položka v tomto jazyce už tento slug používá.",
   "Group": "Skupina",

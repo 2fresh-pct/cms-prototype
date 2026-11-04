@@ -10,10 +10,13 @@
 // without asking. A browser that was never edited just takes the shared copy.
 // With no store connected (or no API, as on a plain static host) it stays off.
 
+import { seedEntries, seedContentTypes } from "./seed";
+
 const API = "/api/workspace";
 const K_ETAG = "cms.sync.etag"; // version of the shared copy this browser last saw
 const K_DIRTY = "cms.sync.dirty"; // local changes not yet saved to the shared copy
 const K_EDITED = "cms.sync.editedAt"; // when this browser last had a local edit
+const K_BACKUP = "cms.sync.backup"; // this browser's own content, kept when the shared copy replaced it
 const PUSH_DELAY_MS = 800;
 const CHECK_EVERY_MS = 30_000;
 
@@ -48,8 +51,23 @@ function snapshot() {
   return data;
 }
 
-// Replaces the workspace in this browser with the shared copy.
+// "Sample data": the built-in demo content a browser starts with (see seed.js),
+// before anyone created or changed anything. It is never worth uploading, and a
+// shared copy that is only sample data counts as empty.
+const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+const isSample = (entries, types) =>
+  (entries == null || same(entries, seedEntries())) && (types == null || same(types, seedContentTypes()));
+const readLocal = (key) => { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } };
+const localHasRealContent = () =>
+  Boolean(Date.parse(localStorage.getItem(K_EDITED) ?? "")) || !isSample(readLocal("cms.entries"), readLocal("cms.contentTypes"));
+
+// Replaces the workspace in this browser with the shared copy. Content this
+// browser had that the shared copy doesn't is kept as a backup first (Settings >
+// Data can restore it), so taking the shared copy never silently destroys work.
 function adopt(data, etag) {
+  if (localHasRealContent() && !same(snapshot(), data)) {
+    try { localStorage.setItem(K_BACKUP, JSON.stringify({ savedAt: new Date().toISOString(), data: snapshot() })); } catch { /* storage full: no backup */ }
+  }
   for (const k of sharedKeys()) localStorage.removeItem(k);
   for (const [k, v] of Object.entries(data)) if (isSharedKey(k)) localStorage.setItem(k, JSON.stringify(v));
   localStorage.setItem(K_ETAG, etag);
@@ -69,7 +87,8 @@ export async function initSync() {
     if (res.status === 204) {
       enabled = true;
       setState("idle");
-      if (hasLocal) { dirtySeq += 1; localStorage.setItem(K_DIRTY, "1"); await pushNow(); }
+      // Only real content is uploaded; a browser showing sample data leaves the store empty.
+      if (hasLocal && localHasRealContent()) { dirtySeq += 1; localStorage.setItem(K_DIRTY, "1"); await pushNow(); }
       startChecking();
       return;
     }
@@ -84,6 +103,11 @@ export async function initSync() {
       if (dirty) schedulePush();
     } else if (dirty) {
       // Edits this browser hasn't saved yet are the ones being worked on: keep them.
+      await pushNow();
+    } else if (!localEtag && hasLocal && localHasRealContent() && isSample(data["cms.entries"], data["cms.contentTypes"])) {
+      // The shared copy is only sample data and this browser has real content: real wins.
+      dirtySeq += 1;
+      localStorage.setItem(K_DIRTY, "1");
       await pushNow();
     } else if (!localEtag && hasLocal && editedAt > (Date.parse(savedAt ?? "") || 0)) {
       // Never connected, but edited here more recently than the shared copy was saved.
@@ -151,6 +175,24 @@ export async function loadShared() {
   } else {
     throw new Error(`HTTP ${res.status}`);
   }
+  window.location.reload();
+}
+
+// The content this browser had before the shared copy replaced it, if any.
+export function getBackup() {
+  const b = readLocal(K_BACKUP);
+  return b?.data ? { savedAt: b.savedAt, entries: b.data["cms.entries"]?.length ?? 0 } : null;
+}
+
+// Puts that content back in this browser (and, if connected, over the shared copy).
+export async function restoreBackup() {
+  const b = readLocal(K_BACKUP);
+  if (!b?.data) return;
+  for (const k of sharedKeys()) localStorage.removeItem(k);
+  for (const [k, v] of Object.entries(b.data)) if (isSharedKey(k)) localStorage.setItem(k, JSON.stringify(v));
+  localStorage.removeItem(K_BACKUP);
+  localStorage.setItem(K_EDITED, new Date().toISOString());
+  if (enabled) { dirtySeq += 1; localStorage.setItem(K_DIRTY, "1"); await pushNow(); }
   window.location.reload();
 }
 
