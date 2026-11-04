@@ -424,33 +424,38 @@ export default function ContentDetail() {
                 </DetailField>
               </Fragment>
             ))}
-            <DetailField label="Status">
-              <StatusPill status={viewStep?.name ?? viewEntry.status} color={viewStep?.color} />
-            </DetailField>
-            <DetailField label="Channels">
-              {viewIsAllChannels ? (
-                <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-500 ring-1 ring-inset ring-gray-300">
-                  {t("All channels")}
+            {/* A published item shows these in the side panel; a past version has no such panel, so they go here. */}
+            {historyMode && (
+              <>
+              <DetailField label="Status">
+                <StatusPill status={viewStep?.name ?? viewEntry.status} color={viewStep?.color} />
+              </DetailField>
+              <DetailField label="Channels">
+                {viewIsAllChannels ? (
+                  <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-500 ring-1 ring-inset ring-gray-300">
+                    {t("All channels")}
+                  </span>
+                ) : (
+                  <div className="flex flex-wrap gap-1.5">
+                    {channels
+                      .filter((c) => viewChannelIds.includes(c.id))
+                      .map((c) => (
+                        <StatusPill key={c.id} status={c.name} color={c.color} />
+                      ))}
+                  </div>
+                )}
+              </DetailField>
+              <DetailField label="Locale">
+                <p className="text-sm uppercase text-gray-700">{viewEntry.locale}</p>
+              </DetailField>
+              <DetailField label="Last updated by">
+                <span className="inline-flex items-center gap-2">
+                  <Avatar user={viewAuthor} size={20} />
+                  <span className="text-sm text-gray-700">{viewAuthor?.name}</span>
                 </span>
-              ) : (
-                <div className="flex flex-wrap gap-1.5">
-                  {channels
-                    .filter((c) => viewChannelIds.includes(c.id))
-                    .map((c) => (
-                      <StatusPill key={c.id} status={c.name} color={c.color} />
-                    ))}
-                </div>
-              )}
-            </DetailField>
-            <DetailField label="Locale">
-              <p className="text-sm uppercase text-gray-700">{viewEntry.locale}</p>
-            </DetailField>
-            <DetailField label="Last updated by">
-              <span className="inline-flex items-center gap-2">
-                <Avatar user={viewAuthor} size={20} />
-                <span className="text-sm text-gray-700">{viewAuthor?.name}</span>
-              </span>
-            </DetailField>
+              </DetailField>
+              </>
+            )}
           </div>
         ) : (
           <div className="min-h-0 flex-1 space-y-5 overflow-y-auto rounded-lg border border-gray-300 bg-white p-5">
