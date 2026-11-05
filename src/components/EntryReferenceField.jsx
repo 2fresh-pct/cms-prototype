@@ -61,8 +61,8 @@ function Picker({ open, onClose, candidates, types, selected, onConfirm, ctx }) 
       title={t("Link content items")}
       footer={
         <>
-          <button type="button" onClick={onClose} className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100">{t("Cancel")}</button>
-          <button type="button" onClick={() => onConfirm(draft)} className="rounded-md bg-gray-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-800">
+          <button type="button" onClick={onClose} className="rounded-md h-9 px-3 text-sm text-gray-500 hover:bg-gray-100">{t("Cancel")}</button>
+          <button type="button" onClick={() => onConfirm(draft)} className="rounded-md bg-gray-700 h-9 px-3 text-sm font-medium text-white hover:bg-gray-800">
             {t("Use {n} selected", { n: draft.length })}
           </button>
         </>
@@ -74,14 +74,14 @@ function Picker({ open, onClose, candidates, types, selected, onConfirm, ctx }) 
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={t("Search content…")}
-          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+          className="w-full rounded-md border border-gray-300 bg-white h-9 px-3 text-sm focus:border-violet-400 focus:outline-none"
         />
         {types.length > 1 && (
           <select
             value={typeId}
             onChange={(e) => setTypeId(e.target.value)}
             aria-label={t("Content type")}
-            className="shrink-0 rounded-md border border-gray-300 bg-white px-2 py-2 text-sm"
+            className="shrink-0 rounded-md border border-gray-300 bg-white h-9 px-3 text-sm"
           >
             <option value="">{t("All types")}</option>
             {types.map((ct) => <option key={ct.id} value={ct.id}>{t(ct.name)}</option>)}
@@ -151,7 +151,7 @@ export default function EntryReferenceField({ field, value, onChange, ctx }) {
       type="button"
       onClick={() => setOpen(true)}
       disabled={candidates.length === 0}
-      className="flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+      className="flex items-center gap-1.5 rounded-md border border-gray-300 bg-white h-9 px-3 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
     >
       <Link2 size={14} /> {t(ids.length === 0 ? "Add content items" : "Add or remove items")}
     </button>
@@ -199,7 +199,7 @@ export default function EntryReferenceField({ field, value, onChange, ctx }) {
                     type="button"
                     onClick={() => onChange(ids.filter((x) => x !== id))}
                     aria-label={t("Remove")}
-                    className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-red-600"
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-red-600"
                   >
                     <X size={14} />
                   </button>

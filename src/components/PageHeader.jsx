@@ -19,7 +19,7 @@ export default function PageHeader({ crumbs: rawCrumbs, onBack, actions, saveSta
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           {onBack && (
-            <button onClick={onBack} className="rounded-md p-1.5 text-gray-500 hover:bg-gray-100">
+            <button onClick={onBack} className="flex h-8 w-8 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100">
               <ArrowLeft size={17} />
             </button>
           )}

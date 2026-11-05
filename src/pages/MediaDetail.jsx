@@ -87,7 +87,7 @@ function MediaEditor({ id }) {
           </p>
         </div>
 
-        <div className="max-h-full w-96 shrink-0 space-y-6 self-start overflow-y-auto rounded-lg border border-gray-300 bg-white p-6">
+        <div className="max-h-full w-96 shrink-0 space-y-5 self-start overflow-y-auto rounded-lg border border-gray-300 bg-white p-5">
           <div>
             <h2 className="mb-1 text-sm font-semibold text-gray-900">{t("Alt text")}</h2>
             <p className="mb-3 text-xs text-gray-500">
@@ -96,7 +96,7 @@ function MediaEditor({ id }) {
             <div className="space-y-3">
               {orderedLocales.map((locale) => (
                 <div key={locale}>
-                  <label htmlFor={`alt-${locale}`} className="mb-1 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-gray-400">
+                  <label htmlFor={`alt-${locale}`} className="mb-1.5 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-gray-400">
                     <span className="rounded bg-gray-100 px-1.5 py-0.5 text-gray-500">{LOCALE_LABELS[locale]}</span>
                     {t(LOCALE_NAMES[locale])}
                     {locale === defaultLocale && <span className="normal-case tracking-normal">· {t("Default language")}</span>}

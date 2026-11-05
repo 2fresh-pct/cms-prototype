@@ -60,12 +60,12 @@ export function Library({ open, onClose, media, selected, multiple, onConfirm, o
       title={t("Media library")}
       footer={
         <>
-          <button type="button" onClick={onClose} className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100">{t("Cancel")}</button>
+          <button type="button" onClick={onClose} className="rounded-md h-9 px-3 text-sm text-gray-500 hover:bg-gray-100">{t("Cancel")}</button>
           <button
             type="button"
             disabled={!multiple && draft.length === 0}
             onClick={() => onConfirm(draft)}
-            className="rounded-md bg-gray-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-40"
+            className="rounded-md bg-gray-700 h-9 px-3 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-40"
           >
             {multiple ? t("Use {n} selected", { n: draft.length }) : t("Select")}
           </button>
@@ -87,7 +87,7 @@ export function Library({ open, onClose, media, selected, multiple, onConfirm, o
               type="button"
               disabled={busy}
               onClick={() => fileRef.current?.click()}
-              className="flex shrink-0 items-center gap-1.5 rounded-md border border-gray-300 bg-white px-2.5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              className="flex shrink-0 items-center gap-1.5 rounded-md border border-gray-300 bg-white h-9 px-3 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
             >
               <Upload size={14} /> {busy ? t("Uploading…") : t("Upload")}
             </button>
@@ -98,7 +98,7 @@ export function Library({ open, onClose, media, selected, multiple, onConfirm, o
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={t("Search media…")}
-          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+          className="w-full rounded-md border border-gray-300 bg-white h-9 px-3 text-sm focus:border-violet-400 focus:outline-none"
         />
       </div>
       {message && <p role="alert" className="mb-3 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800 ring-1 ring-inset ring-amber-200">{message}</p>}
@@ -164,7 +164,7 @@ export default function MediaPicker({ media, value, onChange, onUpload, multiple
     <button
       type="button"
       onClick={() => setOpen(true)}
-      className="flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+      className="flex items-center gap-1.5 rounded-md border border-gray-300 bg-white h-9 px-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
     >
       <ImagePlus size={14} /> {t(label)}
     </button>
@@ -186,7 +186,7 @@ export default function MediaPicker({ media, value, onChange, onUpload, multiple
               {byId[ids[0]] && <p className="text-xs text-gray-400">{byId[ids[0]].kind} · {formatSize(byId[ids[0]].sizeKb)}</p>}
             </div>
             {chooseButton("Change")}
-            <button type="button" onClick={() => onChange("")} className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-red-600" aria-label={t("Remove")}>
+            <button type="button" onClick={() => onChange("")} className="flex h-8 w-8 shrink-0 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-red-600" aria-label={t("Remove")}>
               <X size={14} />
             </button>
           </div>

@@ -357,7 +357,7 @@ export default function ContentDetail() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setLangDialogOpen(true)}
-              className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-200 hover:text-gray-900"
+              className="flex items-center gap-1.5 rounded-md h-9 px-3 text-sm font-medium text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-200 hover:text-gray-900"
             >
               <Languages size={14} /> {t("Languages")}
               <span className="rounded-full bg-gray-100 px-1.5 text-xs font-normal text-gray-500">
@@ -372,7 +372,7 @@ export default function ContentDetail() {
             {!readOnly && (
               <button
                 onClick={openPublishDialog}
-                className="flex items-center gap-1.5 rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700"
+                className="flex items-center gap-1.5 rounded-md bg-violet-600 h-9 px-3 text-sm font-medium text-white hover:bg-violet-700"
               >
                 <Send size={14} /> {t("Publish")}
               </button>
@@ -432,7 +432,7 @@ export default function ContentDetail() {
               </DetailField>
               <DetailField label="Channels">
                 {viewIsAllChannels ? (
-                  <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-500 ring-1 ring-inset ring-gray-300">
+                  <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-gray-100 h-7 px-2.5 text-xs font-medium text-gray-500 ring-1 ring-inset ring-gray-300">
                     {t("All channels")}
                   </span>
                 ) : (
@@ -464,11 +464,11 @@ export default function ContentDetail() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 onBlur={() => update({ title: title.trim() || entry.title })}
-                className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+                className="w-full rounded-md border border-gray-300 bg-white h-9 px-3 text-sm focus:border-violet-400 focus:outline-none"
               />
             </DetailField>
             <DetailField label="Slug" required={slugField?.required} localized={slugField?.localized}>
-              <div className="flex items-center rounded-md border border-gray-300 bg-white focus-within:border-violet-400">
+              <div className="flex h-9 items-center rounded-md border border-gray-300 bg-white focus-within:border-violet-400">
                 <span className="select-none pl-3 text-sm text-gray-400">/</span>
                 {/* Uncontrolled and re-keyed by the value, so a title-driven slug refreshes it. */}
                 <input
@@ -478,7 +478,7 @@ export default function ContentDetail() {
                   onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
                   aria-label={t("Slug")}
                   spellCheck={false}
-                  className="w-full bg-transparent py-2 pl-0.5 pr-3 text-sm text-gray-900 focus:outline-none"
+                  className="h-full w-full bg-transparent pl-0.5 pr-3 text-sm text-gray-900 focus:outline-none"
                 />
               </div>
               {entry.slug && (
@@ -523,10 +523,10 @@ export default function ContentDetail() {
         </div>
 
         {historyMode ? (
-          <div className="max-h-full w-80 shrink-0 space-y-3 self-start overflow-y-auto rounded-lg border border-gray-300 bg-white p-6">
+          <div className="max-h-full w-80 shrink-0 space-y-3 self-start overflow-y-auto rounded-lg border border-gray-300 bg-white p-5">
             <button
               onClick={exitHistory}
-              className="flex w-full items-center justify-center gap-1.5 rounded-md bg-gray-700 px-3 py-2.5 text-sm font-medium text-white hover:bg-gray-800"
+              className="flex w-full items-center justify-center gap-1.5 h-9 rounded-md bg-gray-700 px-3 text-sm font-medium text-white hover:bg-gray-800"
             >
               <ArrowLeft size={15} /> {t("Back")}
             </button>
@@ -574,7 +574,7 @@ export default function ContentDetail() {
             </div>
           </div>
         ) : (
-          <div className="max-h-full w-80 shrink-0 space-y-6 self-start overflow-y-auto rounded-lg border border-gray-300 bg-white p-6">
+          <div className="max-h-full w-80 shrink-0 space-y-5 self-start overflow-y-auto rounded-lg border border-gray-300 bg-white p-5">
             <DetailField label="Status">
               {isPublished ? (
                 <>
@@ -582,14 +582,14 @@ export default function ContentDetail() {
                     <StatusPill status={currentStep?.name ?? entry.status} color={currentStep?.color} />
                     <button
                       onClick={() => setPendingUnpublish(true)}
-                      className="rounded-md border border-gray-300 bg-white px-2.5 py-0.5 text-xs font-medium text-red-600 hover:bg-red-50"
+                      className="rounded-md border border-gray-300 bg-white h-7 px-2.5 text-xs font-medium text-red-600 hover:bg-red-50"
                     >
                       {t("Unpublish")}
                     </button>
                   </div>
                   <button
                     onClick={createDraft}
-                    className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700"
+                    className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-md bg-violet-600 h-9 px-3 text-sm font-medium text-white hover:bg-violet-700"
                   >
                     <FilePlus size={14} /> {t("Create new draft")}
                   </button>
@@ -600,7 +600,7 @@ export default function ContentDetail() {
                   <select
                     value={displayStatus}
                     onChange={(e) => handleStatusChange(e.target.value)}
-                    className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm"
+                    className="w-full rounded-md border border-gray-300 bg-white h-9 px-3 text-sm"
                   >
                     {workflowSteps.slice(0, -1).map((s) => (
                       <option key={s.id} value={s.id}>{t(s.name)}</option>
@@ -615,7 +615,7 @@ export default function ContentDetail() {
                       <StatusPill status={publishedStep?.name ?? "Published"} color={publishedStep?.color} />
                       <button
                         onClick={() => setPendingUnpublish(true)}
-                        className="rounded-md border border-gray-300 bg-white px-2.5 py-0.5 text-xs font-medium text-red-600 hover:bg-red-50"
+                        className="rounded-md border border-gray-300 bg-white h-7 px-2.5 text-xs font-medium text-red-600 hover:bg-red-50"
                       >
                         {t("Unpublish")}
                       </button>
@@ -642,7 +642,7 @@ export default function ContentDetail() {
             <DetailField label={displayStatus === publishStepId ? "Live on" : "Publishes to"}>
               <div className="flex flex-wrap gap-1.5">
                 {entryIsAllChannels ? (
-                  <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-gray-700 ring-1 ring-inset ring-gray-300">
+                  <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-white h-7 px-2.5 text-xs font-medium text-gray-700 ring-1 ring-inset ring-gray-300">
                     {t("All channels")}
                   </span>
                 ) : (
@@ -653,7 +653,7 @@ export default function ContentDetail() {
                       return (
                         <span
                           key={c.id}
-                          className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-gray-700 ring-1 ring-inset ring-gray-300"
+                          className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-white h-7 px-2.5 text-xs font-medium text-gray-700 ring-1 ring-inset ring-gray-300"
                         >
                           <Icon size={12} />
                           {c.name}
@@ -665,7 +665,7 @@ export default function ContentDetail() {
               <p className="mt-2 text-xs text-gray-400">{t("Chosen when you publish.")}</p>
             </DetailField>
             <DetailField label="Locale">
-              <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium uppercase text-gray-600">
+              <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-gray-100 h-7 px-2.5 text-xs font-medium uppercase text-gray-600">
                 {entry.locale}
               </span>
               {entry.locale === defaultLocale && (
@@ -680,7 +680,7 @@ export default function ContentDetail() {
             </DetailField>
             <button
               onClick={openHistory}
-              className="flex w-full items-center justify-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="flex w-full items-center justify-center gap-1.5 rounded-md border border-gray-300 bg-white h-9 px-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               <History size={14} /> {t("Version history")}
               {history.length > 0 && (
@@ -744,7 +744,7 @@ export default function ContentDetail() {
                     <button
                       onClick={addComment}
                       disabled={!commentDraft.trim()}
-                      className="rounded-md bg-violet-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="rounded-md bg-violet-600 h-8 px-3 text-xs font-medium text-white hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       {t("Comment")}
                     </button>
@@ -763,7 +763,7 @@ export default function ContentDetail() {
         footer={
           <button
             onClick={() => setLangDialogOpen(false)}
-            className="rounded-md px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100"
+            className="rounded-md h-9 px-3 text-sm font-medium text-gray-600 hover:bg-gray-100"
           >
             {t("Close")}
           </button>
@@ -804,14 +804,14 @@ export default function ContentDetail() {
                 ) : sibling ? (
                   <button
                     onClick={() => { setLangDialogOpen(false); navigate(`/content/${sibling.id}`); }}
-                    className="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                    className="rounded-md border border-gray-300 bg-white h-8 px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
                   >
                     {t("Open")}
                   </button>
                 ) : (
                   <button
                     onClick={() => createTranslation(l)}
-                    className="rounded-md bg-violet-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-violet-700"
+                    className="rounded-md bg-violet-600 h-8 px-2.5 text-xs font-medium text-white hover:bg-violet-700"
                   >
                     {t("Create")}
                   </button>
@@ -828,10 +828,10 @@ export default function ContentDetail() {
         title={t('Unpublish "{title}"?', { title: entry.title })}
         footer={
           <>
-            <button onClick={() => setPendingUnpublish(false)} className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100">
+            <button onClick={() => setPendingUnpublish(false)} className="rounded-md h-9 px-3 text-sm text-gray-500 hover:bg-gray-100">
               {t("Cancel")}
             </button>
-            <button onClick={confirmUnpublish} className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50">
+            <button onClick={confirmUnpublish} className="rounded-md border border-gray-300 bg-white h-9 px-3 text-sm font-medium text-red-600 hover:bg-red-50">
               {t("Unpublish")}
             </button>
           </>
@@ -851,14 +851,14 @@ export default function ContentDetail() {
           <>
             <button
               onClick={() => setPendingPublish(false)}
-              className="rounded-md px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100"
+              className="rounded-md h-9 px-3 text-sm font-medium text-gray-600 hover:bg-gray-100"
             >
               {t("Cancel")}
             </button>
             <button
               onClick={confirmPublish}
               disabled={!canConfirmPublish}
-              className="rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-md bg-violet-600 h-9 px-3 text-sm font-medium text-white hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-40"
             >
               {(publishMode === "schedule" ? t("Schedule") : t("Publish")) +
                 (pendingVersionIds.length > 1 ? ` (${pendingVersionIds.length})` : "")}
@@ -869,7 +869,7 @@ export default function ContentDetail() {
         <div className="mb-4 flex gap-2">
           <button
             onClick={() => setPublishMode("now")}
-            className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium ring-1 ring-inset transition-colors ${
+            className={`flex-1 rounded-md h-9 px-3 text-sm font-medium ring-1 ring-inset transition-colors ${
               publishMode === "now" ? "bg-violet-600 text-white ring-violet-600" : "bg-white text-gray-600 ring-gray-300 hover:bg-gray-50"
             }`}
           >
@@ -877,7 +877,7 @@ export default function ContentDetail() {
           </button>
           <button
             onClick={() => setPublishMode("schedule")}
-            className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium ring-1 ring-inset transition-colors ${
+            className={`flex-1 rounded-md h-9 px-3 text-sm font-medium ring-1 ring-inset transition-colors ${
               publishMode === "schedule" ? "bg-violet-600 text-white ring-violet-600" : "bg-white text-gray-600 ring-gray-300 hover:bg-gray-50"
             }`}
           >
@@ -892,7 +892,7 @@ export default function ContentDetail() {
               type="datetime-local"
               value={scheduledAt}
               onChange={(e) => setScheduledAt(e.target.value)}
-              className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm focus:border-violet-400 focus:outline-none"
+              className="w-full rounded-md border border-gray-300 bg-white h-9 px-3 text-sm focus:border-violet-400 focus:outline-none"
             />
           </div>
         )}
@@ -920,7 +920,7 @@ export default function ContentDetail() {
               return (
                 <label
                   key={c.id}
-                  className="flex cursor-pointer items-center gap-2.5 rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
+                  className="flex cursor-pointer items-center gap-2.5 rounded-md border border-gray-300 h-9 px-3 text-sm text-gray-800 hover:bg-gray-50"
                 >
                   <input
                     type="checkbox"
@@ -946,7 +946,7 @@ export default function ContentDetail() {
               const version = l === entry.locale ? entry : siblings.find((sb) => sb.locale === l);
               if (!version) {
                 return (
-                  <div key={l} className="flex items-center gap-2.5 rounded-md border border-dashed border-gray-300 px-3 py-2 text-sm text-gray-400">
+                  <div key={l} className="flex items-center gap-2.5 rounded-md border border-dashed border-gray-300 h-9 px-3 text-sm text-gray-400">
                     <span className="w-7 shrink-0 font-semibold">{LOCALE_LABELS[l]}</span>
                     {t("No version in this language yet")}
                   </div>
@@ -957,7 +957,7 @@ export default function ContentDetail() {
               return (
                 <label
                   key={l}
-                  className="flex cursor-pointer items-center gap-2.5 rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
+                  className="flex cursor-pointer items-center gap-2.5 rounded-md border border-gray-300 h-9 px-3 text-sm text-gray-800 hover:bg-gray-50"
                 >
                   <input
                     type="checkbox"

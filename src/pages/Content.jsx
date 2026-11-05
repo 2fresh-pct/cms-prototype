@@ -271,7 +271,7 @@ export default function Content() {
       },
       render: (r) =>
         isAllChannels(r.channels) ? (
-          <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-transparent px-2.5 py-0.5 text-xs font-medium text-gray-500 ring-1 ring-inset ring-gray-300">
+          <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-transparent h-7 px-2.5 text-xs font-medium text-gray-500 ring-1 ring-inset ring-gray-300">
             {t("All channels")}
           </span>
         ) : (
@@ -346,7 +346,7 @@ export default function Content() {
               <select
                 value={activeLocale}
                 onChange={(e) => setActiveLocale(e.target.value)}
-                className="appearance-none rounded-md border border-gray-300 bg-white py-1.5 pl-3 pr-8 text-sm font-medium text-gray-700 focus:border-violet-400 focus:outline-none"
+                className="h-9 appearance-none rounded-md border border-gray-300 bg-white pl-3 pr-8 text-sm font-medium text-gray-700 focus:border-violet-400 focus:outline-none"
               >
                 {LOCALE_LIST.map((l) => (
                   <option key={l} value={l}>
@@ -358,7 +358,7 @@ export default function Content() {
             </div>
             <button
               onClick={openCreate}
-              className="flex items-center gap-1.5 rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700"
+              className="flex items-center gap-1.5 rounded-md bg-violet-600 h-9 px-3 text-sm font-medium text-white hover:bg-violet-700"
             >
               <Plus size={15} /> {t("Create new")}
             </button>
@@ -385,11 +385,11 @@ export default function Content() {
           maxWidth="max-w-md"
           footer={
             <>
-              <button onClick={() => setAdding(false)} className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100">{t("Cancel")}</button>
+              <button onClick={() => setAdding(false)} className="rounded-md h-9 px-3 text-sm text-gray-500 hover:bg-gray-100">{t("Cancel")}</button>
               <button
                 onClick={addEntry}
                 disabled={!draftTitle.trim() || !draftType}
-                className="rounded-md bg-gray-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-40"
+                className="rounded-md bg-gray-700 h-9 px-3 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-40"
               >
                 {t("Create")}
               </button>
@@ -398,17 +398,17 @@ export default function Content() {
         >
           <div className="space-y-4">
             <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Title")}</label>
+              <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Title")}</label>
               <input
                 autoFocus
                 value={draftTitle}
                 onChange={(e) => setDraftTitle(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && addEntry()}
-                className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+                className="w-full rounded-md border border-gray-300 bg-white h-9 px-3 text-sm focus:border-violet-400 focus:outline-none"
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Content type")}</label>
+              <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Content type")}</label>
               <div className="grid max-h-60 grid-cols-2 gap-1.5 overflow-y-auto">
                 {contentTypes.map((ct) => {
                   const Icon = typeIcon(ct.icon);

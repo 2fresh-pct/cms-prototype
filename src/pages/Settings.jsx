@@ -62,11 +62,12 @@ function useSettingsDraft(key, initial, normalize = IDENTITY) {
   };
 }
 
-function SettingsForm({ title, form, guardRef, children }) {
+function SettingsForm({ title, form, guardRef, wide = false, children }) {
   const { t } = useI18n();
   guardRef.current = form;
+  // Title, Save and the form share one width, so Save sits right above the fields it saves.
   return (
-    <>
+    <div className={wide ? "" : "max-w-2xl"}>
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h1 className="text-xl font-semibold text-gray-900">{t(title)}</h1>
@@ -74,21 +75,21 @@ function SettingsForm({ title, form, guardRef, children }) {
         </div>
         <div className="flex items-center gap-2">
           {form.dirty && (
-            <button onClick={form.discard} className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100">
+            <button onClick={form.discard} className="rounded-md h-9 px-3 text-sm text-gray-500 hover:bg-gray-100">
               {t("Discard changes")}
             </button>
           )}
           <button
             onClick={form.save}
             disabled={!form.dirty}
-            className="rounded-md bg-gray-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-md bg-gray-700 h-9 px-3 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {t("Save")}
           </button>
         </div>
       </div>
       {children}
-    </>
+    </div>
   );
 }
 
@@ -125,7 +126,7 @@ function ThemeChooser({ value, onChange }) {
   const { t } = useI18n();
   return (
     <div>
-      <label className="mb-1 block text-sm font-medium text-gray-700">{t("Theme")}</label>
+      <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Theme")}</label>
       <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label={t("Theme")}>
         {THEMES.map((th) => {
           const active = value === th.id;
@@ -145,7 +146,7 @@ function ThemeChooser({ value, onChange }) {
           );
         })}
       </div>
-      <p className="mt-1 text-xs text-gray-500">{t("Saved in this browser only; other browsers keep their own theme.")}</p>
+      <p className="mt-1.5 text-xs text-gray-500">{t("Saved in this browser only; other browsers keep their own theme.")}</p>
     </div>
   );
 }
@@ -180,21 +181,21 @@ function GeneralPanel({ guardRef }) {
 
   return (
     <SettingsForm title="General" form={form} guardRef={guardRef}>
-      <div className="max-w-2xl space-y-5">
+      <div className="space-y-5">
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">{t("Workspace name")}</label>
+          <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Workspace name")}</label>
           <input
             value={draft.name}
             onChange={(e) => set({ name: e.target.value })}
-            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+            className="w-full rounded-md border border-gray-300 bg-white h-9 px-3 text-sm focus:border-violet-400 focus:outline-none"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">{t("Default locale")}</label>
+          <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Default locale")}</label>
           <select
             value={draft.locale}
             onChange={(e) => set({ locale: e.target.value })}
-            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+            className="w-full rounded-md border border-gray-300 bg-white h-9 px-3 text-sm focus:border-violet-400 focus:outline-none"
           >
             <option value="en">{t("English")} (en)</option>
             <option value="cs">{t("Czech")} (cs)</option>
@@ -202,17 +203,17 @@ function GeneralPanel({ guardRef }) {
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">{t("Interface language")}</label>
+          <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Interface language")}</label>
           <select
             value={draft.lang}
             onChange={(e) => set({ lang: e.target.value })}
-            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+            className="w-full rounded-md border border-gray-300 bg-white h-9 px-3 text-sm focus:border-violet-400 focus:outline-none"
           >
             {UI_LANGUAGES.map((l) => (
               <option key={l.id} value={l.id}>{l.label}</option>
             ))}
           </select>
-          <p className="mt-1 text-xs text-gray-500">{t("The language of the CMS menus and labels. Content languages are set separately.")}</p>
+          <p className="mt-1.5 text-xs text-gray-500">{t("The language of the CMS menus and labels. Content languages are set separately.")}</p>
         </div>
         <ThemeChooser value={draft.theme} onChange={(theme) => set({ theme })} />
       </div>
@@ -256,7 +257,7 @@ function WorkflowPanel({ guardRef }) {
 
   return (
     <SettingsForm title="Workflow" form={form} guardRef={guardRef}>
-    <div className="max-w-lg">
+    <div>
       <p className="mb-4 text-sm text-gray-500">
         {t("Define the stages content moves through between Draft and Published, in order, with a color for each. Draft and Published are fixed; content reaches Published only through the Publish action.")}
       </p>
@@ -265,7 +266,7 @@ function WorkflowPanel({ guardRef }) {
         {steps.map((s, i) => (
           <span key={s.id} className="flex items-center gap-1.5">
             <span
-              className="flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-xs font-medium text-gray-800 ring-1 ring-inset ring-gray-300"
+              className="flex items-center gap-1.5 rounded-full bg-white h-8 px-2.5 text-xs font-medium text-gray-800 ring-1 ring-inset ring-gray-300"
             >
               <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: s.color }} />
               {s.name ? t(s.name) : t("Step {n}", { n: i + 1 })}
@@ -275,9 +276,9 @@ function WorkflowPanel({ guardRef }) {
         ))}
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         {steps.map((s, i) => isFixed(i) ? (
-          <div key={s.id} className="flex items-center gap-2 rounded-md border border-gray-300 bg-gray-50 p-2">
+          <div key={s.id} className="flex items-center gap-2 rounded-md border border-gray-300 bg-gray-50 p-3">
             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-500">
               {i + 1}
             </span>
@@ -288,7 +289,7 @@ function WorkflowPanel({ guardRef }) {
             </span>
           </div>
         ) : (
-          <div key={s.id} className="space-y-2 rounded-md border border-gray-300 bg-white p-2">
+          <div key={s.id} className="space-y-3 rounded-md border border-gray-300 bg-white p-3">
             <div className="flex items-center gap-2">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-500">
                 {i + 1}
@@ -296,25 +297,25 @@ function WorkflowPanel({ guardRef }) {
               <input
                 value={s.name}
                 onChange={(e) => updateStep(i, { name: e.target.value })}
-                className="flex-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-sm focus:border-violet-400 focus:outline-none"
+                className="flex-1 rounded-md border border-gray-300 bg-white h-8 px-2.5 text-sm focus:border-violet-400 focus:outline-none"
               />
               <button
                 onClick={() => moveStep(i, -1)}
                 disabled={i <= 1}
-                className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30"
               >
                 <ArrowUp size={14} />
               </button>
               <button
                 onClick={() => moveStep(i, 1)}
                 disabled={i >= lastIndex - 1}
-                className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30"
               >
                 <ArrowDown size={14} />
               </button>
               <button
                 onClick={() => removeStep(i)}
-                className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-red-600 disabled:opacity-30"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-red-600 disabled:opacity-30"
               >
                 <Trash2 size={14} />
               </button>
@@ -336,7 +337,7 @@ function WorkflowPanel({ guardRef }) {
         ))}
       </div>
 
-      <button onClick={addStep} className="mt-3 flex items-center gap-1.5 text-sm font-medium text-violet-600 hover:text-violet-700">
+      <button onClick={addStep} className="mt-4 flex h-9 items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50">
         <Plus size={14} /> {t("Add step")}
       </button>
     </div>
@@ -381,7 +382,7 @@ function ChannelsPanel({ guardRef }) {
 
   return (
     <SettingsForm title="Channels" form={form} guardRef={guardRef}>
-    <div className="max-w-lg">
+    <div>
       <p className="mb-4 text-sm text-gray-500">
         {t("Define the channels a piece of content can publish to. Most content goes out on every channel; some is channel-specific.")}
       </p>
@@ -392,7 +393,7 @@ function ChannelsPanel({ guardRef }) {
           return (
             <span
               key={c.id}
-              className="flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-xs font-medium text-gray-800 ring-1 ring-inset ring-gray-300"
+              className="flex items-center gap-1.5 rounded-full bg-white h-8 px-2.5 text-xs font-medium text-gray-800 ring-1 ring-inset ring-gray-300"
             >
               <Icon size={12} />
               {c.name}
@@ -401,11 +402,11 @@ function ChannelsPanel({ guardRef }) {
         })}
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         {channels.map((c, i) => {
           const Icon = CHANNEL_ICONS[c.icon] || Radio;
           return (
-            <div key={c.id} className="space-y-2 rounded-md border border-gray-300 bg-white p-2">
+            <div key={c.id} className="space-y-3 rounded-md border border-gray-300 bg-white p-3">
               <div className="flex items-center gap-2">
                 <span
                   className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-800"
@@ -415,26 +416,26 @@ function ChannelsPanel({ guardRef }) {
                 <input
                   value={c.name}
                   onChange={(e) => updateChannel(i, { name: e.target.value })}
-                  className="flex-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-sm focus:border-violet-400 focus:outline-none"
+                  className="flex-1 rounded-md border border-gray-300 bg-white h-8 px-2.5 text-sm focus:border-violet-400 focus:outline-none"
                 />
                 <button
                   onClick={() => moveChannel(i, -1)}
                   disabled={i === 0}
-                  className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30"
                 >
                   <ArrowUp size={14} />
                 </button>
                 <button
                   onClick={() => moveChannel(i, 1)}
                   disabled={i === channels.length - 1}
-                  className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30"
                 >
                   <ArrowDown size={14} />
                 </button>
                 <button
                   onClick={() => removeChannel(i)}
                   disabled={channels.length <= 1}
-                  className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-red-600 disabled:opacity-30"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-red-600 disabled:opacity-30"
                 >
                   <Trash2 size={14} />
                 </button>
@@ -476,7 +477,7 @@ function ChannelsPanel({ guardRef }) {
         })}
       </div>
 
-      <button onClick={addChannel} className="mt-3 flex items-center gap-1.5 text-sm font-medium text-violet-600 hover:text-violet-700">
+      <button onClick={addChannel} className="mt-4 flex h-9 items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50">
         <Plus size={14} /> {t("Add channel")}
       </button>
     </div>
@@ -520,7 +521,7 @@ function UsersPanel({ guardRef }) {
           value={r.role}
           onChange={(e) => setRole(r.id, e.target.value)}
           onClick={(e) => e.stopPropagation()}
-          className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm"
+          className="rounded-md border border-gray-300 bg-white h-8 px-2.5 text-sm"
         >
           {ROLES.map((role) => (
             <option key={role} value={role}>{t(role)}</option>
@@ -531,7 +532,7 @@ function UsersPanel({ guardRef }) {
   ];
 
   return (
-    <SettingsForm title="Users & roles" form={form} guardRef={guardRef}>
+    <SettingsForm wide title="Users & roles" form={form} guardRef={guardRef}>
       <div className="rounded-lg border border-gray-300 bg-white">
         <DataTable columns={columns} rows={users} selected={selected} onSelectedChange={setSelected} />
       </div>
@@ -593,9 +594,9 @@ function DataPanel() {
     window.location.reload();
   }
 
-  const button = "flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50";
+  const button = "flex items-center gap-1.5 rounded-md border border-gray-300 bg-white h-9 px-3 text-sm font-medium text-gray-700 hover:bg-gray-50";
   return (
-    <div className="max-w-lg space-y-5">
+    <div className="max-w-2xl space-y-5">
       <p className="text-sm text-gray-600">
         {t("Content, content types, taxonomies, media and settings are stored in this browser only. To get the same workspace in another browser or on the deployed site, export it here and import the file there.")}
       </p>
@@ -604,7 +605,7 @@ function DataPanel() {
         <button onClick={() => fileRef.current?.click()} className={button}><Upload size={14} /> {t("Import data")}</button>
         <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={(e) => { chooseFile(e.target.files[0]); e.target.value = ""; }} />
       </div>
-      {error && <p role="alert" className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800 ring-1 ring-inset ring-amber-200">{error}</p>}
+      {error && <p role="alert" className="rounded-md bg-amber-50 h-9 px-3 text-sm text-amber-800 ring-1 ring-inset ring-amber-200">{error}</p>}
 
       {backup && (
         <div className="rounded-md border border-gray-300 bg-white p-3 text-sm text-gray-700">
@@ -624,8 +625,8 @@ function DataPanel() {
         title={t("Replace everything in this browser?")}
         footer={
           <>
-            <button onClick={() => setPending(null)} className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100">{t("Cancel")}</button>
-            <button onClick={importData} className="rounded-md bg-gray-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-800">{t("Replace and reload")}</button>
+            <button onClick={() => setPending(null)} className="rounded-md h-9 px-3 text-sm text-gray-500 hover:bg-gray-100">{t("Cancel")}</button>
+            <button onClick={importData} className="rounded-md bg-gray-700 h-9 px-3 text-sm font-medium text-white hover:bg-gray-800">{t("Replace and reload")}</button>
           </>
         }
       >
@@ -690,14 +691,14 @@ export default function Settings() {
 
   return (
     <div className="flex h-full min-h-0">
-      <aside className="w-56 shrink-0 border-r border-gray-300 bg-white p-3">
-        <p className="px-2 pb-2 text-xs font-medium uppercase tracking-wide text-gray-400">{t("Settings")}</p>
-        <div className="space-y-2">
+      <aside className="w-60 shrink-0 border-r border-gray-300 bg-white p-3">
+        <p className="px-2 pb-1.5 text-xs font-medium uppercase tracking-wide text-gray-400">{t("Settings")}</p>
+        <div className="space-y-0.5">
           {TABS.map((tb) => (
             <button
               key={tb.id}
               onClick={() => selectTab(tb.id)}
-              className={`flex w-full items-center rounded-md px-2 py-1.5 text-left text-sm ${
+              className={`flex h-8 w-full items-center rounded-md px-2 text-left text-sm ${
                 tab === tb.id ? "bg-gray-200 font-medium text-gray-900" : "text-gray-700 hover:bg-gray-100"
               }`}
             >
@@ -723,18 +724,18 @@ export default function Settings() {
         title={t("Save your changes?")}
         footer={
           <>
-            <button onClick={keepEditing} className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100">
+            <button onClick={keepEditing} className="rounded-md h-9 px-3 text-sm text-gray-500 hover:bg-gray-100">
               {t("Keep editing")}
             </button>
             <button
               onClick={() => { guardRef.current?.discard?.(); leave(); }}
-              className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
+              className="rounded-md border border-gray-300 h-9 px-3 text-sm font-medium text-red-600 hover:bg-red-50"
             >
               {t("Discard changes")}
             </button>
             <button
               onClick={() => { guardRef.current?.save?.(); leave(); }}
-              className="rounded-md bg-gray-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-800"
+              className="rounded-md bg-gray-700 h-9 px-3 text-sm font-medium text-white hover:bg-gray-800"
             >
               {t("Save changes")}
             </button>

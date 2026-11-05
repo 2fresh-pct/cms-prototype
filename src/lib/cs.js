@@ -189,6 +189,7 @@ export const CS = {
   "Add group": "Přidat skupinu",
   "Group name": "Název skupiny",
   "Delete group": "Smazat skupinu",
+  "Delete field": "Smazat pole",
   "New group": "Nová skupina",
   "Its fields move to General.": "Její pole se přesunou do Obecné.",
   "No fields in this group yet.": "V této skupině zatím nejsou žádná pole.",

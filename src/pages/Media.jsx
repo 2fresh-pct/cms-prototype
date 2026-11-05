@@ -127,7 +127,7 @@ export default function Media() {
           <button
             onClick={() => fileRef.current?.click()}
             disabled={busy}
-            className="flex items-center gap-1.5 rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-60"
+            className="flex items-center gap-1.5 rounded-md bg-violet-600 h-9 px-3 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-60"
           >
             <Upload size={15} /> {busy ? t("Uploading…") : t("Upload")}
           </button>
@@ -135,7 +135,7 @@ export default function Media() {
       </div>
 
       {message && (
-        <div role="alert" className="mb-4 flex items-start justify-between gap-3 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800 ring-1 ring-inset ring-amber-200">
+        <div role="alert" className="mb-4 flex items-start justify-between gap-3 rounded-md bg-amber-50 h-9 px-3 text-sm text-amber-800 ring-1 ring-inset ring-amber-200">
           <span>{message}</span>
           <button onClick={() => setMessage("")} aria-label={t("Dismiss")} className="shrink-0 rounded p-0.5 hover:bg-amber-100"><X size={14} /></button>
         </div>

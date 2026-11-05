@@ -19,32 +19,32 @@ function TermRow({ term, depth, index, siblingCount, onRename, onAddChild, onRem
         <input
           value={term.name}
           onChange={(e) => onRename(term.id, e.target.value)}
-          className="flex-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-sm focus:border-violet-400 focus:outline-none"
+          className="flex-1 rounded-md border border-gray-300 bg-white h-8 px-2.5 text-sm focus:border-violet-400 focus:outline-none"
         />
         <button
           onClick={() => onAddChild(term.id)}
           title={t("Add sub-term")}
-          className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-violet-600"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-violet-600"
         >
           <FolderPlus size={14} />
         </button>
         <button
           onClick={() => onMove(term.id, -1)}
           disabled={index === 0}
-          className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30"
         >
           <ArrowUp size={14} />
         </button>
         <button
           onClick={() => onMove(term.id, 1)}
           disabled={index === siblingCount - 1}
-          className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30"
         >
           <ArrowDown size={14} />
         </button>
         <button
           onClick={() => onRemove(term.id)}
-          className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-red-600"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-red-600"
         >
           <Trash2 size={14} />
         </button>
@@ -127,7 +127,7 @@ export default function TaxonomyDetail() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             onBlur={() => update({ name: name.trim() || taxonomy.name })}
-            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+            className="w-full rounded-md border border-gray-300 bg-white h-9 px-3 text-sm focus:border-violet-400 focus:outline-none"
           />
         </DetailField>
 
@@ -136,18 +136,18 @@ export default function TaxonomyDetail() {
             value={taxonomy.description ?? ""}
             onChange={(e) => update({ description: e.target.value })}
             placeholder={t("What is this taxonomy used for?")}
-            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+            className="w-full rounded-md border border-gray-300 bg-white h-9 px-3 text-sm focus:border-violet-400 focus:outline-none"
           />
         </DetailField>
 
         <div>
-          <div className="mb-2 flex items-center justify-between">
+          <div className="mb-3 flex items-center justify-between">
             <label className="text-xs font-medium uppercase tracking-wide text-gray-400">{t("Terms")}</label>
-            <button onClick={addRootTerm} className="flex items-center gap-1 text-xs font-medium text-violet-600 hover:text-violet-700">
-              <Plus size={13} /> {t("Add term")}
+            <button onClick={addRootTerm} className="flex h-9 items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50">
+              <Plus size={14} /> {t("Add term")}
             </button>
           </div>
-          <div className="space-y-1 rounded-md border border-gray-300 bg-white p-2">
+          <div className="space-y-1 rounded-md border border-gray-300 bg-white p-3">
             {taxonomy.terms.map((tm, i) => (
               <TermRow
                 key={tm.id}

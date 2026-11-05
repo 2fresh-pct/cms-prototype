@@ -32,9 +32,9 @@ export function FilterBar({
 
   return (
     <div className="space-y-2.5">
-      <div className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-2 py-1.5">
+      <div className="flex h-10 items-center gap-2 rounded-lg border border-gray-300 bg-white px-2">
         {typeFacetLabel && (
-          <button className="flex items-center gap-1.5 rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-200">
+          <button className="flex items-center gap-1.5 rounded-md bg-gray-100 h-8 px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-200">
             {t(typeFacetLabel)}
             <span className="rounded bg-white px-1.5 py-0.5 text-gray-900 ring-1 ring-gray-300">{t(typeLabel ?? "Any")}</span>
           </button>
@@ -53,7 +53,7 @@ export function FilterBar({
           <div className="relative" ref={ref}>
             <button
               onClick={() => setOpen((v) => !v)}
-              className={`flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium ${
+              className={`flex items-center gap-1 rounded-md h-8 px-2.5 text-xs font-medium ${
                 activeCount > 0 ? "bg-violet-50 text-violet-700" : "text-gray-500 hover:bg-gray-100"
               }`}
             >
@@ -82,12 +82,12 @@ export function FilterBar({
                 <div className="space-y-3">
                   {filterFields.map((f) => (
                     <div key={f.key}>
-                      <label className="mb-1 block text-xs font-medium text-gray-500">{t(f.label)}</label>
+                      <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-gray-400">{t(f.label)}</label>
                       <div className="relative">
                         <select
                           value={filterValues[f.key] ?? ""}
                           onChange={(e) => onFilterChange?.(f.key, e.target.value || null)}
-                          className="w-full appearance-none rounded-md border border-gray-300 bg-white px-2.5 py-1.5 pr-7 text-sm focus:border-violet-400 focus:outline-none"
+                          className="h-9 w-full appearance-none rounded-md border border-gray-300 bg-white pl-3 pr-8 text-sm focus:border-violet-400 focus:outline-none"
                         >
                           <option value="">{t("Any")}</option>
                           {f.options.map((opt) => (
@@ -119,7 +119,7 @@ export function FilterBar({
           {chips.map((chip) => (
             <button
               key={chip}
-              className="flex items-center gap-1 rounded-full border border-dashed border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-500 hover:border-gray-400 hover:text-gray-700"
+              className="flex items-center gap-1 rounded-full border border-dashed border-gray-300 h-8 px-2.5 text-xs font-medium text-gray-500 hover:border-gray-400 hover:text-gray-700"
             >
               <Plus size={12} />
               {t(chip)}
@@ -131,7 +131,7 @@ export function FilterBar({
       {sortLabel && (
         <button
           onClick={onSortClick}
-          className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100"
+          className="flex items-center gap-1.5 rounded-md h-7 px-2 text-xs font-medium text-gray-600 hover:bg-gray-100"
         >
           <ArrowUpDown size={13} />
           {t("Sort by")}

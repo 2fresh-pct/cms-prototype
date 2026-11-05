@@ -8,10 +8,10 @@ import MediaPicker from "./MediaPicker";
 import EntryReferenceField from "./EntryReferenceField";
 import { holdsSeveral, mediaIds } from "../lib/media";
 
-const INPUT = "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none";
-const INPUT_SM = "rounded-md border border-gray-300 bg-white px-2 py-1.5 text-sm focus:border-violet-400 focus:outline-none";
+const INPUT = "w-full rounded-md border border-gray-300 bg-white h-9 px-3 text-sm focus:border-violet-400 focus:outline-none";
+const INPUT_SM = "rounded-md border border-gray-300 bg-white h-9 px-3 text-sm focus:border-violet-400 focus:outline-none";
 const ADD_BUTTON = "flex items-center gap-1 text-xs font-medium text-violet-600 hover:text-violet-700";
-const ICON_BUTTON = "rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-red-600";
+const ICON_BUTTON = "flex h-8 w-8 shrink-0 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-red-600";
 
 export const WEEKDAYS = [
   ["mon", "Monday"], ["tue", "Tuesday"], ["wed", "Wednesday"], ["thu", "Thursday"],
@@ -148,7 +148,7 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
 
   switch (field.type) {
     case "ID":
-      return <input disabled value={ctx.entryId} className="w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-500" />;
+      return <input disabled value={ctx.entryId} className="w-full rounded-md border border-gray-300 bg-gray-50 h-9 px-3 text-sm text-gray-500" />;
 
     case "Short text":
       return <textarea rows={2} defaultValue={value ?? ""} onBlur={(e) => onChange(e.target.value)} className={`${INPUT} resize-none`} />;
@@ -159,7 +159,7 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
     case "Number":
       return (
         <div className="flex items-center gap-2">
-          <input type="number" value={value ?? ""} onChange={(e) => onChange(e.target.value)} className={field.unit ? "w-32 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm" : INPUT} />
+          <input type="number" value={value ?? ""} onChange={(e) => onChange(e.target.value)} className={field.unit ? "w-32 rounded-md border border-gray-300 bg-white h-9 px-3 text-sm" : INPUT} />
           {field.unit && <span className="text-sm text-gray-500">{t(field.unit)}</span>}
         </div>
       );
@@ -175,7 +175,7 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
     case "Select": {
       const options = field.options ?? [];
       return (
-        <select value={value ?? field.defaultValue ?? ""} onChange={(e) => onChange(e.target.value)} className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-2 text-sm">
+        <select value={value ?? field.defaultValue ?? ""} onChange={(e) => onChange(e.target.value)} className="w-full rounded-md border border-gray-300 bg-white h-9 px-3 text-sm">
           {!field.defaultValue && <option value="">{t("None")}</option>}
           {options.map((o) => <option key={o} value={o}>{t(o)}</option>)}
         </select>
@@ -183,7 +183,7 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
     }
 
     case "Date":
-      return <input type="date" value={value ?? ""} onChange={(e) => onChange(e.target.value)} className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm" />;
+      return <input type="date" value={value ?? ""} onChange={(e) => onChange(e.target.value)} className="rounded-md border border-gray-300 bg-white h-9 px-3 text-sm" />;
 
     case "Media":
     case "Media list":

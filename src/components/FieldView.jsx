@@ -53,7 +53,7 @@ function Chips({ names }) {
   return (
     <div className="flex flex-wrap gap-1.5">
       {names.map((n) => (
-        <span key={n} className="rounded-full border border-gray-300 px-2.5 py-0.5 text-xs text-gray-600">{n}</span>
+        <span key={n} className="rounded-full border border-gray-300 h-7 px-2.5 text-xs text-gray-600">{n}</span>
       ))}
     </div>
   );
@@ -104,7 +104,7 @@ export default function FieldView({ field: f, value, ctx, compact, thumbnails = 
             const type = ctx.contentTypes.find((ct) => ct.id === e.contentTypeId);
             return (
               <li key={e.id} className="rounded-md border border-gray-300 px-3 py-2">
-                <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400">{type ? t(type.name) : ""}</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-400">{type ? t(type.name) : ""}</p>
                 <p className={`${text} font-medium text-gray-900`}>{e.title}</p>
                 {ctx.publishStepId && e.status !== ctx.publishStepId && <p className="text-xs text-gray-400">{t("Not published")}</p>}
               </li>

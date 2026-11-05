@@ -57,21 +57,21 @@ export default function CatalogueItemDetail() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               onBlur={() => update({ name: name.trim() || item.name })}
-              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+              className="w-full rounded-md border border-gray-300 bg-white h-9 px-3 text-sm focus:border-violet-400 focus:outline-none"
             />
           </DetailField>
           <DetailField label="URL">
             <input
               value={item.url}
               onChange={(e) => update({ url: e.target.value })}
-              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+              className="w-full rounded-md border border-gray-300 bg-white h-9 px-3 text-sm focus:border-violet-400 focus:outline-none"
             />
           </DetailField>
           <DetailField label="Locale">
             <select
               value={item.locale}
               onChange={(e) => update({ locale: e.target.value })}
-              className="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm uppercase"
+              className="rounded-md border border-gray-300 bg-white h-9 px-3 text-sm uppercase"
             >
               {LOCALE_LIST.map((l) => (
                 <option key={l} value={l}>{l}</option>
@@ -85,7 +85,7 @@ export default function CatalogueItemDetail() {
             <select
               value={item.status}
               onChange={(e) => update({ status: e.target.value })}
-              className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm"
+              className="w-full rounded-md border border-gray-300 bg-white h-9 px-3 text-sm"
             >
               {STATUS_LIST.map((s) => (
                 <option key={s} value={s}>{s}</option>

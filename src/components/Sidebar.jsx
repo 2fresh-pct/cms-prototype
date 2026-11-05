@@ -6,7 +6,7 @@ function Item({ icon: Icon, label, count, active, onClick, dim, color }) {
   return (
     <button
       onClick={onClick}
-      className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm ${
+      className={`flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-sm ${
         active ? "bg-gray-200 font-medium text-gray-900" : "text-gray-700 hover:bg-gray-100"
       }`}
     >
@@ -37,7 +37,7 @@ export default function Sidebar({
   const reset = { status: null, typeId: null, channelId: null };
 
   return (
-    <aside className="w-60 shrink-0 space-y-4 border-r border-gray-300 bg-white p-3">
+    <aside className="w-60 shrink-0 space-y-5 overflow-y-auto border-r border-gray-300 bg-white p-3">
       <div className="space-y-0.5">
         <Item icon={List} label={t(allLabel)} active={isAll} onClick={() => onFilter({ view: "all", ...reset })} />
         <Item icon={Clock} label={t("Recent")} active={filter.view === "recent"} onClick={() => onFilter({ view: "recent", ...reset })} />
@@ -45,7 +45,7 @@ export default function Sidebar({
       </div>
 
       <div>
-        <p className="px-2 pb-1 text-xs font-medium uppercase tracking-wide text-gray-400">{t(statusGroupLabel)}</p>
+        <p className="px-2 pb-1.5 text-xs font-medium uppercase tracking-wide text-gray-400">{t(statusGroupLabel)}</p>
         <div className="space-y-0.5">
           {statuses.map((s) => (
             <Item
@@ -62,7 +62,7 @@ export default function Sidebar({
       </div>
 
       <div>
-        <p className="px-2 pb-1 text-xs font-medium uppercase tracking-wide text-gray-400">{t(typeGroupLabel)}</p>
+        <p className="px-2 pb-1.5 text-xs font-medium uppercase tracking-wide text-gray-400">{t(typeGroupLabel)}</p>
         <div className="space-y-0.5">
           {typeItems.map((ti) => (
             <Item
@@ -79,7 +79,7 @@ export default function Sidebar({
 
       {channelItems && (
         <div>
-          <p className="px-2 pb-1 text-xs font-medium uppercase tracking-wide text-gray-400">{t(channelGroupLabel)}</p>
+          <p className="px-2 pb-1.5 text-xs font-medium uppercase tracking-wide text-gray-400">{t(channelGroupLabel)}</p>
           <div className="space-y-0.5">
             {channelItems.map((c) => (
               <Item

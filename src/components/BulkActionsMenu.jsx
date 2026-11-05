@@ -42,7 +42,7 @@ export default function BulkActionsMenu({ count, actions }) {
         title={count === 0 ? t("Select rows to enable actions") : undefined}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-white"
+        className="flex items-center gap-1.5 rounded-md border border-gray-300 bg-white h-9 px-3 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-white"
       >
         {t("Actions")}
         {count > 0 && <span className="rounded-full bg-gray-200 px-1.5 text-xs text-gray-700">{count}</span>}
@@ -80,12 +80,12 @@ export default function BulkActionsMenu({ count, actions }) {
         title={pending && t(pending.confirm.title)}
         footer={
           <>
-            <button onClick={() => setPending(null)} className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100">
+            <button onClick={() => setPending(null)} className="rounded-md h-9 px-3 text-sm text-gray-500 hover:bg-gray-100">
               {t("Cancel")}
             </button>
             <button
               onClick={() => { const a = pending; setPending(null); a.onSelect(); }}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium text-white ${pending?.danger ? "bg-red-600 hover:bg-red-700" : "bg-gray-700 hover:bg-gray-800"}`}
+              className={`rounded-md h-9 px-3 text-sm font-medium text-white ${pending?.danger ? "bg-red-600 hover:bg-red-700" : "bg-gray-700 hover:bg-gray-800"}`}
             >
               {pending && t(pending.confirm.confirmLabel ?? "Confirm")}
             </button>

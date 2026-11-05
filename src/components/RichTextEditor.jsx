@@ -186,7 +186,7 @@ function Toolbar({ editor, onCommit, media, onUpload, locale }) {
             type="button"
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => { editor.chain().focus().deleteSelection().run(); onCommit(); }}
-            className="shrink-0 rounded-md border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+            className="shrink-0 rounded-md border border-gray-300 bg-white h-8 px-2.5 text-xs font-medium text-red-600 hover:bg-red-50"
           >
             {t("Remove image")}
           </button>
@@ -196,7 +196,7 @@ function Toolbar({ editor, onCommit, media, onUpload, locale }) {
             onBlur={onCommit}
             aria-label={t("Alt text")}
             placeholder={t("Alt text: describe the image for screen readers")}
-            className="w-full rounded-md border border-gray-300 bg-white px-2 py-1 text-sm focus:border-violet-400 focus:outline-none"
+            className="w-full rounded-md border border-gray-300 bg-white h-8 px-2.5 text-sm focus:border-violet-400 focus:outline-none"
           />
         </div>
       )}
@@ -211,7 +211,7 @@ function Toolbar({ editor, onCommit, media, onUpload, locale }) {
               onKeyDown={onLinkKey}
               aria-label={t("Link text")}
               placeholder={t("Link text")}
-              className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm focus:border-violet-400 focus:outline-none"
+              className="rounded-md border border-gray-300 bg-white h-8 px-2.5 text-sm focus:border-violet-400 focus:outline-none"
             />
             <input
               autoFocus={linkRange.current.from !== linkRange.current.to}
@@ -220,14 +220,14 @@ function Toolbar({ editor, onCommit, media, onUpload, locale }) {
               onKeyDown={onLinkKey}
               aria-label={t("Link URL")}
               placeholder={t("Link URL")}
-              className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm focus:border-violet-400 focus:outline-none"
+              className="rounded-md border border-gray-300 bg-white h-8 px-2.5 text-sm focus:border-violet-400 focus:outline-none"
             />
           </div>
           <div className="flex items-center gap-2">
-            <button type="button" disabled={!canApply} onClick={applyLink} className="rounded-md bg-gray-700 px-2.5 py-1 text-xs font-medium text-white hover:bg-gray-800 disabled:opacity-40">{t("Apply")}</button>
-            <button type="button" onClick={() => setLinkOpen(false)} className="rounded-md px-2 py-1 text-xs text-gray-500 hover:bg-gray-200">{t("Cancel")}</button>
+            <button type="button" disabled={!canApply} onClick={applyLink} className="rounded-md bg-gray-700 h-8 px-2.5 text-xs font-medium text-white hover:bg-gray-800 disabled:opacity-40">{t("Apply")}</button>
+            <button type="button" onClick={() => setLinkOpen(false)} className="rounded-md h-7 px-2 text-xs text-gray-500 hover:bg-gray-200">{t("Cancel")}</button>
             {s.link && (
-              <button type="button" onClick={removeLink} className="rounded-md border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50">{t("Remove link")}</button>
+              <button type="button" onClick={removeLink} className="rounded-md border border-gray-300 bg-white h-8 px-2.5 text-xs font-medium text-red-600 hover:bg-red-50">{t("Remove link")}</button>
             )}
           </div>
         </div>
@@ -267,7 +267,7 @@ export default function RichTextEditor({ value, onChange, placeholder, minHeight
   return (
     <div className="rounded-md border border-gray-300 bg-white focus-within:border-violet-400">
       <Toolbar editor={editor} onCommit={() => commit(editor)} media={media} onUpload={onUpload} locale={locale} />
-      <EditorContent editor={editor} style={{ minHeight }} className="px-3 py-2 text-sm text-gray-800" />
+      <EditorContent editor={editor} style={{ minHeight }} className="h-9 px-3 text-sm text-gray-800" />
     </div>
   );
 }

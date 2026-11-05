@@ -168,14 +168,14 @@ function ContentTypeEditor({ id }) {
         actions={
           <>
             {dirty && (
-              <button onClick={discard} className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100">
+              <button onClick={discard} className="rounded-md h-9 px-3 text-sm text-gray-500 hover:bg-gray-100">
                 {t("Discard changes")}
               </button>
             )}
             <button
               onClick={save}
               disabled={!dirty}
-              className="rounded-md bg-gray-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-md bg-gray-700 h-9 px-3 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40"
             >
               {t("Save")}
             </button>
@@ -189,14 +189,14 @@ function ContentTypeEditor({ id }) {
             <input
               value={draft.name}
               onChange={(e) => update({ name: e.target.value })}
-              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+              className="w-full rounded-md border border-gray-300 bg-white h-9 px-3 text-sm focus:border-violet-400 focus:outline-none"
             />
           </DetailField>
 
           <div>
-            <div className="mb-2 flex items-center justify-between">
+            <div className="mb-3 flex items-center justify-between">
               <label className="text-xs font-medium uppercase tracking-wide text-gray-400">{t("Fields")}</label>
-              <button onClick={addField} className="flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
+              <button onClick={addField} className="flex items-center gap-1.5 rounded-md border border-gray-300 bg-white h-9 px-3 text-sm font-medium text-gray-700 hover:bg-gray-50">
                 <Plus size={14} /> {t("Add field")}
               </button>
             </div>
@@ -208,14 +208,14 @@ function ContentTypeEditor({ id }) {
                 onMove={moveGroup}
                 fixedId={GENERAL}
                 trailing={
-                  <button onClick={addGroup} className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100">
+                  <button onClick={addGroup} className="flex items-center gap-1 rounded-md h-7 px-2 text-xs font-medium text-gray-600 hover:bg-gray-100">
                     <Plus size={13} /> {t("Add group")}
                   </button>
                 }
               />
               {activeName !== null && (
                 <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <label className="text-xs text-gray-400" htmlFor="group-name">{t("Group name")}</label>
+                  <label className="text-xs text-gray-500" htmlFor="group-name">{t("Group name")}</label>
                   <input
                     id="group-name"
                     key={activeName}
@@ -224,11 +224,11 @@ function ContentTypeEditor({ id }) {
                     onFocus={(e) => { if (focusGroupName) { e.target.select(); setFocusGroupName(false); } }}
                     onBlur={(e) => { if (!renameGroup(activeName, e.target.value)) e.target.value = activeName; }}
                     onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
-                    className="w-48 rounded-md border border-gray-300 bg-white px-2 py-1 text-sm focus:border-violet-400 focus:outline-none"
+                    className="w-48 rounded-md border border-gray-300 bg-white h-8 px-2.5 text-sm focus:border-violet-400 focus:outline-none"
                   />
                   <button
                     onClick={() => deleteGroup(activeName)}
-                    className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-red-600"
+                    className="flex items-center gap-1 rounded-md h-7 px-2 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-red-600"
                   >
                     <Trash2 size={13} /> {t("Delete group")}
                   </button>
@@ -236,13 +236,13 @@ function ContentTypeEditor({ id }) {
                 </div>
               )}
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {draft.fields.map((f, i) => !inActive(f) ? null : (
                 <div
                   key={i}
                   onDragOver={(e) => { if (dragIndex !== null) { e.preventDefault(); if (overIndex !== i) setOverIndex(i); } }}
                   onDrop={(e) => { e.preventDefault(); moveField(dragIndex, i); }}
-                  className={`space-y-2 rounded-md border bg-white p-2 ${dragIndex === i ? "opacity-40" : ""} ${
+                  className={`space-y-3 rounded-md border bg-white p-3 ${dragIndex === i ? "opacity-40" : ""} ${
                     overIndex === i && dragIndex !== null && dragIndex !== i ? "border-gray-800 ring-2 ring-gray-800" : "border-gray-300"
                   }`}
                 >
@@ -257,12 +257,12 @@ function ContentTypeEditor({ id }) {
                         e.dataTransfer.setDragImage(e.currentTarget.closest("[class*=rounded-md]"), 12, 12);
                       }}
                       onDragEnd={() => { setDragIndex(null); setOverIndex(null); }}
-                      className="flex h-7 w-5 shrink-0 cursor-grab items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-700 active:cursor-grabbing"
+                      className="flex h-8 w-5 shrink-0 cursor-grab items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-700 active:cursor-grabbing"
                     >
                       <GripVertical size={15} />
                     </span>
                     <div>
-                      <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">{t("Type")}</label>
+                      <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Type")}</label>
                       <select
                         value={f.type}
                         disabled={typeLocked(f)}
@@ -274,7 +274,7 @@ function ContentTypeEditor({ id }) {
                             taxonomyId: nextType === "Taxonomy" ? (f.taxonomyId ?? taxonomies[0]?.id) : undefined,
                           });
                         }}
-                        className="w-40 rounded-md border border-gray-300 bg-white px-2 py-1 text-sm disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                        className="w-40 rounded-md border border-gray-300 bg-white h-8 px-2.5 text-sm disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
                       >
                         {FIELD_TYPE_LIST.filter((ft) => ft !== "Media list" || f.type === "Media list").map((ft) => (
                           <option key={ft} value={ft}>{t(ft)}</option>
@@ -283,11 +283,11 @@ function ContentTypeEditor({ id }) {
                     </div>
                     {f.type === "Taxonomy" && (
                       <div>
-                        <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">{t("Taxonomy")}</label>
+                        <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Taxonomy")}</label>
                         <select
                           value={f.taxonomyId ?? ""}
                           onChange={(e) => updateField(i, { taxonomyId: e.target.value })}
-                          className="rounded-md border border-violet-200 bg-violet-50 px-2 py-1 text-sm text-violet-700"
+                          className="rounded-md border border-violet-200 bg-violet-50 h-8 px-2.5 text-sm text-violet-700"
                         >
                           <option value="" disabled>{t("Choose taxonomy…")}</option>
                           {taxonomies.map((tx) => (
@@ -297,20 +297,20 @@ function ContentTypeEditor({ id }) {
                       </div>
                     )}
                     <div className="w-40 shrink-0">
-                      <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">{t("Name")}</label>
+                      <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Name")}</label>
                       <input
                         value={f.label ?? f.name}
                         onChange={(e) => updateField(i, { label: e.target.value })}
                         aria-label={t("Label")}
-                        className="w-full rounded-md border border-gray-300 bg-white px-2 py-1 text-sm"
+                        className="w-full rounded-md border border-gray-300 bg-white h-8 px-2.5 text-sm"
                       />
                     </div>
-                    <button onClick={() => removeField(i)} className="ml-auto rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-red-600">
+                    <button onClick={() => removeField(i)} aria-label={t("Delete field")} className="ml-auto flex h-8 w-8 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-red-600">
                       <Trash2 size={14} />
                     </button>
                   </div>
                   {f.type === "Reference" && (
-                    <div className="flex flex-wrap items-center gap-1.5 text-xs text-gray-500">
+                    <div className="flex flex-wrap items-center gap-1.5 pl-7 text-xs text-gray-500">
                       <span className="mr-1">{t("Can link to")}</span>
                       {contentTypes.map((ct) => {
                         const on = f.targetTypeIds?.includes(ct.id);
@@ -323,7 +323,7 @@ function ContentTypeEditor({ id }) {
                               const current = f.targetTypeIds ?? [];
                               updateField(i, { targetTypeIds: on ? current.filter((x) => x !== ct.id) : [...current, ct.id] });
                             }}
-                            className={`rounded-full border px-2.5 py-0.5 ${on ? "border-gray-800 bg-gray-800 text-white" : "border-gray-300 bg-white text-gray-600 hover:bg-gray-50"}`}
+                            className={`h-7 rounded-full border px-3 ${on ? "border-gray-800 bg-gray-800 text-white" : "border-gray-300 bg-white text-gray-600 hover:bg-gray-50"}`}
                           >
                             {t(ct.name)}
                           </button>
@@ -332,19 +332,22 @@ function ContentTypeEditor({ id }) {
                       {!f.targetTypeIds?.length && <span className="text-gray-400">{f.targetName ? t(f.targetName) : t("Any content type")}</span>}
                     </div>
                   )}
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
-                    <code className="rounded bg-gray-100 px-1.5 py-0.5 text-gray-600">{f.name}</code>
-                    <label className="flex items-center gap-1.5">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-2 pl-7 text-xs text-gray-500">
+                    <div className="w-40 shrink-0">
+                      <code className="rounded bg-gray-100 px-1.5 py-0.5 text-gray-600">{f.name}</code>
+                    </div>
+                    <label className="flex w-40 shrink-0 items-center gap-2">
                       {t("Group")}
                       <select
                         value={f.group && groups.includes(f.group) ? f.group : ""}
                         onChange={(e) => updateField(i, { group: e.target.value || null })}
-                        className="rounded border border-gray-300 bg-white px-1.5 py-0.5 text-xs text-gray-700"
+                        className="h-7 min-w-0 flex-1 rounded border border-gray-300 bg-white px-1.5 text-xs text-gray-700"
                       >
                         <option value="">{t("General")}</option>
                         {groups.map((g) => <option key={g} value={g}>{t(g)}</option>)}
                       </select>
                     </label>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pl-2">
                     <label className="flex items-center gap-1.5">
                       <input
                         type="checkbox"
@@ -385,6 +388,7 @@ function ContentTypeEditor({ id }) {
                         {t("Allow several terms")}
                       </label>
                     )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -395,7 +399,7 @@ function ContentTypeEditor({ id }) {
           </div>
         </div>
 
-        <div className="w-72 shrink-0 space-y-5 rounded-lg border border-gray-300 bg-white p-5">
+        <div className="w-80 shrink-0 space-y-5 self-start rounded-lg border border-gray-300 bg-white p-5">
           <DetailField label="Icon">
             <div className="grid grid-cols-6 gap-1.5">
               {TYPE_ICON_KEYS.map((key) => {
@@ -431,15 +435,15 @@ function ContentTypeEditor({ id }) {
         title={t("Save your changes?")}
         footer={
           <>
-            <button onClick={() => blocker.reset?.()} className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100">
+            <button onClick={() => blocker.reset?.()} className="rounded-md h-9 px-3 text-sm text-gray-500 hover:bg-gray-100">
               {t("Keep editing")}
             </button>
-            <button onClick={() => blocker.proceed?.()} className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50">
+            <button onClick={() => blocker.proceed?.()} className="rounded-md border border-gray-300 h-9 px-3 text-sm font-medium text-red-600 hover:bg-red-50">
               {t("Discard changes")}
             </button>
             <button
               onClick={() => { save(); blocker.proceed?.(); }}
-              className="rounded-md bg-gray-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-800"
+              className="rounded-md bg-gray-700 h-9 px-3 text-sm font-medium text-white hover:bg-gray-800"
             >
               {t("Save changes")}
             </button>

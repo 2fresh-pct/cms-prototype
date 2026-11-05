@@ -145,7 +145,7 @@ export default function Catalogue() {
             )}
             <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
           </div>
-          <button className="rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700">
+          <button className="rounded-md bg-violet-600 h-9 px-3 text-sm font-medium text-white hover:bg-violet-700">
             + Create new
           </button>
         </div>

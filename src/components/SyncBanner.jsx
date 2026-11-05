@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useI18n } from "../lib/i18n";
 import { getSyncState, loadShared, pushNow, subscribe } from "../lib/sync";
 
-const SECONDARY = "rounded-md border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50";
+const SECONDARY = "rounded-md border border-gray-300 bg-white h-8 px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50";
 
 // Shown only when the shared workspace needs attention; otherwise sync is silent.
 // Saving never asks which copy to keep: the browser being edited wins.

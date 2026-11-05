@@ -68,7 +68,7 @@ export default function Taxonomies() {
         </div>
         <button
           onClick={createTaxonomy}
-          className="flex items-center gap-1.5 rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700"
+          className="flex items-center gap-1.5 rounded-md bg-violet-600 h-9 px-3 text-sm font-medium text-white hover:bg-violet-700"
         >
           <Plus size={15} /> {t("Create new")}
         </button>

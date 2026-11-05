@@ -109,7 +109,7 @@ export default function ContentTypes() {
           <h1 className="text-xl font-semibold text-gray-900">{t("Content types")}</h1>
           <BulkActionsMenu count={selected.size} actions={bulkActions} />
         </div>
-        <button onClick={openCreate} className="flex items-center gap-1.5 rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700">
+        <button onClick={openCreate} className="flex items-center gap-1.5 rounded-md bg-violet-600 h-9 px-3 text-sm font-medium text-white hover:bg-violet-700">
           <Plus size={15} /> {t("Create new")}
         </button>
       </div>
@@ -140,11 +140,11 @@ export default function ContentTypes() {
         title={t("New content type")}
         footer={
           <>
-            <button onClick={() => setCreating(false)} className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100">{t("Cancel")}</button>
+            <button onClick={() => setCreating(false)} className="rounded-md h-9 px-3 text-sm text-gray-500 hover:bg-gray-100">{t("Cancel")}</button>
             <button
               onClick={createType}
               disabled={!trimmed || nameTaken}
-              className="rounded-md bg-gray-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-40"
+              className="rounded-md bg-gray-700 h-9 px-3 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-40"
             >
               {t("Create")}
             </button>
@@ -153,18 +153,18 @@ export default function ContentTypes() {
       >
         <div className="space-y-4">
           <div>
-            <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Name")}</label>
+            <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Name")}</label>
             <input
               autoFocus
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") createType(); }}
-              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+              className="w-full rounded-md border border-gray-300 bg-white h-9 px-3 text-sm focus:border-violet-400 focus:outline-none"
             />
             {nameTaken && <p className="mt-1 text-xs text-red-600">{t("A content type with this name already exists.")}</p>}
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Icon")}</label>
+            <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Icon")}</label>
             <div className="grid grid-cols-6 gap-1.5">
               {TYPE_ICON_KEYS.map((key) => {
                 const Icon = typeIcon(key);
