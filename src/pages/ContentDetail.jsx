@@ -14,6 +14,7 @@ import FieldEditor from "../components/FieldEditor";
 import FieldView, { isEmpty } from "../components/FieldView";
 import RichTextEditor, { RichTextView } from "../components/RichTextEditor";
 import StatusPill from "../components/StatusPill";
+import StatusSelect from "../components/StatusSelect";
 import Avatar from "../components/Avatar";
 import Modal from "../components/Modal";
 import GroupTabs from "../components/GroupTabs";
@@ -597,18 +598,12 @@ export default function ContentDetail() {
                 </>
               ) : (
                 <>
-                  <select
+                  <StatusSelect
                     value={displayStatus}
-                    onChange={(e) => handleStatusChange(e.target.value)}
-                    className="w-full rounded-md border border-gray-300 bg-white h-9 px-3 text-sm"
-                  >
-                    {workflowSteps.slice(0, -1).map((s) => (
-                      <option key={s.id} value={s.id}>{t(s.name)}</option>
-                    ))}
-                  </select>
-                  <div className="mt-2">
-                    <StatusPill status={currentStep?.name ?? entry.status} color={currentStep?.color} />
-                  </div>
+                    steps={workflowSteps.slice(0, -1)}
+                    onChange={handleStatusChange}
+                    fallbackLabel={entry.status}
+                  />
                   {entry.live && (
                     <div className="mt-3 flex flex-wrap items-center gap-2 rounded-md bg-gray-50 px-2.5 py-2 ring-1 ring-inset ring-gray-200">
                       <span className="text-xs text-gray-500">{t("Live version")}</span>
