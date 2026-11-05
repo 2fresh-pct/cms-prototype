@@ -266,7 +266,7 @@ function WorkflowPanel({ guardRef }) {
         {steps.map((s, i) => (
           <span key={s.id} className="flex items-center gap-1.5">
             <span
-              className="flex items-center gap-1.5 rounded-full bg-white h-8 px-2.5 text-xs font-medium text-gray-800 ring-1 ring-inset ring-gray-300"
+              className="flex items-center gap-1.5 rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-gray-800 ring-1 ring-inset ring-gray-300"
             >
               <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: s.color }} />
               {s.name ? t(s.name) : t("Step {n}", { n: i + 1 })}
@@ -393,7 +393,7 @@ function ChannelsPanel({ guardRef }) {
           return (
             <span
               key={c.id}
-              className="flex items-center gap-1.5 rounded-full bg-white h-8 px-2.5 text-xs font-medium text-gray-800 ring-1 ring-inset ring-gray-300"
+              className="flex items-center gap-1.5 rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-gray-800 ring-1 ring-inset ring-gray-300"
             >
               <Icon size={12} />
               {c.name}

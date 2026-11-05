@@ -432,7 +432,7 @@ export default function ContentDetail() {
               </DetailField>
               <DetailField label="Channels">
                 {viewIsAllChannels ? (
-                  <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-gray-100 h-7 px-2.5 text-xs font-medium text-gray-500 ring-1 ring-inset ring-gray-300">
+                  <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-500 ring-1 ring-inset ring-gray-300">
                     {t("All channels")}
                   </span>
                 ) : (
@@ -642,7 +642,7 @@ export default function ContentDetail() {
             <DetailField label={displayStatus === publishStepId ? "Live on" : "Publishes to"}>
               <div className="flex flex-wrap gap-1.5">
                 {entryIsAllChannels ? (
-                  <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-white h-7 px-2.5 text-xs font-medium text-gray-700 ring-1 ring-inset ring-gray-300">
+                  <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-gray-700 ring-1 ring-inset ring-gray-300">
                     {t("All channels")}
                   </span>
                 ) : (
@@ -653,7 +653,7 @@ export default function ContentDetail() {
                       return (
                         <span
                           key={c.id}
-                          className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-white h-7 px-2.5 text-xs font-medium text-gray-700 ring-1 ring-inset ring-gray-300"
+                          className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-gray-700 ring-1 ring-inset ring-gray-300"
                         >
                           <Icon size={12} />
                           {c.name}
@@ -665,7 +665,7 @@ export default function ContentDetail() {
               <p className="mt-2 text-xs text-gray-400">{t("Chosen when you publish.")}</p>
             </DetailField>
             <DetailField label="Locale">
-              <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-gray-100 h-7 px-2.5 text-xs font-medium uppercase text-gray-600">
+              <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium uppercase text-gray-600">
                 {entry.locale}
               </span>
               {entry.locale === defaultLocale && (

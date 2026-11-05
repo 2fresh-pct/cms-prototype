@@ -53,7 +53,7 @@ function Chips({ names }) {
   return (
     <div className="flex flex-wrap gap-1.5">
       {names.map((n) => (
-        <span key={n} className="rounded-full border border-gray-300 h-7 px-2.5 text-xs text-gray-600">{n}</span>
+        <span key={n} className="rounded-full border border-gray-300 px-2.5 py-0.5 text-xs text-gray-600">{n}</span>
       ))}
     </div>
   );

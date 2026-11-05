@@ -13,7 +13,7 @@ export default function StatusPill({ status, color }) {
   if (color) {
     return (
       <span
-        className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-white h-7 px-2.5 text-xs font-medium text-gray-800 ring-1 ring-inset ring-gray-300"
+        className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-gray-800 ring-1 ring-inset ring-gray-300"
       >
         <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: color }} />
         {status}
@@ -23,7 +23,7 @@ export default function StatusPill({ status, color }) {
   const cls = STYLES[status] || STYLES.Archived;
   return (
     <span
-      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full h-7 px-2.5 text-xs font-medium ring-1 ring-inset before:h-1.5 before:w-1.5 before:rounded-full ${cls}`}
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset before:h-1.5 before:w-1.5 before:rounded-full ${cls}`}
     >
       {status}
     </span>

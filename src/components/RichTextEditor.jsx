@@ -267,7 +267,7 @@ export default function RichTextEditor({ value, onChange, placeholder, minHeight
   return (
     <div className="rounded-md border border-gray-300 bg-white focus-within:border-violet-400">
       <Toolbar editor={editor} onCommit={() => commit(editor)} media={media} onUpload={onUpload} locale={locale} />
-      <EditorContent editor={editor} style={{ minHeight }} className="h-9 px-3 text-sm text-gray-800" />
+      <EditorContent editor={editor} style={{ minHeight }} className="px-3 py-2 text-sm text-gray-800" />
     </div>
   );
 }
