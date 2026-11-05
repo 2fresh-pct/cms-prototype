@@ -192,7 +192,7 @@ export const POI_ENTRIES = [
         { heading: "Golden Lane", text: "A row of tiny coloured houses built into the castle wall." },
       ],
       primaryImage: "m-poi-1",
-      image: ["m-poi-1", "m-poi-4", "m-poi-6", "m-poi-7"],
+      image: ["m-poi-1", "m-poi-7"],
       mapIllustration: "m-poi-7",
       virtualTour: { url: "https://www.hrad.cz/en/virtual-tour", label: "Explore the castle in 360°" },
       address: address("Hradčany", "119 08"),
@@ -222,8 +222,6 @@ export const POI_ENTRIES = [
     "Největší souvislý hradní komplex na světě a po více než tisíc let sídlo hlav českého státu. Projděte nádvořími, katedrálou svatého Víta, Starým královským palácem a Zlatou uličkou.",
     {
       summary: "Tisíc let české historie na jednom kopci nad městem.",
-      primaryImage: "m-poi-1",
-      image: ["m-poi-1", "m-poi-4", "m-poi-6", "m-poi-7"],
       address: address("Hradčany", "119 08"),
       primaryCategory: ["pc-castles"],
     },
@@ -233,7 +231,7 @@ export const POI_ENTRIES = [
     {
       summary: "Prague's most famous bridge, best crossed at sunrise.",
       primaryImage: "m-poi-2",
-      image: ["m-poi-2", "m-poi-6", "m-poi-5"],
+      image: ["m-poi-2"],
       address: address("Karlův most", "110 00"),
       geo: { lat: "50.0865", lng: "14.4114" },
       administrativeArea: ["area-praha-1"],
@@ -251,7 +249,7 @@ export const POI_ENTRIES = [
     {
       summary: "Natural history, archaeology and a grand Pantheon, above Wenceslas Square.",
       primaryImage: "m-poi-3",
-      image: ["m-poi-3", "m-poi-1", "m-poi-6"],
+      image: ["m-poi-3"],
       address: address("Václavské náměstí 68", "115 79"),
       geo: { lat: "50.0791", lng: "14.4313" },
       administrativeArea: ["area-praha-1"],
@@ -272,7 +270,7 @@ export const POI_ENTRIES = [
     {
       summary: "Prague's mini Eiffel Tower, with the best panorama in the city.",
       primaryImage: "m-poi-4",
-      image: ["m-poi-4", "m-poi-5", "m-poi-2"],
+      image: ["m-poi-4"],
       address: address("Petřínské sady 633", "118 00"),
       geo: { lat: "50.0833", lng: "14.3953" },
       administrativeArea: ["area-praha-1"],
@@ -290,8 +288,6 @@ export const POI_ENTRIES = [
     "A grand first-republic café on Národní třída, once frequented by Einstein and Kafka. Famous for its breakfast, billiard hall and high ceilings.",
     {
       summary: "A first-republic café where Kafka and Einstein once sat.",
-      primaryImage: "m-poi-3",
-      image: ["m-poi-3", "m-poi-6"],
       address: address("Národní 22", "110 00"),
       geo: { lat: "50.0814", lng: "14.4190" },
       administrativeArea: ["area-praha-1"],
@@ -310,7 +306,7 @@ export const POI_ENTRIES = [
     {
       summary: "Hilltop park, beer garden and the best view of the river bridges.",
       primaryImage: "m-poi-5",
-      image: ["m-poi-5", "m-poi-4", "m-poi-2"],
+      image: ["m-poi-5"],
       address: address("Letenské sady", "170 00"),
       geo: { lat: "50.0963", lng: "14.4228" },
       administrativeArea: ["area-praha-7"],
@@ -327,7 +323,6 @@ export const POI_ENTRIES = [
     {
       summary: "Home of the Czech Philharmonic, on the Vltava embankment.",
       primaryImage: "m-poi-6",
-      image: ["m-poi-6", "m-poi-3", "m-poi-2"],
       address: address("Alšovo nábřeží 12", "110 00"),
       geo: { lat: "50.0902", lng: "14.4137" },
       administrativeArea: ["area-praha-1"],
@@ -346,17 +341,3 @@ export const POI_ENTRIES = [
 ];
 
 POI_TYPE.entryCount = POI_ENTRIES.length;
-
-// Gallery images added to the seeded POIs after the first release. Used by a
-// migration that fills a gallery only while it still holds the earlier seed
-// value, so galleries an editor has changed are left alone.
-export const POI_GALLERY_UPDATES = {
-  "poi-castle": { from: ["m-poi-1", "m-poi-7"], image: ["m-poi-1", "m-poi-4", "m-poi-6", "m-poi-7"] },
-  "poi-castle-cs": { from: undefined, primaryImage: "m-poi-1", image: ["m-poi-1", "m-poi-4", "m-poi-6", "m-poi-7"] },
-  "poi-charles-bridge": { from: ["m-poi-2"], image: ["m-poi-2", "m-poi-6", "m-poi-5"] },
-  "poi-national-museum": { from: ["m-poi-3"], image: ["m-poi-3", "m-poi-1", "m-poi-6"] },
-  "poi-petrin": { from: ["m-poi-4"], image: ["m-poi-4", "m-poi-5", "m-poi-2"] },
-  "poi-letna": { from: ["m-poi-5"], image: ["m-poi-5", "m-poi-4", "m-poi-2"] },
-  "poi-rudolfinum": { from: undefined, image: ["m-poi-6", "m-poi-3", "m-poi-2"] },
-  "poi-cafe-louvre": { from: undefined, primaryImage: "m-poi-3", image: ["m-poi-3", "m-poi-6"] },
-};

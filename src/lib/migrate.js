@@ -1,4 +1,4 @@
-import { POI_TYPE, POI_TAXONOMIES, POI_MEDIA, POI_ENTRIES, POI_GALLERY_UPDATES } from "./poi";
+import { POI_TYPE, POI_TAXONOMIES, POI_MEDIA, POI_ENTRIES } from "./poi";
 
 // Seed data only reaches localStorage on first load, so people who already
 // have a prototype in their browser would never see content added to the seed
@@ -12,25 +12,6 @@ const MIGRATIONS = {
     mergeById("cms.taxonomies", POI_TAXONOMIES);
     mergeById("cms.media", POI_MEDIA);
     mergeById("cms.entries", POI_ENTRIES);
-  },
-  // Seeded POIs gained gallery images from the media library.
-  "poi-galleries": () => {
-    const raw = localStorage.getItem("cms.entries");
-    if (!raw) return; // not seeded yet: the seed already has them
-    const entries = JSON.parse(raw);
-    if (!Array.isArray(entries)) return;
-    const same = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
-    const next = entries.map((e) => {
-      const u = POI_GALLERY_UPDATES[e.id];
-      if (!u || !e.fieldValues) return e;
-      const current = e.fieldValues.image;
-      const untouched = u.from === undefined ? !current || current.length === 0 : same(current, u.from);
-      if (!untouched) return e;
-      const fieldValues = { ...e.fieldValues, image: u.image };
-      if (u.primaryImage && !fieldValues.primaryImage) fieldValues.primaryImage = u.primaryImage;
-      return { ...e, fieldValues };
-    });
-    localStorage.setItem("cms.entries", JSON.stringify(next));
   },
   // Media fields now hold several files unless set to `multiple: false`, so the
   // seeded fields that are meant to hold one file are pinned to a single file.
