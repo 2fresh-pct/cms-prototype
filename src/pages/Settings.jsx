@@ -521,7 +521,7 @@ function UsersPanel({ guardRef }) {
           value={r.role}
           onChange={(e) => setRole(r.id, e.target.value)}
           onClick={(e) => e.stopPropagation()}
-          className="rounded-md border border-gray-300 bg-white h-8 px-2.5 text-sm"
+          className="w-32 rounded-md border border-gray-300 bg-white h-8 px-2.5 text-sm"
         >
           {ROLES.map((role) => (
             <option key={role} value={role}>{t(role)}</option>
