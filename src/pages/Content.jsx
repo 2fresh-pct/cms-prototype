@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, ChevronDown, Copy, Trash2 } from "lucide-react";
+import { Plus, ChevronDown, Copy, Trash2, Send } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
 import { typeIcon } from "../lib/typeIcons";
@@ -174,6 +174,22 @@ export default function Content() {
     clearSelection();
   }
 
+  // Publishes the selected items now, each on the channels it is already set to
+  // publish to (the single-item Publish dialog is where channels are changed).
+  // Items that are already published are left alone; one that has a live version
+  // under a new draft replaces it.
+  const publishStep = workflowSteps[workflowSteps.length - 1];
+  const nothingToPublish = selectedIds.length > 0 && selectedIds.every((id) => displayEntries.find((e) => e.id === id)?.status === publishStepId);
+
+  function publishSelected() {
+    setEntries(entries.map((e) =>
+      selected.has(e.id) && normalizeEntryStatus(e.status, workflowSteps) !== publishStepId
+        ? withHistory(e, { status: publishStepId, scheduledPublishAt: null, live: null }, `Status changed to "${publishStep?.name}"`)
+        : e
+    ));
+    clearSelection();
+  }
+
   // A copy is a new content item (own group), back at the first workflow step.
   function duplicateSelected() {
     const stamp = Date.now();
@@ -196,6 +212,11 @@ export default function Content() {
     { heading: "Change status" },
     ...workflowSteps.slice(0, -1).map((step) => ({ label: step.name, noTranslate: true, color: step.color, onSelect: () => changeStatusOfSelected(step) })),
     { heading: "More" },
+    {
+      label: "Publish", icon: Send, onSelect: publishSelected,
+      disabled: nothingToPublish, hint: "Everything selected is already published",
+      confirm: { title: "Publish selected content?", message: "{n} selected will go live now, on the channels each item is set to publish to. Items that are already published are skipped.", confirmLabel: "Publish" },
+    },
     { label: "Duplicate", icon: Copy, onSelect: duplicateSelected },
     {
       label: "Delete", icon: Trash2, danger: true, onSelect: deleteSelected,
