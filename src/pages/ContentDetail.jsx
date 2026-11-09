@@ -411,7 +411,7 @@ export default function ContentDetail() {
             </DetailField>
             {showBody && (
               <DetailField label={bodyField?.label ?? "Body"} required={bodyField?.required} localized={bodyField?.localized}>
-                <RichTextView key={selectedVersionId ?? "current"} value={viewEntry.body} media={media} />
+                <RichTextView key={selectedVersionId ?? "current"} value={viewEntry.body} media={media} tiles />
               </DetailField>
             )}
             {groupTabs}

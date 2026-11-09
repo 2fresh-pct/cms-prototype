@@ -67,11 +67,11 @@ export const MediaImage = Node.create({
           placeholder.setAttribute("aria-label", node.attrs.alt || item?.name || "");
           dom.append(placeholder);
         }
-        if (editor.isEditable) {
-          const caption = document.createElement("figcaption");
-          caption.textContent = item?.name ?? "Missing file";
-          dom.append(caption);
-        }
+        // The file name; shown by the stylesheet in the editor and in tile views
+        // (.rte-tiles), hidden on the website/app preview.
+        const caption = document.createElement("figcaption");
+        caption.textContent = item?.name ?? "Missing file";
+        dom.append(caption);
       };
 
       storage.views.add(render);

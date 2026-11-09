@@ -80,7 +80,7 @@ export default function FieldView({ field: f, value, ctx, compact, thumbnails = 
 
   switch (f.type) {
     case "Rich text":
-      return <RichTextView value={value} media={ctx.media} className={`${text} text-gray-700`} />;
+      return <RichTextView value={value} media={ctx.media} tiles={thumbnails} className={`${text} text-gray-700`} />;
     case "Sections":
       return (
         <div className="space-y-5">

@@ -255,7 +255,7 @@ export default function RichTextEditor({ value, onChange, placeholder, minHeight
   const editor = useEditor({
     extensions: extensions(placeholder, () => mediaRef.current),
     content: toEditorHtml(value),
-    editorProps: { attributes: { class: "rte-content" } },
+    editorProps: { attributes: { class: "rte-content rte-tiles" } },
     onCreate: ({ editor: e }) => { baseline.current = e.getHTML(); },
     onBlur: ({ editor: e }) => commit(e),
   });
@@ -273,14 +273,15 @@ export default function RichTextEditor({ value, onChange, placeholder, minHeight
 }
 
 // Read-only rendering for the version history view.
-export function RichTextView({ value, className = "text-sm text-gray-700", media }) {
+// `tiles` shows pictures as compact tiles (as in the editor) instead of full width.
+export function RichTextView({ value, className = "text-sm text-gray-700", media, tiles = false }) {
   const mediaRef = useRef(media ?? []);
   mediaRef.current = media ?? [];
   const editor = useEditor({
     extensions: extensions(undefined, () => mediaRef.current),
     content: toEditorHtml(value),
     editable: false,
-    editorProps: { attributes: { class: "rte-content" } },
+    editorProps: { attributes: { class: tiles ? "rte-content rte-tiles" : "rte-content" } },
   });
   useEffect(() => { editor?.commands.setContent(toEditorHtml(value)); }, [editor, value]);
   useEffect(() => { editor?.storage.mediaImage.views.forEach((redraw) => redraw()); }, [editor, media]);
