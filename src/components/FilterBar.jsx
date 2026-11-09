@@ -95,16 +95,6 @@ export function FilterBar({
             )}
           </div>
         )}
-        <div className="flex flex-1 items-center gap-2 px-1">
-          <Search size={14} className="text-gray-400" />
-          <input
-            value={search}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder={t("Type to search for entries")}
-            className="w-full bg-transparent text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none"
-          />
-        </div>
-
         {filterFields.length > 0 && (
           <div className="relative" ref={ref}>
             <button
@@ -123,7 +113,7 @@ export function FilterBar({
             </button>
 
             {open && (
-              <div className="absolute right-0 top-full z-20 mt-2 w-64 rounded-lg border border-gray-300 bg-white p-3 wf-pop">
+              <div className="absolute left-0 top-full z-20 mt-2 w-64 rounded-lg border border-gray-300 bg-white p-3 wf-pop">
                 <div className="mb-2 flex items-center justify-between">
                   <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">{t("Filters")}</p>
                   {activeCount > 0 && (
@@ -168,6 +158,16 @@ export function FilterBar({
             )}
           </div>
         )}
+        <div className="flex flex-1 items-center gap-2 px-1">
+          <Search size={14} className="text-gray-400" />
+          <input
+            value={search}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder={t("Type to search for entries")}
+            className="w-full bg-transparent text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none"
+          />
+        </div>
+
       </div>
 
       {chips.length > 0 && (
