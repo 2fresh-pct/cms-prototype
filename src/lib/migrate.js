@@ -1,5 +1,5 @@
 import { nextTypeColor } from "./typeColors";
-import { POI_TYPE, POI_TAXONOMIES, POI_MEDIA, POI_ENTRIES } from "./poi";
+import { POI_TYPE, POI_TAXONOMIES, POI_MEDIA, POI_ENTRIES, POI_KEYWORD_TERMS, OLD_POI_KEYWORD_IDS } from "./poi";
 
 // Seed data only reaches localStorage on first load, so people who already
 // have a prototype in their browser would never see content added to the seed
@@ -13,6 +13,40 @@ const MIGRATIONS = {
     mergeById("cms.taxonomies", POI_TAXONOMIES);
     mergeById("cms.media", POI_MEDIA);
     mergeById("cms.entries", POI_ENTRIES);
+  },
+  // The Keywords taxonomy now holds the Czech terms from the editors. A saved
+  // Keywords taxonomy that still has exactly the old terms is replaced; entries that
+  // used an old term move to its equivalent (or lose it if there is none). One the
+  // editors have already changed is left alone.
+  "poi-keywords-czech": () => {
+    const raw = localStorage.getItem("cms.taxonomies");
+    if (!raw) return; // not seeded yet: the seed already has the new terms
+    const taxonomies = JSON.parse(raw);
+    if (!Array.isArray(taxonomies)) return;
+    const keywords = taxonomies.find((x) => x.id === "poi-keywords");
+    const oldIds = Object.keys(OLD_POI_KEYWORD_IDS);
+    const untouched = keywords && keywords.terms?.length === oldIds.length && oldIds.every((id) => keywords.terms.some((term) => term.id === id));
+    if (!untouched) return;
+    localStorage.setItem("cms.taxonomies", JSON.stringify(taxonomies.map((x) => (x.id === "poi-keywords" ? { ...x, terms: POI_KEYWORD_TERMS } : x))));
+
+    const typesRaw = localStorage.getItem("cms.contentTypes");
+    const entriesRaw = localStorage.getItem("cms.entries");
+    if (!typesRaw || !entriesRaw) return;
+    const fieldNames = new Set(JSON.parse(typesRaw).flatMap((ct) => ct.fields.filter((f) => f.taxonomyId === "poi-keywords").map((f) => f.name)));
+    const entries = JSON.parse(entriesRaw);
+    if (!Array.isArray(entries)) return;
+    const moved = entries.map((e) => {
+      if (!e.fieldValues) return e;
+      let changed = false;
+      const fieldValues = { ...e.fieldValues };
+      for (const name of fieldNames) {
+        if (!Array.isArray(fieldValues[name])) continue;
+        const next = [...new Set(fieldValues[name].map((id) => (id in OLD_POI_KEYWORD_IDS ? OLD_POI_KEYWORD_IDS[id] : id)).filter(Boolean))];
+        if (next.length !== fieldValues[name].length || next.some((id, i) => id !== fieldValues[name][i])) { fieldValues[name] = next; changed = true; }
+      }
+      return changed ? { ...e, fieldValues } : e;
+    });
+    localStorage.setItem("cms.entries", JSON.stringify(moved));
   },
   // Every content type's icon gets its own colour: a type that shares a colour
   // with one earlier in the list is given the next unused one.

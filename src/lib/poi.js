@@ -81,6 +81,23 @@ export const POI_TYPE = {
 const term = (id, name, children = []) => ({ id, name, children });
 const flat = (prefix, names) => names.map((n) => term(`${prefix}-${n.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`, n));
 
+// The Keywords taxonomy. The ids are fixed (not derived from the Czech names).
+export const POI_KEYWORD_TERMS = [
+  term("kw-gotika", "gotika"),
+  term("kw-historizujici-slohy", "historizující slohy"),
+  term("kw-instituce-hl-m-prahy", "instituce zřizovaná hl. m. prahou"),
+  term("kw-pro-deti", "pro děti"),
+  term("kw-renesance", "renesance"),
+  term("kw-romansky-sloh", "románský sloh"),
+];
+
+// The Keywords it held before, and where each one went when they were replaced
+// (null: no equivalent). Used to move saved content over; see migrate.js.
+export const OLD_POI_KEYWORD_IDS = {
+  "kw-unesco": null, "kw-gothic": "kw-gotika", "kw-baroque": null, "kw-views": null,
+  "kw-free-entry": null, "kw-family-friendly": "kw-pro-deti", "kw-rainy-day": null, "kw-art-nouveau": null,
+};
+
 export const POI_TAXONOMIES = [
   {
     id: "poi-category",
@@ -110,7 +127,7 @@ export const POI_TAXONOMIES = [
     id: "poi-keywords",
     name: "Keywords",
     description: "Free-form descriptive terms used for search.",
-    terms: flat("kw", ["UNESCO", "Gothic", "Baroque", "Views", "Free entry", "Family friendly", "Rainy day", "Art Nouveau"]),
+    terms: POI_KEYWORD_TERMS,
   },
   {
     id: "poi-amenities",
@@ -209,7 +226,7 @@ export const POI_ENTRIES = [
       url: "https://www.hrad.cz",
       primaryCategory: ["pc-castles"],
       additionalCategories: ["pc-sights"],
-      keywords: ["kw-unesco", "kw-gothic", "kw-views"],
+      keywords: ["kw-gotika"],
       amenityFeature: ["am-toilets", "am-gift-shop", "am-audio-guide"],
       touristType: ["tt-culture-lovers", "tt-families"],
       editorialLabels: ["el-must-see"],
@@ -240,7 +257,7 @@ export const POI_ENTRIES = [
       goodToKnow: ["Free to cross at any time", "Very busy between 10:00 and 18:00"],
       accessibility: ["acc-step-free-access"],
       primaryCategory: ["pc-monuments"],
-      keywords: ["kw-unesco", "kw-gothic", "kw-free-entry"],
+      keywords: ["kw-gotika"],
       touristType: ["tt-couples", "tt-solo-travellers"],
       editorialLabels: ["el-must-see"],
     }),
@@ -261,7 +278,7 @@ export const POI_ENTRIES = [
       telephone: ["+420 224 497 111"],
       url: "https://www.nm.cz",
       primaryCategory: ["pc-museums"],
-      keywords: ["kw-rainy-day", "kw-family-friendly"],
+      keywords: ["kw-pro-deti"],
       amenityFeature: ["am-cloakroom", "am-gift-shop", "am-caf-on-site"],
       touristType: ["tt-families", "tt-culture-lovers"],
     }),
@@ -280,7 +297,7 @@ export const POI_ENTRIES = [
       goodToKnow: ["299 steps, no lift", "The funicular runs every 10–15 minutes"],
       primaryCategory: ["pc-viewpoints"],
       additionalCategories: ["pc-parks"],
-      keywords: ["kw-views", "kw-family-friendly"],
+      keywords: ["kw-pro-deti"],
       touristType: ["tt-active-travellers", "tt-couples"],
       editorialLabels: ["el-local-favourite"],
     }),
@@ -296,7 +313,6 @@ export const POI_ENTRIES = [
       telephone: ["+420 224 930 949"],
       url: "https://www.cafelouvre.example",
       primaryCategory: ["pc-cafes"],
-      keywords: ["kw-art-nouveau", "kw-rainy-day"],
       amenityFeature: ["am-wi-fi", "am-toilets"],
       touristType: ["tt-foodies", "tt-couples"],
       editorialLabels: ["el-local-favourite"],
@@ -314,7 +330,7 @@ export const POI_ENTRIES = [
       estimatedVisitDuration: "90",
       goodToKnow: ["Free entry", "Beer garden is open from April to October"],
       primaryCategory: ["pc-parks"],
-      keywords: ["kw-views", "kw-free-entry", "kw-family-friendly"],
+      keywords: ["kw-pro-deti"],
       touristType: ["tt-solo-travellers", "tt-active-travellers"],
       editorialLabels: ["el-hidden-gem"],
     }),
