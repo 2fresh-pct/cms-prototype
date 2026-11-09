@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { useI18n } from "../lib/i18n";
 import { flattenTerms } from "../lib/seed";
@@ -10,6 +10,48 @@ import { holdsSeveral, mediaIds } from "../lib/media";
 
 const INPUT = "w-full rounded-md border border-gray-300 bg-[#fff] h-9 px-3 text-sm focus:border-violet-400 focus:outline-none";
 const INPUT_SM = "rounded-md border border-gray-300 bg-[#fff] h-9 px-3 text-sm focus:border-violet-400 focus:outline-none";
+// A text box that is exactly as tall as its text: it grows and shrinks as you
+// type and as the width changes. One line high when empty (the same 36px as
+// other inputs). `singleLine` keeps a value on one line (Enter does nothing,
+// pasted line breaks become spaces) while still wrapping what is shown.
+function AutoGrowText({ value, onCommit, singleLine = false }) {
+  const ref = useRef(null);
+
+  const fit = () => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  };
+
+  useLayoutEffect(() => {
+    fit();
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === "undefined") return undefined;
+    let width = el.clientWidth;
+    const observer = new ResizeObserver(() => {
+      if (el.clientWidth !== width) { width = el.clientWidth; fit(); }
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <textarea
+      ref={ref}
+      rows={1}
+      defaultValue={value ?? ""}
+      onInput={(e) => {
+        if (singleLine && /[\r\n]/.test(e.target.value)) e.target.value = e.target.value.replace(/\s*[\r\n]+\s*/g, " ");
+        fit();
+      }}
+      onKeyDown={singleLine ? (e) => { if (e.key === "Enter") e.preventDefault(); } : undefined}
+      onBlur={(e) => onCommit(e.target.value)}
+      className="min-h-9 w-full resize-none overflow-hidden rounded-md border border-gray-300 bg-[#fff] px-3 py-2 text-sm leading-5 focus:border-violet-400 focus:outline-none"
+    />
+  );
+}
+
 const ADD_BUTTON = "flex items-center gap-1 text-xs font-medium text-violet-600 hover:text-violet-700";
 const ICON_BUTTON = "flex h-8 w-8 shrink-0 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-red-600";
 
@@ -151,7 +193,7 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
       return <input disabled value={ctx.entryId} className="w-full rounded-md border border-gray-300 bg-gray-50 h-9 px-3 text-sm text-gray-500" />;
 
     case "Short text":
-      return <textarea rows={2} defaultValue={value ?? ""} onBlur={(e) => onChange(e.target.value)} className={`${INPUT} resize-none`} />;
+      return <AutoGrowText value={value} onCommit={onChange} />;
 
     case "Rich text":
       return <RichTextEditor value={value} onChange={onChange} minHeight={110} media={ctx.media} onUpload={ctx.uploadMedia} locale={ctx.locale} />;
@@ -278,7 +320,7 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
       return <OpeningHours value={value} onChange={onChange} />;
 
     default:
-      return <input defaultValue={value ?? ""} onBlur={(e) => onChange(e.target.value)} className={INPUT} />;
+      return <AutoGrowText value={value} onCommit={onChange} singleLine />;
   }
 }
 
