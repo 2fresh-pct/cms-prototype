@@ -393,7 +393,7 @@ export const fieldTypeLabel = (type) => FIELD_TYPE_LABELS[type] ?? type;
 export const FIELD_TYPE_LIST = [
   "Text", "Short text", "Rich text", "Number", "Boolean", "Select", "Date",
   "Media", "Media list", "Reference", "Taxonomy",
-  "Link", "Text list", "Key-value", "Date ranges", "Sections",
+  "Link", "Text list", "Key-value", "Date ranges", "Sections", "Separator",
   "Address", "Coordinates", "Opening hours", "ID",
 ];
 export const DEFAULT_WORKFLOW_STEPS = WORKFLOW_STEPS;

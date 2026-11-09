@@ -59,6 +59,12 @@ function Chips({ names }) {
   );
 }
 
+// A Separator field holds no content: it only draws a rule with some space
+// around it, to divide the fields in the editor.
+export function FieldSeparator() {
+  return <hr role="separator" className="my-2 border-t border-gray-300" />;
+}
+
 // Read-only, published-style rendering of one field value, used by the preview.
 // `thumbnails`: show media as small tiles (entry pages) instead of the large
 // pictures used by the website/app preview.

@@ -8,6 +8,7 @@ import { TYPE_ICON_KEYS, typeIcon } from "../lib/typeIcons";
 import PageHeader from "../components/PageHeader";
 import DetailField from "../components/DetailField";
 import Modal from "../components/Modal";
+import AddFieldDialog from "../components/AddFieldDialog";
 import GroupTabs from "../components/GroupTabs";
 import { GENERAL, groupsOf } from "../lib/groups";
 
@@ -37,6 +38,7 @@ function ContentTypeEditor({ id }) {
   const [focusGroupName, setFocusGroupName] = useState(false);
   const [dragIndex, setDragIndex] = useState(null);
   const [overIndex, setOverIndex] = useState(null);
+  const [addingField, setAddingField] = useState(false);
 
   const dirty = Boolean(type) && JSON.stringify(draft) !== JSON.stringify(baseline);
   const blocker = useBlocker(dirty);
@@ -86,11 +88,29 @@ function ContentTypeEditor({ id }) {
   const savedNames = new Set(type.fields.map((f) => f.name));
   const typeLocked = (f) => savedNames.has(f.name);
 
-  function addField() {
+  // The API key of a new field comes from its name ("Opening hours note" ->
+  // openingHoursNote), without accents, and is made unique among all fields.
+  function fieldKeyFor(label, used) {
+    const words = label.normalize("NFD").replace(/[\u0300-\u036f]/g, "").split(/[^A-Za-z0-9]+/).filter(Boolean);
+    let base = words.map((w, i) => (i === 0 ? w.toLowerCase() : w[0].toUpperCase() + w.slice(1).toLowerCase())).join("");
+    if (!base || /^[0-9]/.test(base)) base = `field${base}`;
+    let key = base;
+    for (let n = 2; used.has(key); n += 1) key = `${base}${n}`;
+    return key;
+  }
+
+  function addField({ label, type: fieldType }) {
     const used = new Set([...savedNames, ...draft.fields.map((f) => f.name)]);
-    let n = draft.fields.length + 1;
-    while (used.has(`field${n}`)) n += 1;
-    update({ fields: [...draft.fields, { name: `field${n}`, label: "New field", type: "Text", group: activeName }] });
+    const name = fieldKeyFor(label || fieldType, used);
+    const field = {
+      name,
+      label: label || fieldType,
+      type: fieldType,
+      group: activeName,
+      ...(fieldType === "Taxonomy" ? { taxonomyId: taxonomies[0]?.id } : {}),
+    };
+    update({ fields: [...draft.fields, field] });
+    setAddingField(false);
   }
 
   function removeField(i) {
@@ -196,7 +216,7 @@ function ContentTypeEditor({ id }) {
           <div>
             <div className="mb-3 flex items-center justify-between">
               <label className="text-xs font-medium uppercase tracking-wide text-gray-400">{t("Fields")}</label>
-              <button onClick={addField} className="flex items-center gap-1.5 rounded-md border border-gray-300 bg-white h-9 px-3 text-sm font-medium text-gray-700 hover:bg-gray-50">
+              <button onClick={() => setAddingField(true)} className="flex items-center gap-1.5 rounded-md border border-gray-300 bg-white h-9 px-3 text-sm font-medium text-gray-700 hover:bg-gray-50">
                 <Plus size={14} /> {t("Add field")}
               </button>
             </div>
@@ -272,6 +292,7 @@ function ContentTypeEditor({ id }) {
                           updateField(i, {
                             type: nextType,
                             taxonomyId: nextType === "Taxonomy" ? (f.taxonomyId ?? taxonomies[0]?.id) : undefined,
+                            ...(nextType === "Separator" ? { required: false, localized: false } : {}),
                           });
                         }}
                         className="w-48 rounded-md border border-gray-300 bg-white h-8 px-2.5 text-sm disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
@@ -296,6 +317,12 @@ function ContentTypeEditor({ id }) {
                         </select>
                       </div>
                     )}
+                    {f.type === "Separator" ? (
+                      <div className="flex h-8 min-w-32 flex-1 items-center gap-3 text-xs text-gray-400">
+                        <span className="h-px w-10 shrink-0 bg-gray-300" aria-hidden />
+                        {t("Layout only: draws a line in the editor. It holds no content.")}
+                      </div>
+                    ) : (
                     <div className="min-w-32 flex-1">
                       <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Name")}</label>
                       <input
@@ -305,6 +332,7 @@ function ContentTypeEditor({ id }) {
                         className="w-full rounded-md border border-gray-300 bg-white h-8 px-2.5 text-sm"
                       />
                     </div>
+                    )}
                     <button onClick={() => removeField(i)} aria-label={t("Delete field")} className="ml-auto flex h-8 w-8 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-red-600">
                       <Trash2 size={14} />
                     </button>
@@ -347,6 +375,7 @@ function ContentTypeEditor({ id }) {
                         {groups.map((g) => <option key={g} value={g}>{t(g)}</option>)}
                       </select>
                     </label>
+                    {f.type !== "Separator" && (
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pl-2">
                     <label className="flex items-center gap-1.5">
                       <input
@@ -389,6 +418,7 @@ function ContentTypeEditor({ id }) {
                       </label>
                     )}
                     </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -452,6 +482,8 @@ function ContentTypeEditor({ id }) {
       >
         {t("Changes to a content type affect every entry of that type. You have unsaved changes to this one.")}
       </Modal>
+
+      <AddFieldDialog open={addingField} onClose={() => setAddingField(false)} onAdd={addField} />
     </div>
   );
 }

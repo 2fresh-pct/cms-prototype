@@ -144,6 +144,9 @@ export const CS = {
   "Rich text": "Formátovaný text",
   "Number": "Číslo",
   "Linked content items": "Navázaný obsah",
+  "Separator": "Oddělovač",
+  "Not needed for a separator": "U oddělovače není potřeba",
+  "Layout only: draws a line in the editor. It holds no content.": "Pouze vzhled: v editoru vykreslí čáru. Neobsahuje žádný obsah.",
   "Boolean": "Ano/Ne",
   "Taxonomy": "Taxonomie",
 

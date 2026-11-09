@@ -11,7 +11,7 @@ import {
 import PageHeader from "../components/PageHeader";
 import DetailField from "../components/DetailField";
 import FieldEditor from "../components/FieldEditor";
-import FieldView, { isEmpty } from "../components/FieldView";
+import FieldView, { isEmpty, FieldSeparator } from "../components/FieldView";
 import RichTextEditor, { RichTextView } from "../components/RichTextEditor";
 import StatusPill from "../components/StatusPill";
 import StatusSelect from "../components/StatusSelect";
@@ -416,7 +416,7 @@ export default function ContentDetail() {
             )}
             {groupTabs}
             {singleGroupHeading}
-            {visibleFields.map((f) => (
+            {visibleFields.map((f) => f.type === "Separator" ? <FieldSeparator key={f.name} /> : (
               <Fragment key={f.name}>
                 <DetailField label={f.label ?? f.name} required={f.required} localized={f.localized}>
                   {isEmpty(viewEntry.fieldValues?.[f.name])
@@ -506,7 +506,7 @@ export default function ContentDetail() {
 
             {groupTabs}
             {singleGroupHeading}
-            {visibleFields.map((f) => (
+            {visibleFields.map((f) => f.type === "Separator" ? <FieldSeparator key={f.name} /> : (
               <Fragment key={f.name}>
                 <DetailField label={f.label ?? f.name} required={f.required} localized={f.localized}>
                   <FieldEditor
