@@ -62,7 +62,13 @@ function Chips({ names }) {
 // A Separator field holds no content: it only draws a rule with some space
 // around it, to divide the fields in the editor.
 export function FieldSeparator() {
-  return <hr role="separator" className="my-2 border-t border-gray-300" />;
+  // Padding rather than margin: the fields' container spaces its children with
+  // `space-y-*` margins, which would override a margin set here.
+  return (
+    <div className="py-4">
+      <hr role="separator" className="border-t border-gray-300" />
+    </div>
+  );
 }
 
 // Read-only, published-style rendering of one field value, used by the preview.
