@@ -12,7 +12,7 @@ export const CS = {
   "The language of the CMS menus and labels. Content languages are set separately.": "Jazyk nabídek a popisků v redakčním systému. Jazyky obsahu se nastavují zvlášť.",
 
   // Sidebar / views
-  "All content": "Veškerý obsah",
+  "All content": "Obsah",
   "Recent": "Nedávné",
   "Scheduled": "Naplánované",
   "Workflow step": "Krok workflow",
@@ -86,7 +86,7 @@ export const CS = {
   "Yes": "Ano",
   "No": "Ne",
   "Entry not found.": "Položka nenalezena.",
-  "Back to All content": "Zpět na veškerý obsah",
+  "Back to All content": "Zpět na obsah",
   "Preview": "Náhled",
   "Version history": "Historie verzí",
   "Versions": "Verze",
