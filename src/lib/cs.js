@@ -146,6 +146,7 @@ export const CS = {
   "Linked content items": "Navázaný obsah",
   "Separator": "Oddělovač",
   "Not needed for a separator": "U oddělovače není potřeba",
+  "Open in media library": "Otevřít v knihovně médií",
   "Numbers, choices and dates": "Čísla, volby a data",
   "Media and relations": "Média a propojení",
   "Place and visits": "Místo a návštěva",

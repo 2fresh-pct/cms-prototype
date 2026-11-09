@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { Check, GripVertical, ImagePlus, Upload, X } from "lucide-react";
 import { useI18n } from "../lib/i18n";
 import Modal from "./Modal";
@@ -9,6 +10,19 @@ const formatSize = (kb) => (kb > 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${kb} 
 
 function Thumb({ item, size = 48 }) {
   return <MediaThumb item={item} className="shrink-0 rounded border border-gray-300" style={{ width: size, height: size }} title={item?.name} />;
+}
+
+// A file's picture and name in the field, opening the file's page in the media
+// library. `draggable={false}` keeps a drag that starts here with the tile, so
+// reordering still works. A missing file has nothing to open.
+function OpenFile({ item, className, children }) {
+  const { t } = useI18n();
+  if (!item) return <div className={className}>{children}</div>;
+  return (
+    <Link to={`/media/${item.id}`} draggable={false} title={t("Open in media library")} className={`group ${className}`}>
+      {children}
+    </Link>
+  );
 }
 
 export function Library({ open, onClose, media, selected, multiple, onConfirm, onUpload }) {
@@ -180,11 +194,13 @@ export default function MediaPicker({ media, value, onChange, onUpload, multiple
           </div>
         ) : (
           <div className="flex items-center gap-3 rounded-md border border-gray-300 p-2">
-            <Thumb item={byId[ids[0]]} size={112} />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-gray-900">{byId[ids[0]]?.name ?? t("Missing file")}</p>
-              {byId[ids[0]] && <p className="text-xs text-gray-400">{byId[ids[0]].kind} · {formatSize(byId[ids[0]].sizeKb)}</p>}
-            </div>
+            <OpenFile item={byId[ids[0]]} className="flex min-w-0 flex-1 items-center gap-3">
+              <Thumb item={byId[ids[0]]} size={112} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-gray-900 group-hover:underline">{byId[ids[0]]?.name ?? t("Missing file")}</p>
+                {byId[ids[0]] && <p className="text-xs text-gray-400">{byId[ids[0]].kind} · {formatSize(byId[ids[0]].sizeKb)}</p>}
+              </div>
+            </OpenFile>
             {chooseButton("Change")}
             <button type="button" onClick={() => onChange("")} className="flex h-8 w-8 shrink-0 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-red-600" aria-label={t("Remove")}>
               <X size={14} />
@@ -214,8 +230,10 @@ export default function MediaPicker({ media, value, onChange, onUpload, multiple
                     dragId === id ? "opacity-40" : ""
                   } ${overId === id && dragId !== id ? "border-gray-800 ring-2 ring-gray-800" : "border-gray-300"}`}
                 >
-                  <MediaThumb item={byId[id]} className="aspect-square w-full border-b border-gray-300" />
-                  <p className="truncate px-1.5 py-1 text-xs text-gray-700" title={byId[id]?.name}>{byId[id]?.name ?? t("Missing file")}</p>
+                  <OpenFile item={byId[id]} className="block">
+                    <MediaThumb item={byId[id]} className="aspect-square w-full border-b border-gray-300" />
+                    <p className="truncate px-1.5 py-1 text-xs text-gray-700 group-hover:underline" title={byId[id]?.name}>{byId[id]?.name ?? t("Missing file")}</p>
+                  </OpenFile>
                   <span className="absolute left-1 top-1 flex h-5 items-center rounded bg-white/90 px-0.5 text-gray-500 ring-1 ring-gray-300" aria-hidden>
                     <GripVertical size={12} />
                   </span>
