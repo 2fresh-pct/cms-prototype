@@ -61,6 +61,9 @@ select {
   background-size: 1rem;
   padding-right: 2.25rem;
 }
+/* For a select whose chevron is drawn by the page itself (the filter menu swaps
+   it for a clear button once a value is chosen). */
+select.no-chevron { background-image: none; }
 
 /* Flat cards; only floating panels (menus, dialogs) get a soft shadow. */
 .shadow,

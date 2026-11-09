@@ -133,7 +133,7 @@ export function FilterBar({
                         <select
                           value={filterValues[f.key] ?? ""}
                           onChange={(e) => onFilterChange?.(f.key, e.target.value || null)}
-                          className="h-9 w-full appearance-none rounded-md border border-gray-300 bg-white pl-3 pr-8 text-sm focus:border-violet-400 focus:outline-none"
+                          className="no-chevron h-9 w-full rounded-md border border-gray-300 bg-white pl-3 pr-8 text-sm focus:border-violet-400 focus:outline-none"
                         >
                           <option value="">{t("Any")}</option>
                           {f.options.map((opt) => (

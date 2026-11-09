@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, ChevronDown, Copy, Trash2, Send } from "lucide-react";
+import { Plus, Copy, Trash2, Send } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
 import { typeIcon } from "../lib/typeIcons";
@@ -374,7 +374,7 @@ export default function Content() {
               <select
                 value={activeLocale}
                 onChange={(e) => setActiveLocale(e.target.value)}
-                className="h-9 appearance-none rounded-md border border-gray-300 bg-white pl-3 pr-8 text-sm font-medium text-gray-700 focus:border-violet-400 focus:outline-none"
+                className="h-9 rounded-md border border-gray-300 bg-white px-3 text-sm font-medium text-gray-700 focus:border-violet-400 focus:outline-none"
               >
                 {LOCALE_LIST.map((l) => (
                   <option key={l} value={l}>
@@ -382,7 +382,6 @@ export default function Content() {
                   </option>
                 ))}
               </select>
-              <ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
             </div>
             <button
               onClick={openCreate}
