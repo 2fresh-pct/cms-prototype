@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Trash2, Copy } from "lucide-react";
+import { nextTypeColor } from "../lib/typeColors";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
 import { seedContentTypes, seedEntries, FIELD_TYPE_LIST, fieldTypeLabel } from "../lib/seed";
@@ -36,14 +37,13 @@ export default function ContentTypes() {
   function createType() {
     if (!trimmed || nameTaken) return;
     const id = `ct-${trimmed.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}-${Date.now().toString(36)}`;
-    const colors = ["#3b82f6", "#8b5cf6", "#0ea5e9", "#0d9488", "#f59e0b", "#ec4899"];
     setContentTypes([
       ...contentTypes,
       {
         id,
         name: trimmed,
         icon: newIcon,
-        color: colors[contentTypes.length % colors.length],
+        color: nextTypeColor(contentTypes.map((ct) => ct.color)),
         fields: [
           { name: "title", label: "Title", type: "Text", core: "title", required: true, localized: true },
           { name: "slug", label: "Slug", type: "Text", core: "slug", required: true, localized: true },
@@ -75,11 +75,16 @@ export default function ContentTypes() {
   function duplicateSelected() {
     const taken = new Set(contentTypes.map((ct) => ct.name.toLowerCase()));
     const stamp = Date.now();
+    const done = [];
     const copies = contentTypes.filter((ct) => selected.has(ct.id)).map((ct, i) => {
       let name = `${ct.name} (${t("copy")})`;
       for (let n = 2; taken.has(name.toLowerCase()); n += 1) name = `${ct.name} (${t("copy")} ${n})`;
       taken.add(name.toLowerCase());
-      return { ...structuredClone(ct), id: `ct-copy-${stamp}-${i}`, name, entryCount: 0 };
+      // A copy gets a colour of its own, so the two are told apart in lists.
+      const color = nextTypeColor([...contentTypes, ...done].map((x) => x.color));
+      const copy = { ...structuredClone(ct), id: `ct-copy-${stamp}-${i}`, name, color, entryCount: 0 };
+      done.push(copy);
+      return copy;
     });
     setContentTypes([...contentTypes, ...copies]);
     setSelected(new Set());

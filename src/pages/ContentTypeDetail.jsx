@@ -5,6 +5,7 @@ import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
 import { seedContentTypes, seedEntries, seedTaxonomies, FIELD_TYPE_LIST, fieldTypeLabel } from "../lib/seed";
 import { TYPE_ICON_KEYS, typeIcon } from "../lib/typeIcons";
+import { TYPE_COLORS } from "../lib/typeColors";
 import PageHeader from "../components/PageHeader";
 import DetailField from "../components/DetailField";
 import Modal from "../components/Modal";
@@ -450,6 +451,26 @@ function ContentTypeEditor({ id }) {
                   >
                     <Icon size={16} />
                   </button>
+                );
+              })}
+            </div>
+          </DetailField>
+          <DetailField label="Color">
+            <div className="flex flex-wrap gap-2">
+              {TYPE_COLORS.map((color) => {
+                const active = (draft.color ?? "").toLowerCase() === color;
+                const taken = contentTypes.some((ct) => ct.id !== id && (ct.color ?? "").toLowerCase() === color);
+                return (
+                  <button
+                    key={color}
+                    type="button"
+                    onClick={() => update({ color })}
+                    aria-label={color}
+                    aria-pressed={active}
+                    title={taken ? t("Also used by another content type") : color}
+                    className={`h-7 w-7 rounded-full border-2 ${active ? "border-gray-800" : "border-white"} ring-1 ring-gray-300 ${taken ? "opacity-50" : ""}`}
+                    style={{ backgroundColor: color }}
+                  />
                 );
               })}
             </div>

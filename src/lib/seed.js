@@ -9,9 +9,9 @@ const USERS = [
 
 const CONTENT_TYPES = [
   { id: "ct1", name: "Page — Landing", icon: "file-text", color: "#3b82f6" },
-  { id: "ct2", name: "Page — Product", icon: "file-text", color: "#3b82f6" },
+  { id: "ct2", name: "Page — Product", icon: "file-text", color: "#4f46e5" },
   { id: "ct3", name: "Component — SEO", icon: "gem", color: "#8b5cf6" },
-  { id: "ct4", name: "Component — Hero", icon: "gem", color: "#8b5cf6" },
+  { id: "ct4", name: "Component — Hero", icon: "gem", color: "#c026d3" },
   { id: "ct5", name: "Article", icon: "newspaper", color: "#0ea5e9" },
 ];
 

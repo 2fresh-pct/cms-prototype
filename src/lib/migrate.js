@@ -1,3 +1,4 @@
+import { nextTypeColor } from "./typeColors";
 import { POI_TYPE, POI_TAXONOMIES, POI_MEDIA, POI_ENTRIES } from "./poi";
 
 // Seed data only reaches localStorage on first load, so people who already
@@ -12,6 +13,25 @@ const MIGRATIONS = {
     mergeById("cms.taxonomies", POI_TAXONOMIES);
     mergeById("cms.media", POI_MEDIA);
     mergeById("cms.entries", POI_ENTRIES);
+  },
+  // Every content type's icon gets its own colour: a type that shares a colour
+  // with one earlier in the list is given the next unused one.
+  "distinct-type-colors": () => {
+    const raw = localStorage.getItem("cms.contentTypes");
+    if (!raw) return; // not seeded yet: the seed colours are already distinct
+    const types = JSON.parse(raw);
+    if (!Array.isArray(types)) return;
+    const seen = new Set();
+    const used = new Set(types.map((ct) => (ct.color ?? "").toLowerCase()));
+    const next = types.map((ct) => {
+      const key = (ct.color ?? "").toLowerCase();
+      if (key && !seen.has(key)) { seen.add(key); return ct; }
+      const color = nextTypeColor(used);
+      used.add(color);
+      seen.add(color);
+      return { ...ct, color };
+    });
+    localStorage.setItem("cms.contentTypes", JSON.stringify(next));
   },
   // Media fields now hold several files unless set to `multiple: false`, so the
   // seeded fields that are meant to hold one file are pinned to a single file.
