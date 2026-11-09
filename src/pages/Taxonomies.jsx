@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, ListTree, Trash2 } from "lucide-react";
+import { Plus, ListTree, Trash2, Copy } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
 import { seedTaxonomies, seedContentTypes, countTerms } from "../lib/seed";
@@ -25,7 +25,28 @@ export default function Taxonomies() {
   }
 
   const inUse = [...selected].some((id) => contentTypes.some((ct) => ct.fields.some((f) => f.taxonomyId === id)));
+  // A copy has the same description and terms (nested as in the original, with
+  // new ids) under a new name. Content types and entries keep using the original.
+  function duplicateSelected() {
+    const taken = new Set(taxonomies.map((tx) => tx.name.toLowerCase()));
+    const stamp = Date.now();
+    const copyTerms = (terms, suffix) => terms.map((term) => ({
+      ...term,
+      id: `${term.id}-${suffix}`,
+      ...(term.children ? { children: copyTerms(term.children, suffix) } : {}),
+    }));
+    const copies = taxonomies.filter((tx) => selected.has(tx.id)).map((tx, i) => {
+      let name = `${tx.name} (${t("copy")})`;
+      for (let n = 2; taken.has(name.toLowerCase()); n += 1) name = `${tx.name} (${t("copy")} ${n})`;
+      taken.add(name.toLowerCase());
+      return { ...structuredClone(tx), id: `tax-${stamp}-${i}`, name, terms: copyTerms(tx.terms ?? [], `c${stamp}${i}`) };
+    });
+    setTaxonomies([...taxonomies, ...copies]);
+    setSelected(new Set());
+  }
+
   const bulkActions = [
+    { label: "Duplicate", icon: Copy, onSelect: duplicateSelected },
     {
       label: "Delete", icon: Trash2, danger: true,
       disabled: inUse, hint: "Taxonomies used by a content type can't be deleted",

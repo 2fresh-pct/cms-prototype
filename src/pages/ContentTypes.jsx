@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Copy } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
 import { seedContentTypes, seedEntries, FIELD_TYPE_LIST, fieldTypeLabel } from "../lib/seed";
@@ -70,7 +70,23 @@ export default function ContentTypes() {
   });
 
   const inUse = [...selected].some((id) => entries.some((e) => e.contentTypeId === id));
+  // A copy has the same icon, colour and fields (with their groups and options)
+  // under a new name and id. The entries of the original are not copied.
+  function duplicateSelected() {
+    const taken = new Set(contentTypes.map((ct) => ct.name.toLowerCase()));
+    const stamp = Date.now();
+    const copies = contentTypes.filter((ct) => selected.has(ct.id)).map((ct, i) => {
+      let name = `${ct.name} (${t("copy")})`;
+      for (let n = 2; taken.has(name.toLowerCase()); n += 1) name = `${ct.name} (${t("copy")} ${n})`;
+      taken.add(name.toLowerCase());
+      return { ...structuredClone(ct), id: `ct-copy-${stamp}-${i}`, name, entryCount: 0 };
+    });
+    setContentTypes([...contentTypes, ...copies]);
+    setSelected(new Set());
+  }
+
   const bulkActions = [
+    { label: "Duplicate", icon: Copy, onSelect: duplicateSelected },
     {
       label: "Delete", icon: Trash2, danger: true,
       disabled: inUse, hint: "Types that still have entries can't be deleted",
