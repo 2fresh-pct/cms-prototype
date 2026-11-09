@@ -369,6 +369,9 @@ export default function Content() {
           <FilterBar
             typeFacetLabel="Content type"
             typeLabel={typesById[filter.typeId]?.name ?? "Any"}
+            typeOptions={contentTypes.map((ct) => ({ value: ct.id, label: ct.name, icon: ct.icon, color: ct.color }))}
+            typeValue={filter.typeId}
+            onTypeChange={(value) => handleFilterChange("contentTypeId", value)}
             search={search}
             onSearchChange={setSearch}
             filterFields={filterFields}

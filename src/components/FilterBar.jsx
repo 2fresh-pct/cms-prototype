@@ -1,10 +1,18 @@
 import { useEffect, useRef, useState } from "react";
-import { Search, SlidersHorizontal, Plus, ChevronDown, ArrowUpDown, X } from "lucide-react";
+import { Search, SlidersHorizontal, Plus, ChevronDown, ArrowUpDown, X, ListFilter } from "lucide-react";
 import { useI18n } from "../lib/i18n";
+import { typeIcon } from "../lib/typeIcons";
+import Modal from "./Modal";
 
+// `typeFacetLabel` / `typeLabel` show the type chip next to the search box. With
+// `typeOptions` ([{ value, label, icon?, color? }]), `typeValue` and `onTypeChange`
+// the chip opens a dialog to pick the type (or Any), applied right away.
 export function FilterBar({
   typeFacetLabel,
   typeLabel,
+  typeOptions,
+  typeValue = null,
+  onTypeChange,
   search,
   onSearchChange,
   chips = [],
@@ -17,6 +25,7 @@ export function FilterBar({
 }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
+  const [pickingType, setPickingType] = useState(false);
   const ref = useRef(null);
 
   useEffect(() => {
@@ -34,7 +43,12 @@ export function FilterBar({
     <div className="space-y-2.5">
       <div className="flex h-10 items-center gap-2 rounded-lg border border-gray-300 bg-white px-2">
         {typeFacetLabel && (
-          <button className="flex items-center gap-1.5 rounded-md bg-gray-100 h-8 px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-200">
+          <button
+            type="button"
+            onClick={() => typeOptions && setPickingType(true)}
+            aria-haspopup={typeOptions ? "dialog" : undefined}
+            className="flex items-center gap-1.5 rounded-md bg-gray-100 h-8 px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-200"
+          >
             {t(typeFacetLabel)}
             <span className="rounded bg-white px-1.5 py-0.5 text-gray-900 ring-1 ring-gray-300">{t(typeLabel ?? "Any")}</span>
           </button>
@@ -113,6 +127,39 @@ export function FilterBar({
           </div>
         )}
       </div>
+
+      {typeOptions && (
+        <Modal
+          open={pickingType}
+          onClose={() => setPickingType(false)}
+          title={t(typeFacetLabel)}
+          maxWidth="max-w-md"
+          footer={
+            <button onClick={() => setPickingType(false)} className="rounded-md h-9 px-3 text-sm text-gray-500 hover:bg-gray-100">{t("Cancel")}</button>
+          }
+        >
+          <div className="grid max-h-72 grid-cols-2 gap-1.5 overflow-y-auto">
+            {[{ value: null, label: "Any", icon: null }, ...typeOptions].map((opt) => {
+              const Icon = opt.value === null ? ListFilter : typeIcon(opt.icon);
+              const active = (typeValue ?? null) === opt.value;
+              return (
+                <button
+                  key={opt.value ?? "any"}
+                  type="button"
+                  onClick={() => { onTypeChange?.(opt.value); setPickingType(false); }}
+                  aria-pressed={active}
+                  className={`flex items-center gap-2 rounded-md border px-2.5 py-2 text-left text-sm ${
+                    active ? "border-gray-700 bg-gray-100 text-gray-900" : "border-gray-300 text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  <Icon size={15} className="shrink-0" style={opt.color ? { color: opt.color } : undefined} />
+                  <span className="truncate">{t(opt.label)}</span>
+                </button>
+              );
+            })}
+          </div>
+        </Modal>
+      )}
 
       {chips.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">

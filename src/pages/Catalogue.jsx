@@ -156,6 +156,9 @@ export default function Catalogue() {
             search={search}
             onSearchChange={setSearch}
             typeLabel={activeCategory?.name ?? "Any"}
+            typeOptions={categories.map((c) => ({ value: c.id, label: c.name }))}
+            typeValue={filter.typeId}
+            onTypeChange={(value) => handleFilterChange("categoryId", value)}
             filterFields={filterFields}
             filterValues={filterValues}
             onFilterChange={handleFilterChange}
