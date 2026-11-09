@@ -65,7 +65,7 @@ export function FieldSeparator() {
   // Padding rather than margin: the fields' container spaces its children with
   // `space-y-*` margins, which would override a margin set here.
   return (
-    <div className="py-12">
+    <div className="py-7">
       <hr role="separator" className="border-t border-gray-900" />
     </div>
   );

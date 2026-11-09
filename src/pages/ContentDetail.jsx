@@ -465,11 +465,11 @@ export default function ContentDetail() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 onBlur={() => update({ title: title.trim() || entry.title })}
-                className="w-full rounded-md border border-gray-300 bg-white h-9 px-3 text-sm focus:border-violet-400 focus:outline-none"
+                className="w-full rounded-md border border-gray-300 bg-[#fff] h-9 px-3 text-sm focus:border-violet-400 focus:outline-none"
               />
             </DetailField>
             <DetailField label="Slug" required={slugField?.required} localized={slugField?.localized}>
-              <div className="flex h-9 items-center rounded-md border border-gray-300 bg-white focus-within:border-violet-400">
+              <div className="flex h-9 items-center rounded-md border border-gray-300 bg-[#fff] focus-within:border-violet-400">
                 <span className="select-none pl-3 text-sm text-gray-400">/</span>
                 {/* Uncontrolled and re-keyed by the value, so a title-driven slug refreshes it. */}
                 <input
@@ -733,7 +733,7 @@ export default function ContentDetail() {
                       }
                     }}
                     placeholder={t("Leave a comment…")}
-                    className="w-full resize-none rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm focus:border-violet-400 focus:outline-none"
+                    className="w-full resize-none rounded-md border border-gray-300 bg-[#fff] px-2.5 py-1.5 text-sm focus:border-violet-400 focus:outline-none"
                   />
                   <div className="mt-2 flex justify-end">
                     <button
@@ -887,7 +887,7 @@ export default function ContentDetail() {
               type="datetime-local"
               value={scheduledAt}
               onChange={(e) => setScheduledAt(e.target.value)}
-              className="w-full rounded-md border border-gray-300 bg-white h-9 px-3 text-sm focus:border-violet-400 focus:outline-none"
+              className="w-full rounded-md border border-gray-300 bg-[#fff] h-9 px-3 text-sm focus:border-violet-400 focus:outline-none"
             />
           </div>
         )}

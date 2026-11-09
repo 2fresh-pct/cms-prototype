@@ -35,7 +35,7 @@ export default function StatusSelect({ value, steps, onChange, fallbackLabel }) 
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className="flex h-9 w-full items-center gap-2 rounded-md border border-gray-300 bg-white px-3 text-left text-sm text-gray-800 hover:bg-gray-50"
+        className="flex h-9 w-full items-center gap-2 rounded-md border border-gray-300 bg-[#fff] px-3 text-left text-sm text-gray-800 hover:bg-gray-50"
       >
         <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: current?.color }} />
         <span className="flex-1 truncate">{t(current?.name ?? fallbackLabel ?? "")}</span>

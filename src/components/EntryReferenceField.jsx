@@ -74,14 +74,14 @@ function Picker({ open, onClose, candidates, types, selected, onConfirm, ctx }) 
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={t("Search content…")}
-          className="w-full rounded-md border border-gray-300 bg-white h-9 px-3 text-sm focus:border-violet-400 focus:outline-none"
+          className="w-full rounded-md border border-gray-300 bg-[#fff] h-9 px-3 text-sm focus:border-violet-400 focus:outline-none"
         />
         {types.length > 1 && (
           <select
             value={typeId}
             onChange={(e) => setTypeId(e.target.value)}
             aria-label={t("Content type")}
-            className="shrink-0 rounded-md border border-gray-300 bg-white h-9 px-3 text-sm"
+            className="shrink-0 rounded-md border border-gray-300 bg-[#fff] h-9 px-3 text-sm"
           >
             <option value="">{t("All types")}</option>
             {types.map((ct) => <option key={ct.id} value={ct.id}>{t(ct.name)}</option>)}

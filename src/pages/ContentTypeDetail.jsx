@@ -262,7 +262,7 @@ function ContentTypeEditor({ id }) {
                   key={i}
                   onDragOver={(e) => { if (dragIndex !== null) { e.preventDefault(); if (overIndex !== i) setOverIndex(i); } }}
                   onDrop={(e) => { e.preventDefault(); moveField(dragIndex, i); }}
-                  className={`space-y-3 rounded-md border bg-white p-3 ${dragIndex === i ? "opacity-40" : ""} ${
+                  className={`space-y-3 rounded-md border bg-[#fff] p-3 ${dragIndex === i ? "opacity-40" : ""} ${
                     overIndex === i && dragIndex !== null && dragIndex !== i ? "border-gray-800 ring-2 ring-gray-800" : "border-gray-300"
                   }`}
                 >
@@ -362,7 +362,8 @@ function ContentTypeEditor({ id }) {
                   )}
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-2 pl-7 text-xs text-gray-500">
                     <div className="w-48 shrink-0">
-                      <code className="rounded bg-gray-100 px-1.5 py-0.5 text-gray-600">{f.name}</code>
+                      {/* A separator is layout only: it has no API key and never appears in the content. */}
+                      {f.type !== "Separator" && <code className="rounded bg-gray-100 px-1.5 py-0.5 text-gray-600">{f.name}</code>}
                     </div>
                     <label className="flex w-40 shrink-0 items-center gap-2">
                       {t("Group")}

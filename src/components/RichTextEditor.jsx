@@ -196,7 +196,7 @@ function Toolbar({ editor, onCommit, media, onUpload, locale }) {
             onBlur={onCommit}
             aria-label={t("Alt text")}
             placeholder={t("Alt text: describe the image for screen readers")}
-            className="w-full rounded-md border border-gray-300 bg-white h-8 px-2.5 text-sm focus:border-violet-400 focus:outline-none"
+            className="w-full rounded-md border border-gray-300 bg-[#fff] h-8 px-2.5 text-sm focus:border-violet-400 focus:outline-none"
           />
         </div>
       )}
@@ -211,7 +211,7 @@ function Toolbar({ editor, onCommit, media, onUpload, locale }) {
               onKeyDown={onLinkKey}
               aria-label={t("Link text")}
               placeholder={t("Link text")}
-              className="rounded-md border border-gray-300 bg-white h-8 px-2.5 text-sm focus:border-violet-400 focus:outline-none"
+              className="rounded-md border border-gray-300 bg-[#fff] h-8 px-2.5 text-sm focus:border-violet-400 focus:outline-none"
             />
             <input
               autoFocus={linkRange.current.from !== linkRange.current.to}
@@ -220,7 +220,7 @@ function Toolbar({ editor, onCommit, media, onUpload, locale }) {
               onKeyDown={onLinkKey}
               aria-label={t("Link URL")}
               placeholder={t("Link URL")}
-              className="rounded-md border border-gray-300 bg-white h-8 px-2.5 text-sm focus:border-violet-400 focus:outline-none"
+              className="rounded-md border border-gray-300 bg-[#fff] h-8 px-2.5 text-sm focus:border-violet-400 focus:outline-none"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -265,7 +265,7 @@ export default function RichTextEditor({ value, onChange, placeholder, minHeight
 
   if (!editor) return null;
   return (
-    <div className="rounded-md border border-gray-300 bg-white focus-within:border-violet-400">
+    <div className="rounded-md border border-gray-300 bg-[#fff] focus-within:border-violet-400">
       <Toolbar editor={editor} onCommit={() => commit(editor)} media={media} onUpload={onUpload} locale={locale} />
       <EditorContent editor={editor} style={{ minHeight }} className="px-3 py-2 text-sm text-gray-800" />
     </div>

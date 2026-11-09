@@ -98,7 +98,7 @@ export function Library({ open, onClose, media, selected, multiple, onConfirm, o
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={t("Search media…")}
-          className="w-full rounded-md border border-gray-300 bg-white h-9 px-3 text-sm focus:border-violet-400 focus:outline-none"
+          className="w-full rounded-md border border-gray-300 bg-[#fff] h-9 px-3 text-sm focus:border-violet-400 focus:outline-none"
         />
       </div>
       {message && <p role="alert" className="mb-3 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800 ring-1 ring-inset ring-amber-200">{message}</p>}

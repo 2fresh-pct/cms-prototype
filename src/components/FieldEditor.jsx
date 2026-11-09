@@ -8,8 +8,8 @@ import MediaPicker from "./MediaPicker";
 import EntryReferenceField from "./EntryReferenceField";
 import { holdsSeveral, mediaIds } from "../lib/media";
 
-const INPUT = "w-full rounded-md border border-gray-300 bg-white h-9 px-3 text-sm focus:border-violet-400 focus:outline-none";
-const INPUT_SM = "rounded-md border border-gray-300 bg-white h-9 px-3 text-sm focus:border-violet-400 focus:outline-none";
+const INPUT = "w-full rounded-md border border-gray-300 bg-[#fff] h-9 px-3 text-sm focus:border-violet-400 focus:outline-none";
+const INPUT_SM = "rounded-md border border-gray-300 bg-[#fff] h-9 px-3 text-sm focus:border-violet-400 focus:outline-none";
 const ADD_BUTTON = "flex items-center gap-1 text-xs font-medium text-violet-600 hover:text-violet-700";
 const ICON_BUTTON = "flex h-8 w-8 shrink-0 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-red-600";
 
@@ -76,7 +76,7 @@ function TaxonomyField({ field, value, onChange, ctx }) {
   const terms = flattenTerms(taxonomy.terms);
   if (terms.length === 0) return <p className="text-sm text-gray-400">{t("This taxonomy has no terms yet.")}</p>;
   return (
-    <div className="max-h-48 space-y-0.5 overflow-y-auto rounded-md border border-gray-300 bg-white p-2">
+    <div className="max-h-48 space-y-0.5 overflow-y-auto rounded-md border border-gray-300 bg-[#fff] p-2">
       {terms.map((term) => (
         <label
           key={term.id}
@@ -159,7 +159,7 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
     case "Number":
       return (
         <div className="flex items-center gap-2">
-          <input type="number" value={value ?? ""} onChange={(e) => onChange(e.target.value)} className={field.unit ? "w-32 rounded-md border border-gray-300 bg-white h-9 px-3 text-sm" : INPUT} />
+          <input type="number" value={value ?? ""} onChange={(e) => onChange(e.target.value)} className={field.unit ? "w-32 rounded-md border border-gray-300 bg-[#fff] h-9 px-3 text-sm" : INPUT} />
           {field.unit && <span className="text-sm text-gray-500">{t(field.unit)}</span>}
         </div>
       );
@@ -175,7 +175,7 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
     case "Select": {
       const options = field.options ?? [];
       return (
-        <select value={value ?? field.defaultValue ?? ""} onChange={(e) => onChange(e.target.value)} className="w-full rounded-md border border-gray-300 bg-white h-9 px-3 text-sm">
+        <select value={value ?? field.defaultValue ?? ""} onChange={(e) => onChange(e.target.value)} className="w-full rounded-md border border-gray-300 bg-[#fff] h-9 px-3 text-sm">
           {!field.defaultValue && <option value="">{t("None")}</option>}
           {options.map((o) => <option key={o} value={o}>{t(o)}</option>)}
         </select>
@@ -183,7 +183,7 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
     }
 
     case "Date":
-      return <input type="date" value={value ?? ""} onChange={(e) => onChange(e.target.value)} className="rounded-md border border-gray-300 bg-white h-9 px-3 text-sm" />;
+      return <input type="date" value={value ?? ""} onChange={(e) => onChange(e.target.value)} className="rounded-md border border-gray-300 bg-[#fff] h-9 px-3 text-sm" />;
 
     case "Media":
     case "Media list":
