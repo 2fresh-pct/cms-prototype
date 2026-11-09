@@ -5,6 +5,7 @@ import { flattenTerms } from "../lib/seed";
 import { RichTextView } from "./RichTextEditor";
 import { WEEKDAYS } from "./FieldEditor";
 import MediaThumb from "./MediaThumb";
+import { OpenEntryButton } from "./EntryReferenceField";
 import { holdsSeveral, mediaIds } from "../lib/media";
 
 export const isEmpty = (v) =>
@@ -117,7 +118,10 @@ export default function FieldView({ field: f, value, ctx, compact, thumbnails = 
             return (
               <li key={e.id} className="rounded-md border border-gray-300 px-3 py-2">
                 <p className="text-xs font-medium uppercase tracking-wide text-gray-400">{type ? t(type.name) : ""}</p>
-                <p className={`${text} font-medium text-gray-900`}>{e.title}</p>
+                <div className="flex items-center gap-2">
+                  <p className={`min-w-0 truncate ${text} font-medium text-gray-900`}>{e.title}</p>
+                  <OpenEntryButton entry={e} />
+                </div>
                 {ctx.publishStepId && e.status !== ctx.publishStepId && <p className="text-xs text-gray-400">{t("Not published")}</p>}
               </li>
             );

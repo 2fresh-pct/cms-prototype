@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { GripVertical, Link2, X } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ArrowUpRight, GripVertical, Link2, X } from "lucide-react";
 import { useI18n } from "../lib/i18n";
 import { normalizeEntryStatus } from "../lib/seed";
 import { typeIcon } from "../lib/typeIcons";
@@ -16,9 +17,27 @@ export function allowedTypeIds(field, contentTypes) {
   return contentTypes.map((ct) => ct.id);
 }
 
+// A small button that opens a content item. `draggable={false}` keeps a drag that
+// starts on it with the surrounding row.
+export function OpenEntryButton({ entry }) {
+  const { t } = useI18n();
+  return (
+    <Link
+      to={`/content/${entry.id}`}
+      draggable={false}
+      title={t("Open this content item")}
+      className="inline-flex h-5 shrink-0 items-center gap-0.5 rounded border border-gray-300 bg-white px-1.5 text-[11px] font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+    >
+      {t("Open")}
+      <ArrowUpRight size={10} />
+    </Link>
+  );
+}
+
 // One linked item: icon, title, and enough context (type, language, status) to
-// tell similar items apart.
-function EntryLine({ entry, ctx }) {
+// tell similar items apart. With `openable`, a small Open button sits next to the
+// title and opens that item.
+function EntryLine({ entry, ctx, openable = false }) {
   const { t } = useI18n();
   const type = ctx.contentTypes.find((ct) => ct.id === entry.contentTypeId);
   const Icon = typeIcon(type?.icon);
@@ -27,7 +46,10 @@ function EntryLine({ entry, ctx }) {
     <>
       <Icon size={15} className="shrink-0 text-gray-400" />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-gray-900" title={entry.title}>{entry.title}</p>
+        <div className="flex items-center gap-2">
+          <p className="min-w-0 truncate text-sm font-medium text-gray-900" title={entry.title}>{entry.title}</p>
+          {openable && <OpenEntryButton entry={entry} />}
+        </div>
         <p className="truncate text-xs text-gray-400">
           {type ? t(type.name) : ""}{entry.locale ? ` · ${entry.locale.toUpperCase()}` : ""}
         </p>
@@ -194,7 +216,7 @@ export default function EntryReferenceField({ field, value, onChange, ctx }) {
                   >
                     <GripVertical size={15} />
                   </span>
-                  {entry ? <EntryLine entry={entry} ctx={ctx} /> : <span className="min-w-0 flex-1 truncate text-sm italic text-gray-400">{t("Missing item")}</span>}
+                  {entry ? <EntryLine entry={entry} ctx={ctx} openable /> : <span className="min-w-0 flex-1 truncate text-sm italic text-gray-400">{t("Missing item")}</span>}
                   <button
                     type="button"
                     onClick={() => onChange(ids.filter((x) => x !== id))}

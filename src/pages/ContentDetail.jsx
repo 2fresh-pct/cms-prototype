@@ -86,6 +86,12 @@ function GroupHeading({ group, prev }) {
 
 export default function ContentDetail() {
   const { id } = useParams();
+  // Keyed by id so each entry starts from its own state (title, tab, dialogs),
+  // also when you arrive from another entry (Open on a linked item, language switch).
+  return <ContentDetailPage key={id} id={id} />;
+}
+
+function ContentDetailPage({ id }) {
   const { t, dateLocale } = useI18n();
   const fmtDate = (iso) => formatScheduled(iso, dateLocale);
   const navigate = useNavigate();

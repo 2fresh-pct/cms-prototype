@@ -148,6 +148,7 @@ export const CS = {
   "Not needed for a separator": "U oddělovače není potřeba",
   "Open in media library": "Otevřít v knihovně médií",
   "Color": "Barva",
+  "Open this content item": "Otevřít tuto položku obsahu",
   "Also used by another content type": "Používá ji i jiný typ obsahu",
   "Numbers, choices and dates": "Čísla, volby a data",
   "Media and relations": "Média a propojení",
