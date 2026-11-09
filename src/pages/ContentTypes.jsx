@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Plus, Trash2 } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
-import { seedContentTypes, seedEntries, FIELD_TYPE_LIST } from "../lib/seed";
+import { seedContentTypes, seedEntries, FIELD_TYPE_LIST, fieldTypeLabel } from "../lib/seed";
 import { typeIcon, TYPE_ICON_KEYS } from "../lib/typeIcons";
 import Modal from "../components/Modal";
 import BulkActionsMenu from "../components/BulkActionsMenu";
@@ -57,7 +57,7 @@ export default function ContentTypes() {
   }
 
   const filterFields = [
-    { key: "fieldType", label: "Has field type", options: FIELD_TYPE_LIST.map((ft) => ({ value: ft, label: ft })) },
+    { key: "fieldType", label: "Has field type", options: FIELD_TYPE_LIST.map((ft) => ({ value: ft, label: fieldTypeLabel(ft) })) },
   ];
 
   // Counted from the entries, so it stays right as entries are created and deleted.

@@ -143,7 +143,7 @@ export const CS = {
   "Text": "Text",
   "Rich text": "Formátovaný text",
   "Number": "Číslo",
-  "Reference": "Vazba",
+  "Linked content items": "Navázaný obsah",
   "Boolean": "Ano/Ne",
   "Taxonomy": "Taxonomie",
 

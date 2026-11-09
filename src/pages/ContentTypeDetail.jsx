@@ -3,7 +3,7 @@ import { useParams, useNavigate, useBlocker } from "react-router-dom";
 import { GripVertical, Plus, Trash2 } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
-import { seedContentTypes, seedEntries, seedTaxonomies, FIELD_TYPE_LIST } from "../lib/seed";
+import { seedContentTypes, seedEntries, seedTaxonomies, FIELD_TYPE_LIST, fieldTypeLabel } from "../lib/seed";
 import { TYPE_ICON_KEYS, typeIcon } from "../lib/typeIcons";
 import PageHeader from "../components/PageHeader";
 import DetailField from "../components/DetailField";
@@ -274,10 +274,10 @@ function ContentTypeEditor({ id }) {
                             taxonomyId: nextType === "Taxonomy" ? (f.taxonomyId ?? taxonomies[0]?.id) : undefined,
                           });
                         }}
-                        className="w-40 rounded-md border border-gray-300 bg-white h-8 px-2.5 text-sm disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                        className="w-48 rounded-md border border-gray-300 bg-white h-8 px-2.5 text-sm disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
                       >
                         {FIELD_TYPE_LIST.filter((ft) => ft !== "Media list" || f.type === "Media list").map((ft) => (
-                          <option key={ft} value={ft}>{t(ft)}</option>
+                          <option key={ft} value={ft}>{t(fieldTypeLabel(ft))}</option>
                         ))}
                       </select>
                     </div>
@@ -296,7 +296,7 @@ function ContentTypeEditor({ id }) {
                         </select>
                       </div>
                     )}
-                    <div className="w-40 shrink-0">
+                    <div className="min-w-32 flex-1">
                       <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Name")}</label>
                       <input
                         value={f.label ?? f.name}
@@ -333,7 +333,7 @@ function ContentTypeEditor({ id }) {
                     </div>
                   )}
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-2 pl-7 text-xs text-gray-500">
-                    <div className="w-40 shrink-0">
+                    <div className="w-48 shrink-0">
                       <code className="rounded bg-gray-100 px-1.5 py-0.5 text-gray-600">{f.name}</code>
                     </div>
                     <label className="flex w-40 shrink-0 items-center gap-2">
