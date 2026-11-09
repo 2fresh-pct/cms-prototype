@@ -143,7 +143,7 @@ export const CS = {
   "Text": "Text",
   "Rich text": "Formátovaný text",
   "Number": "Číslo",
-  "Reference": "Odkaz",
+  "Reference": "Vazba",
   "Boolean": "Ano/Ne",
   "Taxonomy": "Taxonomie",
 
@@ -382,7 +382,7 @@ export const CS = {
   "{n} selected will be permanently deleted with all their terms. This can't be undone.": "Vybrané položky ({n}) budou trvale smazány včetně všech pojmů. Tuto akci nelze vrátit.",
   "Taxonomies used by a content type can't be deleted": "Taxonomie používané obsahovým vzorem nelze smazat",
   "Delete selected files?": "Smazat vybrané soubory?",
-  "{n} selected will be permanently deleted. Content that uses them will lose the reference. This can't be undone.": "Vybrané položky ({n}) budou trvale smazány. Obsah, který je používá, o odkaz přijde. Tuto akci nelze vrátit.",
+  "{n} selected will be permanently deleted. Content that uses them will lose the reference. This can't be undone.": "Vybrané položky ({n}) budou trvale smazány. Obsah, který je používá, o vazbu přijde. Tuto akci nelze vrátit.",
   // Media picker and rich text editor
   "Choose from library": "Vybrat z knihovny",
   "Change": "Změnit",
@@ -411,7 +411,7 @@ export const CS = {
   "+ Column": "+ Sloupec",
   "− Row": "− Řádek",
   "− Column": "− Sloupec",
-  "Link URL (empty removes the link)": "Adresa odkazu (prázdná odkaz odstraní)",
+  "Link URL (empty removes the link)": "Adresa odkazu (prázdná adresa odkaz odstraní)",
   "Apply": "Použít",
   "Regular text": "Běžný text",
   "Remove link": "Odebrat odkaz",
