@@ -9,6 +9,7 @@ import Sidebar from "../components/Sidebar";
 import DataTable from "../components/DataTable";
 import BulkActionsMenu from "../components/BulkActionsMenu";
 import Modal from "../components/Modal";
+import PublishDialog from "../components/PublishDialog";
 import StatusPill from "../components/StatusPill";
 import Avatar from "../components/Avatar";
 import { FilterBar } from "../components/FilterBar";
@@ -174,19 +175,26 @@ export default function Content() {
     clearSelection();
   }
 
-  // Publishes the selected items now, each on the channels it is already set to
-  // publish to (the single-item Publish dialog is where channels are changed).
-  // Items that are already published are left alone; one that has a live version
-  // under a new draft replaces it.
+  // Publishing a bunch opens the same Publish dialog as a single item (now or
+  // scheduled, channels, languages). Items that are already published are left
+  // out; one that has a live version under a new draft replaces it. The channels
+  // chosen apply to every item published.
   const publishStep = workflowSteps[workflowSteps.length - 1];
-  const nothingToPublish = selectedIds.length > 0 && selectedIds.every((id) => displayEntries.find((e) => e.id === id)?.status === publishStepId);
+  const publishable = displayEntries.filter((e) => selected.has(e.id) && e.status !== publishStepId);
+  const nothingToPublish = selectedIds.length > 0 && publishable.length === 0;
+  const [publishing, setPublishing] = useState(false);
 
-  function publishSelected() {
-    setEntries(entries.map((e) =>
-      selected.has(e.id) && normalizeEntryStatus(e.status, workflowSteps) !== publishStepId
-        ? withHistory(e, { status: publishStepId, scheduledPublishAt: null, live: null }, `Status changed to "${publishStep?.name}"`)
-        : e
-    ));
+  function publishSelected({ mode, scheduledAt, channelIds, versionIds }) {
+    const channelsValue = channels.every((c) => channelIds.includes(c.id)) ? ALL_CHANNELS : channelIds;
+    const scheduling = mode === "schedule" && scheduledAt;
+    const patch = scheduling
+      ? { scheduledPublishAt: new Date(scheduledAt).toISOString(), channels: channelsValue }
+      : { status: publishStepId, scheduledPublishAt: null, channels: channelsValue, live: null };
+    const summary = scheduling
+      ? `Scheduled to publish on ${new Date(scheduledAt).toLocaleString(dateLocale, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}`
+      : `Status changed to "${publishStep?.name}"`;
+    setEntries(entries.map((e) => (versionIds.includes(e.id) ? withHistory(e, patch, summary) : e)));
+    setPublishing(false);
     clearSelection();
   }
 
@@ -213,9 +221,8 @@ export default function Content() {
     ...workflowSteps.slice(0, -1).map((step) => ({ label: step.name, noTranslate: true, color: step.color, onSelect: () => changeStatusOfSelected(step) })),
     { heading: "More" },
     {
-      label: "Publish", icon: Send, onSelect: publishSelected,
+      label: "Publish", icon: Send, onSelect: () => setPublishing(true),
       disabled: nothingToPublish, hint: "Everything selected is already published",
-      confirm: { title: "Publish selected content?", message: "{n} selected will go live now, on the channels each item is set to publish to. Items that are already published are skipped.", confirmLabel: "Publish" },
     },
     { label: "Duplicate", icon: Copy, onSelect: duplicateSelected },
     {
@@ -401,6 +408,22 @@ export default function Content() {
             onClearFilters={clearFilters}
           />
         </div>
+
+        <PublishDialog
+          open={publishing}
+          onClose={() => setPublishing(false)}
+          title={t("Publish {n} content items?", { n: publishable.length })}
+          channels={channels}
+          initialChannelIds={channels.map((c) => c.id).filter((id) => publishable.some((e) => resolvePublishedChannelIds(e.channels, channels).includes(id)))}
+          initialVersionIds={publishable.map((e) => e.id)}
+          languageRows={LOCALE_LIST.map((l) => {
+            const inLanguage = publishable.filter((e) => e.locale === l);
+            return { locale: l, versionIds: inLanguage.map((e) => e.id), count: inLanguage.length };
+          })}
+          texts={{ now: "These items will go live now on:", schedule: "At the scheduled time, these items will go live on:" }}
+          emptyLabel="No selected items in this language"
+          onConfirm={publishSelected}
+        />
 
         <Modal
           open={adding}
