@@ -99,8 +99,27 @@ function StickyTabs({ onHeight, children }) {
     observer.observe(el);
     return () => { observer.disconnect(); onHeight(0); };
   }, [onHeight]);
+  // Switching to another tab starts at the top edge of that tab: when the card is
+  // scrolled past the strip (so it is stuck at the top), it is scrolled back to
+  // where the strip stands exactly at the top, with the new tab's fields right
+  // below it. Scrolled less than that, the strip is still in view and nothing
+  // moves. The strip's own place in the flow is read with it un-stuck.
+  const toTabTop = (e) => {
+    if (!e.target.closest?.('[role="tab"]')) return;
+    const strip = ref.current;
+    const card = strip?.parentElement;
+    if (!card) return;
+    const position = strip.style.position;
+    strip.style.position = "static";
+    const natural = strip.getBoundingClientRect().top - card.getBoundingClientRect().top - card.clientTop + card.scrollTop;
+    strip.style.position = position;
+    if (card.scrollTop <= natural) return;
+    // The new tab's fields replace the old ones when the click has been handled,
+    // and the browser moves the scroll position while they do; set it afterwards.
+    setTimeout(() => { card.scrollTop = natural; }, 0);
+  };
   return (
-    <div ref={ref} className="sticky top-[calc(var(--pane-pad)*-1)] z-20 -mx-5 bg-white px-5 pt-2">
+    <div ref={ref} onClickCapture={toTabTop} className="sticky top-[calc(var(--pane-pad)*-1)] z-20 -mx-5 bg-white px-5 pt-2">
       {children}
     </div>
   );
