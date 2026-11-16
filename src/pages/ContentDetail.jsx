@@ -689,7 +689,6 @@ function ContentDetailPage({ id }) {
                     })
                 )}
               </div>
-              <p className="mt-2 text-xs text-gray-400">{t("Chosen when you publish.")}</p>
             </DetailField>
             <DetailField label="Locale">
               <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium uppercase text-gray-600">
