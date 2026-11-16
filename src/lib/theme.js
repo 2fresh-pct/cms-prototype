@@ -19,6 +19,29 @@ export function getTheme() {
   return DEFAULT_THEME;
 }
 
+// Dark mode is a second, independent choice: <html data-mode="dark"> (see the dark
+// layer at the end of index.css). It is off until someone turns it on, and
+// index.html applies the saved choice before first paint.
+const MODE_KEY = "cms.ui.mode";
+const modeListeners = new Set();
+
+export function getMode() {
+  try { return JSON.parse(localStorage.getItem(MODE_KEY)) === "dark" ? "dark" : "light"; } catch { return "light"; }
+}
+
+export function setMode(mode) {
+  if (mode === "dark") document.documentElement.dataset.mode = "dark";
+  else delete document.documentElement.dataset.mode;
+  try { localStorage.setItem(MODE_KEY, JSON.stringify(mode === "dark" ? "dark" : "light")); } catch { /* applies for this visit only */ }
+  modeListeners.forEach((l) => l());
+}
+
+export function subscribeMode(callback) {
+  modeListeners.add(callback);
+  window.addEventListener("storage", callback); // another tab changed it
+  return () => { modeListeners.delete(callback); window.removeEventListener("storage", callback); };
+}
+
 export function setTheme(id) {
   document.documentElement.dataset.theme = id;
   try { localStorage.setItem(KEY, JSON.stringify(id)); } catch { /* storage unavailable: applies for this visit only */ }

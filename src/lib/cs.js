@@ -309,6 +309,8 @@ export const CS = {
   "Add channel": "Přidat kanál",
   "Channel {n}": "Kanál {n}",
   "Role": "Role",
+  "Dark mode": "Tmavý režim",
+  "Profile": "Profil",
   "Editor view": "Pohled editora",
   "Exit": "Ukončit",
   "Leave the editor test mode": "Ukončit testovací provoz pro editory",

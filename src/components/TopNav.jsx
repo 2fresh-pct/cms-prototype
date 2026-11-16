@@ -1,7 +1,7 @@
 import LogoMark from "./LogoMark";
 import { NavLink } from "react-router-dom";
 import { FileText, Layers, ListTree, Image, Settings as SettingsIcon, UserCheck } from "lucide-react";
-import Avatar from "./Avatar";
+import ProfileMenu from "./ProfileMenu";
 import { seedUsers } from "../lib/seed";
 import { useI18n } from "../lib/i18n";
 import { useAccess } from "../lib/access";
@@ -60,7 +60,7 @@ export default function TopNav() {
             <UserCheck size={14} /> {t("Editor view")} <span className="text-gray-500">·</span> <span className="underline">{t("Exit")}</span>
           </button>
         )}
-        <Avatar user={me} size={28} />
+        <ProfileMenu user={me} />
       </div>
     </header>
   );

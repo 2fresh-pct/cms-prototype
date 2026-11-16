@@ -14,6 +14,7 @@
       try {
         var theme = JSON.parse(localStorage.getItem("cms.ui.theme"));
         if (theme === "golden" || theme === "wireframe") document.documentElement.dataset.theme = theme;
+        if (JSON.parse(localStorage.getItem("cms.ui.mode")) === "dark") document.documentElement.dataset.mode = "dark";
       } catch (e) {}
     </script>
   </head>
