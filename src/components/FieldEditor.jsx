@@ -143,7 +143,7 @@ function TaxonomyField({ field, value, onChange, ctx }) {
         <div className="flex flex-wrap gap-2">
           {picked.map((term) => (
             // The look of the workflow status pills (Settings), one size up.
-            <span key={term.id} className="inline-flex items-center gap-1.5 rounded-full bg-white py-1.5 pl-4 pr-2 text-sm font-medium text-gray-800 ring-1 ring-inset ring-gray-300">
+            <span key={term.id} className="inline-flex items-center gap-1.5 rounded-full bg-[#fff] py-1.5 pl-4 pr-2 text-sm font-medium text-gray-800 ring-1 ring-inset ring-gray-300">
               {term.name}
               <button
                 type="button"

@@ -198,7 +198,7 @@ export default function EntryReferenceField({ field, value, onChange, ctx }) {
                   key={id}
                   onDragOver={(e) => { if (dragId) { e.preventDefault(); if (overId !== id) setOverId(id); } }}
                   onDrop={(e) => { e.preventDefault(); drop(id); }}
-                  className={`flex items-center gap-2 rounded-md border bg-white p-2 ${dragId === id ? "opacity-40" : ""} ${
+                  className={`flex items-center gap-2 rounded-md border bg-[#fff] p-2 ${dragId === id ? "opacity-40" : ""} ${
                     overId === id && dragId && dragId !== id ? "border-gray-800 ring-2 ring-gray-800" : "border-gray-300"
                   }`}
                 >

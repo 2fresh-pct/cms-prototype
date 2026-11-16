@@ -193,7 +193,7 @@ export default function MediaPicker({ media, value, onChange, onUpload, multiple
             <span className="text-sm text-gray-400">{t("No file chosen")}</span>
           </div>
         ) : (
-          <div className="flex items-center gap-3 rounded-md border border-gray-300 p-2">
+          <div className="flex items-center gap-3 rounded-md border border-gray-300 bg-[#fff] p-2">
             <OpenFile item={byId[ids[0]]} className="flex min-w-0 flex-1 items-center gap-3">
               <Thumb item={byId[ids[0]]} size={112} />
               <div className="min-w-0 flex-1">
@@ -226,7 +226,7 @@ export default function MediaPicker({ media, value, onChange, onUpload, multiple
                   onDragOver={(e) => { e.preventDefault(); if (dragId && overId !== id) setOverId(id); }}
                   onDrop={(e) => { e.preventDefault(); drop(id); }}
                   onDragEnd={() => { setDragId(null); setOverId(null); }}
-                  className={`relative w-48 cursor-grab overflow-hidden rounded-md border bg-white active:cursor-grabbing ${
+                  className={`relative w-48 cursor-grab overflow-hidden rounded-md border bg-[#fff] active:cursor-grabbing ${
                     dragId === id ? "opacity-40" : ""
                   } ${overId === id && dragId !== id ? "border-gray-800 ring-2 ring-gray-800" : "border-gray-300"}`}
                 >
