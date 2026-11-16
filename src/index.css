@@ -388,3 +388,17 @@ html[data-mode="dark"] .leaflet-bar a:hover { background-color: var(--raised); c
 html[data-mode="dark"] .leaflet-bar { border-color: var(--color-gray-300); box-shadow: none; }
 html[data-mode="dark"] .leaflet-container .leaflet-control-attribution { background: rgba(29, 26, 20, 0.8); color: var(--color-gray-500); }
 html[data-mode="dark"] .leaflet-container .leaflet-control-attribution a { color: var(--color-gray-700); }
+
+/* Dark mode: the tabs that are not selected. On the dark card their usual grey fill
+   all but vanishes, so they get a clearly lighter fill, an outline and brighter
+   text; the selected tab keeps its light underline and stands out by the
+   brightness of its text. */
+html[data-mode="dark"] [role="tab"]:not([aria-selected="true"]) {
+  background-color: #352f22;
+  border-color: #5b4f35;
+  color: var(--color-gray-800);
+}
+html[data-mode="dark"] [role="tab"]:not([aria-selected="true"]):hover {
+  background-color: #443b28;
+  color: var(--color-gray-900);
+}
