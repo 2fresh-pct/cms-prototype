@@ -9,7 +9,7 @@ import Avatar from "../components/Avatar";
 import Modal from "../components/Modal";
 import { THEMES, getTheme, setTheme } from "../lib/theme";
 import SaveIndicator from "../components/SaveIndicator";
-import { getBackup, isSharedKey, isSyncEnabled, markDirty, overwriteShared, restoreBackup, sharedKeys } from "../lib/sync";
+import { getBackup, isSharedKey, isSyncEnabled, markDirty, overwriteShared, replaceWorkspace, restoreBackup, sharedKeys } from "../lib/sync";
 
 const TABS = [
   { id: "general", label: "General" },
@@ -580,13 +580,11 @@ function DataPanel() {
   }
 
   async function importData() {
-    try {
-      // Replace, not merge: anything the file doesn't hold falls back to the sample data.
-      for (const k of sharedKeys()) localStorage.removeItem(k);
-      for (const [k, v] of pending.entries) localStorage.setItem(k, JSON.stringify(v));
-    } catch {
+    // Replace, not merge: anything the file doesn't hold falls back to the sample data.
+    // If the file does not fit, nothing is changed.
+    if (!replaceWorkspace(pending.entries).ok) {
       setPending(null);
-      setError(t("Not enough browser storage to import this file."));
+      setError(t("Not enough browser storage to import this file. Nothing was changed."));
       return;
     }
     // With a shared workspace connected, the imported content becomes the shared copy.
@@ -632,6 +630,7 @@ function DataPanel() {
       >
         {pending && t("{file} holds {entries} content items and {types} content types. Importing replaces all content, types, taxonomies, media and settings currently in this browser. This can't be undone.", { file: pending.name, entries: pending.entryCount, types: pending.typeCount })}
         {pending && isSyncEnabled() && <p className="mt-2 font-medium text-gray-800">{t("It also replaces the shared workspace for everyone who uses it.")}</p>}
+        {pending && backup && <p className="mt-2 text-gray-700">{t("If the file does not fit in the browser's storage, the backup of this browser's earlier content is deleted to make room.")}</p>}
       </Modal>
     </div>
   );

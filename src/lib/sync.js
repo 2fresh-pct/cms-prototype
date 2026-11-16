@@ -184,6 +184,32 @@ export async function loadShared() {
   window.location.reload();
 }
 
+// Replaces the workspace in this browser with `entries` ([key, value] pairs), as
+// one step that cannot leave it half written: the old values are held back and put
+// in again if the new ones do not fit. Browser storage is small (about 5 MB), and
+// the largest thing that can go is the backup copy of this browser's own earlier
+// content (see `adopt`), so when the first try is too big the backup is dropped and
+// the write is tried again. Returns { ok, droppedBackup }.
+export function replaceWorkspace(entries) {
+  const old = sharedKeys().map((k) => [k, localStorage.getItem(k)]);
+  const write = () => {
+    for (const k of sharedKeys()) localStorage.removeItem(k);
+    for (const [k, v] of entries) localStorage.setItem(k, JSON.stringify(v));
+  };
+  try { write(); return { ok: true, droppedBackup: false }; } catch { /* too big: make room */ }
+
+  const backup = localStorage.getItem(K_BACKUP);
+  if (backup !== null) {
+    localStorage.removeItem(K_BACKUP);
+    try { write(); return { ok: true, droppedBackup: true }; } catch { /* still too big */ }
+  }
+
+  for (const k of sharedKeys()) localStorage.removeItem(k);
+  for (const [k, v] of old) localStorage.setItem(k, v);
+  if (backup !== null) { try { localStorage.setItem(K_BACKUP, backup); } catch { /* no room to keep it as well */ } }
+  return { ok: false, droppedBackup: false };
+}
+
 // The content this browser had before the shared copy replaced it, if any.
 export function getBackup() {
   const b = readLocal(K_BACKUP);
