@@ -142,6 +142,18 @@ export function markDirty() {
   schedulePush();
 }
 
+// The workspace is sent compressed: the server host refuses a request over about
+// 4.5 MB, a workspace with uploaded images and a version history gets there, and
+// it shrinks to about a quarter. The type is octet-stream so the host hands the
+// bytes over untouched; the server reads X-Body-Encoding. A browser that cannot
+// compress sends plain JSON, as before.
+async function encodeBody(payload) {
+  const json = JSON.stringify(payload);
+  if (typeof CompressionStream === "undefined") return { body: json, headers: { "Content-Type": "application/json" } };
+  const gzipped = await new Response(new Blob([json]).stream().pipeThrough(new CompressionStream("gzip"))).blob();
+  return { body: gzipped, headers: { "Content-Type": "application/octet-stream", "X-Body-Encoding": "gzip" } };
+}
+
 export async function pushNow() {
   if (!enabled) return;
   clearTimeout(timer);
@@ -150,12 +162,9 @@ export async function pushNow() {
   const seq = dirtySeq;
   setState("saving");
   try {
-    const res = await fetch(API, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      // force: whoever is saving now wins; the server never refuses on a version mismatch.
-      body: JSON.stringify({ baseEtag: localEtagValue(), force: true, data: snapshot() }),
-    });
+    // force: whoever is saving now wins; the server never refuses on a version mismatch.
+    const { body, headers } = await encodeBody({ baseEtag: localEtagValue(), force: true, data: snapshot() });
+    const res = await fetch(API, { method: "PUT", headers, body });
     if (res.status === 413) { setState("error", "too-large"); return; }
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const { etag } = await res.json();
