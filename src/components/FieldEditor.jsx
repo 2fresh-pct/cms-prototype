@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, X } from "lucide-react";
 import { useI18n } from "../lib/i18n";
 import { flattenTerms } from "../lib/seed";
 import { htmlToText } from "../lib/richtext";
@@ -109,35 +109,86 @@ function RepeatingList({ value, onCommit, blank, addLabel, renderItem }) {
   );
 }
 
+// Lower-case and without accents, so "romansky" finds "románský".
+const fold = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+
+// The terms in tree order, each with the names of its parents.
+function termsWithPath(terms, path = [], depth = 0) {
+  return terms.flatMap((term) => [
+    { id: term.id, name: term.name, depth, path },
+    ...termsWithPath(term.children, [...path, term.name], depth + 1),
+  ]);
+}
+
+// Picking terms from a taxonomy: what is picked sits above the list as tags
+// (each with a remove button) and a filter box narrows the list.
 function TaxonomyField({ field, value, onChange, ctx }) {
   const { t } = useI18n();
+  const [query, setQuery] = useState("");
   const taxonomy = ctx.taxonomies.find((x) => x.id === field.taxonomyId);
   const selected = value ?? [];
   const single = field.multiple === false;
   if (!taxonomy) return <p className="text-sm text-gray-400">{t("No taxonomy selected for this field.")}</p>;
-  const terms = flattenTerms(taxonomy.terms);
+  const terms = termsWithPath(taxonomy.terms);
   if (terms.length === 0) return <p className="text-sm text-gray-400">{t("This taxonomy has no terms yet.")}</p>;
+
+  const needle = fold(query.trim());
+  const filtering = needle !== "";
+  const shown = filtering ? terms.filter((term) => fold(term.name).includes(needle)) : terms;
+  const picked = selected.map((id) => terms.find((term) => term.id === id)).filter(Boolean);
+
   return (
-    <div className="max-h-48 space-y-0.5 overflow-y-auto rounded-md border border-gray-300 bg-[#fff] p-2">
-      {terms.map((term) => (
-        <label
-          key={term.id}
-          className="flex items-center gap-2 rounded px-1.5 py-1 text-sm text-gray-700 hover:bg-gray-50"
-          style={{ paddingLeft: 6 + term.depth * 16 }}
-        >
-          <input
-            type={single ? "radio" : "checkbox"}
-            name={single ? `${field.name}-${ctx.entryId}` : undefined}
-            checked={selected.includes(term.id)}
-            onChange={() => {
-              if (single) onChange([term.id]);
-              else onChange(selected.includes(term.id) ? selected.filter((x) => x !== term.id) : [...selected, term.id]);
-            }}
-            className="h-3.5 w-3.5 border-gray-300 accent-violet-600"
-          />
-          {term.name}
-        </label>
-      ))}
+    <div className="space-y-2">
+      {picked.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {picked.map((term) => (
+            <span key={term.id} className="inline-flex items-center gap-0.5 rounded-full border border-gray-300 bg-[#fff] py-0.5 pl-2.5 pr-1 text-xs text-gray-700">
+              {term.name}
+              <button
+                type="button"
+                onClick={() => onChange(selected.filter((x) => x !== term.id))}
+                className="flex h-4 w-4 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                aria-label={`${t("Remove")} ${term.name}`}
+              >
+                <X size={11} />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+      <input
+        type="text"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder={t("Filter terms…")}
+        aria-label={t("Filter terms…")}
+        className={INPUT}
+      />
+      <div className="max-h-48 space-y-0.5 overflow-y-auto rounded-md border border-gray-300 bg-[#fff] p-2">
+        {shown.length === 0 && <p className="px-1.5 py-1 text-sm text-gray-400">{t("No terms match.")}</p>}
+        {shown.map((term) => (
+          <label
+            key={term.id}
+            className="flex items-center gap-2 rounded px-1.5 py-1 text-sm text-gray-700 hover:bg-gray-50"
+            style={{ paddingLeft: 6 + (filtering ? 0 : term.depth * 16) }}
+          >
+            <input
+              type={single ? "radio" : "checkbox"}
+              name={single ? `${field.name}-${ctx.entryId}` : undefined}
+              checked={selected.includes(term.id)}
+              onChange={() => {
+                if (single) onChange([term.id]);
+                else onChange(selected.includes(term.id) ? selected.filter((x) => x !== term.id) : [...selected, term.id]);
+              }}
+              className="h-3.5 w-3.5 border-gray-300 accent-violet-600"
+            />
+            <span>
+              {filtering && term.path.length > 0 && <span className="text-gray-400">{term.path.join(" › ")} › </span>}
+              {term.name}
+            </span>
+          </label>
+        ))}
+      </div>
     </div>
   );
 }

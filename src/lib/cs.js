@@ -379,6 +379,8 @@ export const CS = {
   "New field": "Nové pole",
   "Label": "Popisek",
   "Remove": "Odebrat",
+  "Filter terms…": "Filtrovat položky…",
+  "No terms match.": "Žádná položka neodpovídá.",
   "Closed": "Zavřeno",
   "Every day": "Každý den",
   "varies": "liší se",
