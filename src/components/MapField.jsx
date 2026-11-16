@@ -6,15 +6,21 @@ import { useI18n } from "../lib/i18n";
 import { geocode, reverseGeocode } from "../lib/geocode";
 
 // The value of a Map field: { address, lat, lng } (lat and lng are null while no
-// pin is placed). Shown as a card: the address on top, the pin's coordinates (with
-// "use the address at the pin" and "remove pin") under it, then the map with its
-// pin. Type an address and press Enter and
-// the pin goes there; click the map or drag the pin to adjust it by hand. With
-// `readOnly` it is a still picture of the same.
+// pin is placed). Shown as a card: the address on top, the pin's coordinates under
+// it, followed in brackets by the address those coordinates stand for (looked up
+// again whenever the pin moves; it is not saved, and does not replace the address
+// above), with "use the address at the pin" and "remove pin", then the map with its
+// pin. Type an address and press Enter and the pin goes there; click the map or
+// drag the pin to adjust it by hand. With `readOnly` it is a still picture.
 
 const PRAGUE = [50.0755, 14.4378];
 const round = (n) => Math.round(n * 1e6) / 1e6;
 const hasPin = (v) => typeof v?.lat === "number" && typeof v?.lng === "number";
+
+// The address found for a pin ("lat,lng" -> address, "" for none), so a place is
+// looked up once however many times it is shown.
+const ADDRESS_AT = new Map();
+const pinKey = (lat, lng) => `${lat},${lng}`;
 
 // The pin: a drop in the theme's gold, drawn as SVG so no image files are needed.
 const PIN = L.divIcon({
@@ -37,6 +43,8 @@ export default function MapField({ value, onChange, readOnly = false }) {
   const [text, setText] = useState(value?.address ?? "");
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
+  // The address the pin stands for: { status: "loading" | "ok" | "none" | "error", text }.
+  const [pinAddress, setPinAddress] = useState({ status: "loading", text: "" });
 
   // What is typed follows the saved address when that changes (a search result, a restored version).
   useEffect(() => { setText(value?.address ?? ""); }, [value?.address]);
@@ -97,6 +105,31 @@ export default function MapField({ value, onChange, readOnly = false }) {
     }
   }, [lat, lng, readOnly]);
 
+  // Whenever the pin is somewhere new, find the address it stands for. A moment of
+  // waiting first, so that moving the pin around does not ask for every place on the way.
+  useEffect(() => {
+    if (readOnly || typeof lat !== "number" || typeof lng !== "number") return undefined;
+    const key = pinKey(lat, lng);
+    if (ADDRESS_AT.has(key)) {
+      const known = ADDRESS_AT.get(key);
+      setPinAddress(known ? { status: "ok", text: known } : { status: "none", text: "" });
+      return undefined;
+    }
+    setPinAddress({ status: "loading", text: "" });
+    let stale = false;
+    const timer = setTimeout(async () => {
+      try {
+        const address = await reverseGeocode(lat, lng);
+        if (stale) return;
+        ADDRESS_AT.set(key, address ?? "");
+        setPinAddress(address ? { status: "ok", text: address } : { status: "none", text: "" });
+      } catch {
+        if (!stale) setPinAddress({ status: "error", text: "" });
+      }
+    }, 600);
+    return () => { stale = true; clearTimeout(timer); };
+  }, [lat, lng, readOnly]);
+
   async function search() {
     const query = text.trim();
     if (!query || busy) return;
@@ -105,6 +138,7 @@ export default function MapField({ value, onChange, readOnly = false }) {
     try {
       const hit = await geocode(query);
       if (!hit) { setNote(t("Address not found")); return; }
+      ADDRESS_AT.set(pinKey(round(hit.lat), round(hit.lng)), hit.address);
       latest.current.onChange({ address: hit.address, lat: round(hit.lat), lng: round(hit.lng) });
       map.current?.setView([hit.lat, hit.lng], Math.max(map.current.getZoom(), 16));
     } catch {
@@ -117,6 +151,7 @@ export default function MapField({ value, onChange, readOnly = false }) {
   // The nearest address to the pin, for when the pin was moved by hand.
   async function addressAtPin() {
     if (!hasPin(value) || busy) return;
+    if (pinAddress.status === "ok") { latest.current.onChange({ ...latest.current.value, address: pinAddress.text }); return; }
     setBusy(true);
     setNote("");
     try {
@@ -160,12 +195,23 @@ export default function MapField({ value, onChange, readOnly = false }) {
 
         {/* The coordinates of the pin, with what can be done with the pin, under the address. */}
         <div className="flex shrink-0 items-center justify-between gap-2 border-b border-gray-300 px-3 py-2">
-          <p className="min-w-0 truncate font-mono text-xs text-gray-900" title={pinned ? `${value.lat}, ${value.lng}` : undefined}>
-            {pinned ? `${value.lat.toFixed(6)}, ${value.lng.toFixed(6)}` : t("No pin yet")}
+          <p className="min-w-0 truncate text-xs text-gray-900" title={pinned ? [`${value.lat}, ${value.lng}`, pinAddress.text].filter(Boolean).join(" ") : undefined}>
+            {pinned ? (
+              <>
+                <span className="font-mono">{`${value.lat.toFixed(6)}, ${value.lng.toFixed(6)}`}</span>
+                {!readOnly && (
+                  <span className="ml-1.5" data-pin-address>
+                    {pinAddress.status === "ok" && `(${pinAddress.text})`}
+                    {pinAddress.status === "loading" && <span className="text-gray-500">(…)</span>}
+                    {pinAddress.status === "none" && <span className="text-gray-500">({t("No address at the pin")})</span>}
+                  </span>
+                )}
+              </>
+            ) : t("No pin yet")}
           </p>
           {!readOnly && pinned && (
             <div className="flex shrink-0 items-center gap-0.5">
-              <button type="button" onClick={addressAtPin} disabled={busy} className={smallButton} title={t("Use the address nearest to the pin")}>
+              <button type="button" onClick={addressAtPin} disabled={busy || (pinAddress.status === "ok" && pinAddress.text === (value?.address ?? ""))} className={smallButton} title={t("Use the address nearest to the pin")}>
                 <MapPinned size={13} /> {t("Use the address at the pin")}
               </button>
               <button
