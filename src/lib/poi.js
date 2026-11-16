@@ -2,6 +2,7 @@
 // in svidma/PCT. Field names are the documented API names; `label` is what
 // editors see. `required` is true | "conditional"; `localized` is true | "partly".
 // Kept free of imports from seed.js (seed.js imports this file).
+import { slugify } from "./slug";
 
 const field = (name, label, type, group, opts = {}) => ({ name, label, type, group, ...opts });
 
@@ -81,15 +82,69 @@ export const POI_TYPE = {
 const term = (id, name, children = []) => ({ id, name, children });
 const flat = (prefix, names) => names.map((n) => term(`${prefix}-${n.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`, n));
 
-// The Keywords taxonomy. The ids are fixed (not derived from the Czech names).
-export const POI_KEYWORD_TERMS = [
-  term("kw-gotika", "gotika"),
-  term("kw-historizujici-slohy", "historizující slohy"),
-  term("kw-instituce-hl-m-prahy", "instituce zřizovaná hl. m. prahou"),
-  term("kw-pro-deti", "pro děti"),
-  term("kw-renesance", "renesance"),
-  term("kw-romansky-sloh", "románský sloh"),
+// The Keywords ("štítky") taxonomy: the public labels of the previous CMS, in
+// its alphabetical order and with the Czech names kept as they were there. (The
+// old CMS also showed "Udělat hlavní" / "Hlavní" buttons beside some of them,
+// which mark the main label of an item; they are not part of the terms.)
+const KEYWORD_NAMES = [
+  "5 + 1 zdarma",
+  "akce podpořená hl. m. prahou",
+  "baroko",
+  "bez bariér",
+  "cizojazyčné bohoslužby",
+  "edukační programy",
+  "ekologický přístup",
+  "ekologie",
+  "funkcionalismus",
+  "gotika",
+  "historizující slohy",
+  "hotelstars union",
+  "instituce zřizovaná hl. m. prahou",
+  "klasicismus a empír",
+  "kubismus",
+  "limitovaná edice",
+  "luxusní podnik",
+  "michelin 1 hvězda",
+  "michelin 1 klíč",
+  "michelin 2 hvězdy",
+  "michelin 2 klíče",
+  "michelin 3 hvězdy",
+  "michelin 3 klíče",
+  "moderní architektura",
+  "nejprodávanější",
+  "novinka",
+  "official city partner",
+  "open air",
+  "petřín 135 let",
+  "piknikové místo",
+  "přednáška",
+  "pro děti",
+  "queer",
+  "renesance",
+  "rokoko",
+  "románský sloh",
+  "romantická atmosféra",
+  "secese",
+  "snídaně a brunche",
+  "současná architektura",
+  "speciální nabídka",
+  "tematická",
+  "vegetariánská a veganská",
+  "vstup se zvířaty",
+  "vyhlídkové místo",
+  "zdarma",
 ];
+// The ids of the terms that existed before the full list (saved items refer to
+// them); every other term gets "kw-" + its name as a slug.
+const KEYWORD_FIXED_IDS = {
+  "gotika": "kw-gotika",
+  "historizující slohy": "kw-historizujici-slohy",
+  "instituce zřizovaná hl. m. prahou": "kw-instituce-hl-m-prahy",
+  "pro děti": "kw-pro-deti",
+  "renesance": "kw-renesance",
+  "románský sloh": "kw-romansky-sloh",
+};
+export const POI_KEYWORD_TERMS = KEYWORD_NAMES.map((name) => term(KEYWORD_FIXED_IDS[name] ?? `kw-${slugify(name)}`, name));
 
 // The Keywords it held before, and where each one went when they were replaced
 // (null: no equivalent). Used to move saved content over; see migrate.js.

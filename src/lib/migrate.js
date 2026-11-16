@@ -49,6 +49,24 @@ const MIGRATIONS = {
     });
     localStorage.setItem("cms.entries", JSON.stringify(moved));
   },
+  // The Keywords ("štítky") taxonomy takes the full list of public labels from
+  // the old CMS. Its name and description stay as they are. A term that is
+  // already there keeps its id (matched by name), so items that use it keep their
+  // value; a term that is not in the new list is kept at the end rather than lost.
+  "poi-keywords-list": () => {
+    const raw = localStorage.getItem("cms.taxonomies");
+    if (!raw) return; // not seeded yet: the seed already has the full list
+    const taxonomies = JSON.parse(raw);
+    if (!Array.isArray(taxonomies)) return;
+    const keywords = taxonomies.find((x) => x.id === "poi-keywords");
+    if (!keywords) return;
+    const existing = keywords.terms ?? [];
+    const idByName = new Map(existing.map((term) => [term.name.trim().toLowerCase(), term.id]));
+    const terms = POI_KEYWORD_TERMS.map((term) => ({ ...term, id: idByName.get(term.name.toLowerCase()) ?? term.id }));
+    const kept = new Set(terms.map((term) => term.id));
+    const extra = existing.filter((term) => !kept.has(term.id));
+    localStorage.setItem("cms.taxonomies", JSON.stringify(taxonomies.map((x) => (x.id === "poi-keywords" ? { ...x, terms: [...terms, ...extra] } : x))));
+  },
   // The "Kategorie objevů" taxonomy (the old CMS's category tree) is added, and
   // the fields labelled "Kategorie objevů" that were pointing at the placeholder
   // "Location" taxonomy now use it. Values already picked in those fields refer to
