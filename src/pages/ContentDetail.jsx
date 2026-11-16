@@ -607,7 +607,7 @@ function ContentDetailPage({ id }) {
             </div>
           </div>
         ) : (
-          <div className="max-h-full w-80 shrink-0 space-y-5 self-start overflow-y-auto rounded-lg border border-gray-300 bg-white p-5">
+          <div className="max-h-full w-80 shrink-0 space-y-8 self-start overflow-y-auto rounded-lg border border-gray-300 bg-white p-5">
             <DetailField label="Status">
               {isPublished ? (
                 <>
