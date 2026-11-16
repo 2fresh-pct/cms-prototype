@@ -133,8 +133,8 @@ export default function MapField({ value, onChange, readOnly = false }) {
   const smallButton = "flex items-center gap-1 rounded px-1.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40";
 
   return (
-    <div className="w-full max-w-[33.8rem]">
-      <div className="flex aspect-square flex-col overflow-hidden rounded-md border border-gray-300 bg-[#fff]">
+    <div className="w-full max-w-[40.6rem]">
+      <div className="flex h-[33.8rem] flex-col overflow-hidden rounded-md border border-gray-300 bg-[#fff]">
         <div className="shrink-0 border-b border-gray-300 p-2">
           {readOnly ? (
             <p className="min-h-9 px-1 py-2 text-sm text-gray-900">{value?.address || <span className="text-gray-400">—</span>}</p>
