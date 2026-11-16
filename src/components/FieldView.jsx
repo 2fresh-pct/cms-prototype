@@ -64,9 +64,10 @@ function Chips({ names }) {
 // around it, to divide the fields in the editor.
 export function FieldSeparator() {
   // Padding rather than margin: the fields' container spaces its children with
-  // `space-y-*` margins, which would override a margin set here.
+  // `space-y-*` margins, which would override a margin set here. The 16px of
+  // padding plus the container's 32px between fields leave 48px on each side.
   return (
-    <div className="py-7">
+    <div className="py-4">
       <hr role="separator" className="border-t border-gray-900" />
     </div>
   );
