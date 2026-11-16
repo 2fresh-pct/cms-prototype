@@ -6,6 +6,7 @@ import { htmlToText } from "../lib/richtext";
 import RichTextEditor from "./RichTextEditor";
 import MediaPicker from "./MediaPicker";
 import EntryReferenceField from "./EntryReferenceField";
+import Toggle from "./Toggle";
 import { holdsSeveral, mediaIds } from "../lib/media";
 
 const INPUT = "w-full rounded-md border border-gray-300 bg-[#fff] h-9 px-3 text-sm focus:border-violet-400 focus:outline-none";
@@ -260,12 +261,7 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
       );
 
     case "Boolean":
-      return (
-        <label className="flex items-center gap-2 text-sm text-gray-700">
-          <input type="checkbox" checked={value ?? false} onChange={(e) => onChange(e.target.checked)} className="h-4 w-4 rounded border-gray-300 accent-violet-600" />
-          {value ? t("Yes") : t("No")}
-        </label>
-      );
+      return <Toggle checked={Boolean(value)} onChange={onChange} label={value ? t("Yes") : t("No")} ariaLabel={field.label ?? field.name} />;
 
     case "Select": {
       // Blank and repeated options (half-typed in the type editor) are skipped.
