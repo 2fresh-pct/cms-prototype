@@ -140,17 +140,17 @@ function TaxonomyField({ field, value, onChange, ctx }) {
   return (
     <div className="space-y-2">
       {picked.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-2">
           {picked.map((term) => (
-            <span key={term.id} className="inline-flex items-center gap-0.5 rounded-full border border-gray-300 bg-[#fff] py-0.5 pl-2.5 pr-1 text-xs text-gray-700">
+            <span key={term.id} className="inline-flex items-center gap-1.5 rounded-full bg-gray-900 py-1.5 pl-4 pr-2 text-sm font-medium text-white">
               {term.name}
               <button
                 type="button"
                 onClick={() => onChange(selected.filter((x) => x !== term.id))}
-                className="flex h-4 w-4 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                className="flex h-5 w-5 items-center justify-center rounded-full text-white/70 hover:bg-white/20 hover:text-white"
                 aria-label={`${t("Remove")} ${term.name}`}
               >
-                <X size={11} />
+                <X size={14} />
               </button>
             </span>
           ))}
