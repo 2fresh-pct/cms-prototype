@@ -164,7 +164,7 @@ export function FilterBar({
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={t("Type to search for entries")}
-            className="w-full bg-transparent text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none"
+            className="w-full bg-transparent text-sm text-gray-700 placeholder:text-[#7a6f58] focus:outline-none"
           />
         </div>
 
