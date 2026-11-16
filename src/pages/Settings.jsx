@@ -9,6 +9,8 @@ import Avatar from "../components/Avatar";
 import Modal from "../components/Modal";
 import { THEMES, getTheme, setTheme } from "../lib/theme";
 import SaveIndicator from "../components/SaveIndicator";
+import Toggle from "../components/Toggle";
+import { useAccess } from "../lib/access";
 import { getBackup, isSharedKey, isSyncEnabled, markDirty, overwriteShared, replaceWorkspace, restoreBackup, sharedKeys } from "../lib/sync";
 
 const TABS = [
@@ -650,8 +652,31 @@ function ApiKeysPanel() {
   );
 }
 
+// The switch that makes this browser behave as the Editor role, for trying the
+// prototype with editors (see lib/access.js). It sits outside the read-only part
+// of Settings, so it can always be turned off again.
+function EditorTestCard() {
+  const { t } = useI18n();
+  const { editorMode, setEditorMode } = useAccess();
+  return (
+    <div className="mb-6 max-w-3xl rounded-lg border border-gray-300 bg-white p-4">
+      <Toggle checked={editorMode} onChange={setEditorMode} label={t("Test mode for editors")} />
+      <p className="mt-3 text-sm text-gray-700">
+        {t("Switches this browser to what an editor sees: only Content and Media, with Settings read-only. For trying the prototype with editors. It changes no users and nothing for other people.")}
+      </p>
+      <dl className="mt-3 grid grid-cols-[5rem_1fr] gap-y-1 text-sm text-gray-700">
+        <dt className="font-medium text-gray-900">{t("Admin")}</dt>
+        <dd>{t("Everything: content, content types, taxonomies, media and settings.")}</dd>
+        <dt className="font-medium text-gray-900">{t("Editor")}</dt>
+        <dd>{t("Content and media. Settings are read-only; content types and taxonomies are hidden.")}</dd>
+      </dl>
+    </div>
+  );
+}
+
 export default function Settings() {
   const { t } = useI18n();
+  const { canEditSettings } = useAccess();
   const [tab, setTab] = useState("general");
   const [pendingTab, setPendingTab] = useState(null);
   // The open form page reports its draft here (see SettingsForm), so tab
@@ -708,6 +733,14 @@ export default function Settings() {
       </aside>
 
       <div className="flex-1 overflow-y-auto p-6">
+        {!canEditSettings && (
+          <p role="status" className="mb-6 max-w-3xl rounded-md border border-l-4 border-amber-300 border-l-amber-500 bg-amber-100 px-4 py-3 text-sm font-medium text-amber-950">
+            {t("Settings are read-only in the editor view.")}
+          </p>
+        )}
+        {tab === "users" && <EditorTestCard />}
+        {/* A disabled fieldset turns off every field and button inside it. */}
+        <fieldset disabled={!canEditSettings} className="m-0 min-w-0 border-0 p-0">
         {tab === "general" && <GeneralPanel guardRef={guardRef} />}
         {tab === "workflow" && <WorkflowPanel guardRef={guardRef} />}
         {tab === "channels" && <ChannelsPanel guardRef={guardRef} />}
@@ -715,6 +748,7 @@ export default function Settings() {
         {(tab === "api" || tab === "data") && <h1 className="mb-4 text-xl font-semibold text-gray-900">{t(title)}</h1>}
         {tab === "api" && <ApiKeysPanel />}
         {tab === "data" && <DataPanel />}
+        </fieldset>
       </div>
 
       <Modal

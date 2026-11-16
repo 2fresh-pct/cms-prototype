@@ -13,9 +13,13 @@ import Media from "./pages/Media";
 import MediaDetail from "./pages/MediaDetail";
 import Settings from "./pages/Settings";
 import Preview from "./pages/Preview";
+import { useAccess } from "./lib/access";
 
 export default function App() {
   const location = useLocation();
+  const { canModel } = useAccess();
+  // Content types and taxonomies are for people who model content; an editor is sent to Content.
+  const modeling = (page) => (canModel ? page : <Navigate to="/content" replace />);
 
   // Preview renders a standalone mock site/app, not the CMS chrome.
   if (location.pathname.startsWith("/preview")) {
@@ -37,10 +41,10 @@ export default function App() {
           <Route path="/content/:id" element={<ContentDetail />} />
           <Route path="/catalogue" element={<Catalogue />} />
           <Route path="/catalogue/item/:id" element={<CatalogueItemDetail />} />
-          <Route path="/content-types" element={<ContentTypes />} />
-          <Route path="/content-types/:id" element={<ContentTypeDetail />} />
-          <Route path="/taxonomies" element={<Taxonomies />} />
-          <Route path="/taxonomies/:id" element={<TaxonomyDetail />} />
+          <Route path="/content-types" element={modeling(<ContentTypes />)} />
+          <Route path="/content-types/:id" element={modeling(<ContentTypeDetail />)} />
+          <Route path="/taxonomies" element={modeling(<Taxonomies />)} />
+          <Route path="/taxonomies/:id" element={modeling(<TaxonomyDetail />)} />
           <Route path="/media" element={<Media />} />
           <Route path="/media/:id" element={<MediaDetail />} />
           <Route path="/settings" element={<Settings />} />

@@ -1,16 +1,17 @@
 import LogoMark from "./LogoMark";
 import { NavLink } from "react-router-dom";
-import { FileText, Layers, ListTree, Image, Settings as SettingsIcon } from "lucide-react";
+import { FileText, Layers, ListTree, Image, Settings as SettingsIcon, UserCheck } from "lucide-react";
 import Avatar from "./Avatar";
 import { seedUsers } from "../lib/seed";
 import { useI18n } from "../lib/i18n";
+import { useAccess } from "../lib/access";
 
 const TABS = [
   { to: "/content", label: "Content", icon: FileText },
   // Hidden for now — out of scope. Re-add to bring Catalogue back into the nav.
   // { to: "/catalogue", label: "Catalogue", icon: LayoutGrid },
-  { to: "/content-types", label: "Content types", icon: Layers },
-  { to: "/taxonomies", label: "Taxonomies", icon: ListTree },
+  { to: "/content-types", label: "Content types", icon: Layers, modeling: true },
+  { to: "/taxonomies", label: "Taxonomies", icon: ListTree, modeling: true },
   { to: "/media", label: "Media", icon: Image },
   { to: "/settings", label: "Settings", icon: SettingsIcon },
 ];
@@ -18,6 +19,8 @@ const TABS = [
 export default function TopNav() {
   const me = seedUsers()[0];
   const { t } = useI18n();
+  const { canModel, editorMode, setEditorMode } = useAccess();
+  const tabs = TABS.filter((tab) => canModel || !tab.modeling);
   return (
     <header className="flex h-16 shrink-0 items-center gap-1 border-b border-gray-300 bg-white px-4">
       <div className="flex items-center gap-2.5 pr-4 mr-2 border-r border-gray-300">
@@ -28,7 +31,7 @@ export default function TopNav() {
       </div>
 
       <nav className="flex items-center gap-1">
-        {TABS.map((tab) => (
+        {tabs.map((tab) => (
           <NavLink
             key={tab.to}
             to={tab.to}
@@ -46,7 +49,17 @@ export default function TopNav() {
         ))}
       </nav>
 
-      <div className="ml-auto flex items-center gap-1 text-gray-500">
+      <div className="ml-auto flex items-center gap-3 text-gray-500">
+        {editorMode && (
+          <button
+            type="button"
+            onClick={() => setEditorMode(false)}
+            title={t("Leave the editor test mode")}
+            className="flex h-8 items-center gap-1.5 rounded-full border border-gray-300 bg-white pl-2.5 pr-3 text-xs font-medium text-gray-900 hover:bg-gray-50"
+          >
+            <UserCheck size={14} /> {t("Editor view")} <span className="text-gray-500">·</span> <span className="underline">{t("Exit")}</span>
+          </button>
+        )}
         <Avatar user={me} size={28} />
       </div>
     </header>
