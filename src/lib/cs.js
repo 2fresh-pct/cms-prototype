@@ -325,7 +325,6 @@ export const CS = {
   "Last used": "Naposledy použito",
 
   // POI content type: groups, fields and values
-  "POI": "POI (místo zájmu)",
   "Location": "Poloha",
   "Visit information": "Informace pro návštěvníky",
   "Classification": "Klasifikace",
