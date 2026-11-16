@@ -6,8 +6,9 @@ import { useI18n } from "../lib/i18n";
 import { geocode, reverseGeocode } from "../lib/geocode";
 
 // The value of a Map field: { address, lat, lng } (lat and lng are null while no
-// pin is placed). Shown as a square card: the address on top, the map with its pin
-// in the middle, the coordinates at the bottom. Type an address and press Enter and
+// pin is placed). Shown as a card: the address on top, the pin's coordinates (with
+// "use the address at the pin" and "remove pin") under it, then the map with its
+// pin. Type an address and press Enter and
 // the pin goes there; click the map or drag the pin to adjust it by hand. With
 // `readOnly` it is a still picture of the same.
 
@@ -157,24 +158,15 @@ export default function MapField({ value, onChange, readOnly = false }) {
           {note && <p className="px-1 pt-1 text-xs text-red-700">{note}</p>}
         </div>
 
-        {/* isolate: the map's own layers use high z-indexes that must not rise over the sticky tabs */}
-        <div className="relative isolate min-h-0 flex-1">
-          <div ref={box} className="absolute inset-0 bg-gray-100" />
-          {!readOnly && !pinned && (
-            <p className="pointer-events-none absolute inset-x-0 top-3 z-[500] mx-auto w-fit rounded-full bg-[#fff] px-3 py-1 text-xs font-medium text-gray-900 shadow ring-1 ring-gray-300">
-              {t("Click the map to place the pin")}
-            </p>
-          )}
-        </div>
-
-        <div className="flex shrink-0 items-center justify-between gap-2 border-t border-gray-300 px-3 py-2">
+        {/* The coordinates of the pin, with what can be done with the pin, under the address. */}
+        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-gray-300 px-3 py-2">
           <p className="min-w-0 truncate font-mono text-xs text-gray-900" title={pinned ? `${value.lat}, ${value.lng}` : undefined}>
             {pinned ? `${value.lat.toFixed(6)}, ${value.lng.toFixed(6)}` : t("No pin yet")}
           </p>
           {!readOnly && pinned && (
             <div className="flex shrink-0 items-center gap-0.5">
               <button type="button" onClick={addressAtPin} disabled={busy} className={smallButton} title={t("Use the address nearest to the pin")}>
-                <MapPinned size={13} /> {t("Address at pin")}
+                <MapPinned size={13} /> {t("Use the address at the pin")}
               </button>
               <button
                 type="button"
@@ -188,6 +180,17 @@ export default function MapField({ value, onChange, readOnly = false }) {
             </div>
           )}
         </div>
+
+        {/* isolate: the map's own layers use high z-indexes that must not rise over the sticky tabs */}
+        <div className="relative isolate min-h-0 flex-1">
+          <div ref={box} className="absolute inset-0 bg-gray-100" />
+          {!readOnly && !pinned && (
+            <p className="pointer-events-none absolute inset-x-0 top-3 z-[500] mx-auto w-fit rounded-full bg-[#fff] px-3 py-1 text-xs font-medium text-gray-900 shadow ring-1 ring-gray-300">
+              {t("Click the map to place the pin")}
+            </p>
+          )}
+        </div>
+
       </div>
     </div>
   );

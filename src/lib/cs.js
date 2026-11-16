@@ -336,7 +336,7 @@ export const CS = {
   "Find on the map": "Najít na mapě",
   "Click the map to place the pin": "Klikni do mapy a umísti pin",
   "No pin yet": "Pin zatím není umístěný",
-  "Address at pin": "Adresa z pinu",
+  "Use the address at the pin": "Použít adresu z pinu",
   "Use the address nearest to the pin": "Použít nejbližší adresu k pinu",
   "Remove pin": "Odebrat pin",
   "Address not found": "Adresa nenalezena",
