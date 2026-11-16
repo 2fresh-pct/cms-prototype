@@ -12,6 +12,7 @@ import Modal from "../components/Modal";
 import AddFieldDialog from "../components/AddFieldDialog";
 import GroupTabs from "../components/GroupTabs";
 import { GENERAL, groupsOf } from "../lib/groups";
+import { fieldKeyFor, keyBase } from "../lib/fieldKey";
 
 export default function ContentTypeDetail() {
   const { id } = useParams();
@@ -91,15 +92,14 @@ function ContentTypeEditor({ id }) {
   const savedNames = new Set(type.fields.map((f) => f.name));
   const typeLocked = (f) => savedNames.has(f.name);
 
-  // The API key of a new field comes from its name ("Opening hours note" ->
-  // openingHoursNote), without accents, and is made unique among all fields.
-  function fieldKeyFor(label, used) {
-    const words = label.normalize("NFD").replace(/[\u0300-\u036f]/g, "").split(/[^A-Za-z0-9]+/).filter(Boolean);
-    let base = words.map((w, i) => (i === 0 ? w.toLowerCase() : w[0].toUpperCase() + w.slice(1).toLowerCase())).join("");
-    if (!base || /^[0-9]/.test(base)) base = `field${base}`;
-    let key = base;
-    for (let n = 2; used.has(key); n += 1) key = `${base}${n}`;
-    return key;
+  // The API key of a new field comes from its name (see lib/fieldKey.js) and is
+  // made unique among all fields. It follows the name while the field is new;
+  // once the type is saved the key is fixed (content is stored under it).
+  function renameField(i, label) {
+    const f = draft.fields[i];
+    if (typeLocked(f) || !keyBase(label)) { updateField(i, { label }); return; }
+    const used = new Set([...savedNames, ...draft.fields.filter((_, idx) => idx !== i).map((x) => x.name)]);
+    updateField(i, { label, name: fieldKeyFor(label, used) });
   }
 
   function addField({ label, type: fieldType }) {
@@ -330,7 +330,7 @@ function ContentTypeEditor({ id }) {
                       <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Name")}</label>
                       <input
                         value={f.label ?? f.name}
-                        onChange={(e) => updateField(i, { label: e.target.value })}
+                        onChange={(e) => renameField(i, e.target.value)}
                         aria-label={t("Label")}
                         className="w-full rounded-md border border-gray-300 bg-white h-8 px-2.5 text-sm"
                       />

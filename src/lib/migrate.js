@@ -1,6 +1,7 @@
 import { nextTypeColor } from "./typeColors";
 import { POI_TYPE, POI_TAXONOMIES, POI_MEDIA, POI_ENTRIES, POI_KEYWORD_TERMS, OLD_POI_KEYWORD_IDS } from "./poi";
 import { DISCOVERY_CATEGORIES_ID, DISCOVERY_CATEGORIES_TAXONOMY } from "./discoveryCategories";
+import { fieldKeyFor, keyBase } from "./fieldKey";
 
 // Seed data only reaches localStorage on first load, so people who already
 // have a prototype in their browser would never see content added to the seed
@@ -87,6 +88,57 @@ const MIGRATIONS = {
       }),
     }));
     if (changed) localStorage.setItem("cms.contentTypes", JSON.stringify(next));
+  },
+  // Fields made before keys came from names have keys like "field7". Each one
+  // whose name says something gets the key its name stands for ("podnadpis" ->
+  // podnadpis, "hlavní obrázek" -> hlavniObrazek), and the values held under the
+  // old key (in items, their version history and their live version) move with it.
+  // Fields still called "New field" keep theirs.
+  "field-keys-from-names": () => {
+    const typesRaw = localStorage.getItem("cms.contentTypes");
+    if (!typesRaw) return; // not seeded yet: seeded fields have proper keys
+    const types = JSON.parse(typesRaw);
+    if (!Array.isArray(types)) return;
+    const renames = {}; // content type id -> { old key: new key }
+    const nextTypes = types.map((ct) => {
+      const used = new Set(ct.fields.map((f) => f.name));
+      const map = {};
+      const fields = ct.fields.map((f) => {
+        const label = (f.label ?? "").trim();
+        if (!/^field\d+$/.test(f.name) || !keyBase(label) || label.toLowerCase() === "new field") return f;
+        used.delete(f.name);
+        const key = fieldKeyFor(label, used);
+        used.add(key);
+        if (key === f.name) return f;
+        map[f.name] = key;
+        return { ...f, name: key };
+      });
+      renames[ct.id] = map;
+      return { ...ct, fields };
+    });
+
+    const entriesRaw = localStorage.getItem("cms.entries");
+    let nextEntries = null;
+    if (entriesRaw) {
+      const entries = JSON.parse(entriesRaw);
+      if (Array.isArray(entries)) {
+        nextEntries = entries.map((e) => {
+          const map = renames[e.contentTypeId];
+          if (!map || Object.keys(map).length === 0) return e;
+          const remap = (values) => (values ? Object.fromEntries(Object.entries(values).map(([k, v]) => [map[k] ?? k, v])) : values);
+          const next = { ...e };
+          if (e.fieldValues) next.fieldValues = remap(e.fieldValues);
+          if (e.live?.fieldValues) next.live = { ...e.live, fieldValues: remap(e.live.fieldValues) };
+          if (Array.isArray(e.history)) {
+            next.history = e.history.map((h) => (h.snapshot?.fieldValues ? { ...h, snapshot: { ...h.snapshot, fieldValues: remap(h.snapshot.fieldValues) } } : h));
+          }
+          return next;
+        });
+      }
+    }
+    // Both are worked out before either is written, so a failure leaves them in step.
+    if (nextEntries) localStorage.setItem("cms.entries", JSON.stringify(nextEntries));
+    localStorage.setItem("cms.contentTypes", JSON.stringify(nextTypes));
   },
   // Every content type's icon gets its own colour: a type that shares a colour
   // with one earlier in the list is given the next unused one.
