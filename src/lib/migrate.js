@@ -1,5 +1,6 @@
 import { nextTypeColor } from "./typeColors";
 import { POI_TYPE, POI_TAXONOMIES, POI_MEDIA, POI_ENTRIES, POI_KEYWORD_TERMS, OLD_POI_KEYWORD_IDS } from "./poi";
+import { DISCOVERY_CATEGORIES_ID, DISCOVERY_CATEGORIES_TAXONOMY } from "./discoveryCategories";
 
 // Seed data only reaches localStorage on first load, so people who already
 // have a prototype in their browser would never see content added to the seed
@@ -47,6 +48,27 @@ const MIGRATIONS = {
       return changed ? { ...e, fieldValues } : e;
     });
     localStorage.setItem("cms.entries", JSON.stringify(moved));
+  },
+  // The "Kategorie objevů" taxonomy (the old CMS's category tree) is added, and
+  // the fields labelled "Kategorie objevů" that were pointing at the placeholder
+  // "Location" taxonomy now use it. Values already picked in those fields refer to
+  // Location terms and are left in the entries; they just no longer match a term.
+  "discovery-categories": () => {
+    mergeById("cms.taxonomies", [DISCOVERY_CATEGORIES_TAXONOMY]);
+    const raw = localStorage.getItem("cms.contentTypes");
+    if (!raw) return; // not seeded yet
+    const types = JSON.parse(raw);
+    if (!Array.isArray(types)) return;
+    let changed = false;
+    const next = types.map((ct) => ({
+      ...ct,
+      fields: ct.fields.map((f) => {
+        if (f.type !== "Taxonomy" || f.taxonomyId !== "tax1" || (f.label ?? "").trim().toLowerCase() !== "kategorie objevů") return f;
+        changed = true;
+        return { ...f, taxonomyId: DISCOVERY_CATEGORIES_ID };
+      }),
+    }));
+    if (changed) localStorage.setItem("cms.contentTypes", JSON.stringify(next));
   },
   // Every content type's icon gets its own colour: a type that shares a colour
   // with one earlier in the list is given the next unused one.

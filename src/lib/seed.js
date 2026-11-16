@@ -1,4 +1,5 @@
 import { POI_TYPE, POI_TAXONOMIES, POI_MEDIA, POI_ENTRIES } from "./poi";
+import { DISCOVERY_CATEGORIES_TAXONOMY } from "./discoveryCategories";
 
 const USERS = [
   { id: "u1", name: "Petr Augustin", email: "petr.augustin@2fresh.cz", color: "#6366f1" },
@@ -326,7 +327,7 @@ const TAXONOMIES = [
 ];
 
 export function seedTaxonomies() {
-  return [...TAXONOMIES, ...POI_TAXONOMIES];
+  return [...TAXONOMIES, ...POI_TAXONOMIES, DISCOVERY_CATEGORIES_TAXONOMY];
 }
 
 export function countTerms(terms) {
