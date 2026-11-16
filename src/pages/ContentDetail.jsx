@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Smartphone, Globe, Radio, Tv, Mail, MessageSquare, Clock, History, ArrowLeft, MessageCircle, X, Languages, Send, FilePlus, Lock } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
@@ -77,6 +77,31 @@ function GroupHeading({ group, prev }) {
   return <h3 className="border-t border-gray-200 pt-5 text-sm font-semibold text-gray-900">{t(group)}</h3>;
 }
 
+// The field-group tabs stay at the top of the scrolling card while the fields
+// scroll under them. The card has 20px of padding and sticky offsets count from
+// inside it, so the strip sticks at -top-5 (the card's edge), reaches over the
+// side padding (-mx-5 / px-5) and has the card's background; padding rather than
+// margin, because the card spaces its children with `space-y-*` margins. It
+// reports its height so a rich text toolbar can stick right below it.
+function StickyTabs({ onHeight, children }) {
+  const ref = useRef(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    const report = () => onHeight(el.offsetHeight);
+    report();
+    if (typeof ResizeObserver === "undefined") return () => onHeight(0);
+    const observer = new ResizeObserver(report);
+    observer.observe(el);
+    return () => { observer.disconnect(); onHeight(0); };
+  }, [onHeight]);
+  return (
+    <div ref={ref} className="sticky -top-5 z-20 -mx-5 bg-white px-5 pt-2">
+      {children}
+    </div>
+  );
+}
+
 export default function ContentDetail() {
   const { id } = useParams();
   // Keyed by id so each entry starts from its own state (title, tab, dialogs),
@@ -111,6 +136,7 @@ function ContentDetailPage({ id }) {
   const [commentDraft, setCommentDraft] = useState("");
   const [langDialogOpen, setLangDialogOpen] = useState(false);
   const [activeGroup, setActiveGroup] = useState(GENERAL);
+  const [tabsHeight, setTabsHeight] = useState(0);
 
   useEffect(() => () => clearTimeout(saveTimeoutRef.current), []);
 
@@ -293,7 +319,9 @@ function ContentDetailPage({ id }) {
   const activeSection = sections.find((s) => (s.name ?? GENERAL) === activeGroup) ?? sections[0];
   const visibleFields = sections.length > 1 ? activeSection.fields : extraFields;
   const groupTabs = sections.length > 1 && (
-    <GroupTabs tabs={sections.map((s) => ({ id: s.name ?? GENERAL, label: s.name ?? "General" }))} active={activeSection.name ?? GENERAL} onSelect={setActiveGroup} />
+    <StickyTabs onHeight={setTabsHeight}>
+      <GroupTabs tabs={sections.map((s) => ({ id: s.name ?? GENERAL, label: s.name ?? "General" }))} active={activeSection.name ?? GENERAL} onSelect={setActiveGroup} />
+    </StickyTabs>
   );
   const singleGroupHeading = sections.length === 1 && sections[0].name ? <GroupHeading group={sections[0].name} /> : null;
   // The slug follows the title until it is edited; typing the title's own slug
@@ -440,7 +468,7 @@ function ContentDetailPage({ id }) {
             )}
           </div>
         ) : (
-          <div className="min-h-0 flex-1 space-y-5 overflow-y-auto rounded-lg border border-gray-300 bg-white p-5">
+          <div style={{ "--sticky-tabs": `${tabsHeight}px` }} className="min-h-0 flex-1 space-y-5 overflow-y-auto rounded-lg border border-gray-300 bg-white p-5">
             <DetailField label={titleField?.label ?? "Title"} required={titleField?.required} localized={titleField?.localized}>
               <input
                 value={title}
