@@ -7,10 +7,10 @@ export default function DetailField({ label, required, localized, children }) {
   const { t } = useI18n();
   return (
     <div>
-      <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-gray-400">
+      <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-gray-900">
         {t(label)}
         {required && (
-          <span className="text-gray-500" title={required === "conditional" ? t("Required in some cases") : t("Required")}>
+          <span className="text-gray-900" title={required === "conditional" ? t("Required in some cases") : t("Required")}>
             {required === "conditional" ? "*?" : "*"}
           </span>
         )}
