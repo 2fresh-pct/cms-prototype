@@ -175,6 +175,44 @@ const MIGRATIONS = {
     }));
     localStorage.setItem("cms.contentTypes", JSON.stringify(next));
   },
+  // The POI type's tabs "Otevírací doba" and "Vstupné" get the fields for opening
+  // hours (regular hours by period, special days, temporary closure, a note, when
+  // they were last checked) and for admission. Only a tab that has no fields yet is
+  // filled, so nothing an editor modelled by hand is duplicated.
+  "poi-opening-and-admission": () => {
+    const raw = localStorage.getItem("cms.contentTypes");
+    if (!raw) return; // not seeded yet
+    const types = JSON.parse(raw);
+    if (!Array.isArray(types)) return;
+    const poi = types.find((ct) => ct.id === "ct-poi");
+    const groups = poi?.groups ?? [];
+    if (!poi || !groups.includes("Otevírací doba") || !groups.includes("Vstupné")) return;
+    const used = new Set(poi.fields.map((f) => f.name));
+    const plan = [
+      ["Otevírací doba", [
+        { label: "Pravidelná otevírací doba", type: "Opening hours" },
+        { label: "Speciální dny", type: "Special days", localized: "partly" },
+        { label: "Dočasné uzavření", type: "Date ranges" },
+        { label: "Poznámka k otevírací době", type: "Short text", localized: true },
+        { label: "Otevírací doba naposledy ověřena", type: "Date" },
+      ]],
+      ["Vstupné", [
+        { label: "Vstupné", type: "Admission", localized: "partly" },
+        { label: "Vstupné naposledy ověřeno", type: "Date" },
+      ]],
+    ];
+    const added = [];
+    for (const [group, defs] of plan) {
+      if (poi.fields.some((f) => f.group === group)) continue;
+      for (const def of defs) {
+        const name = fieldKeyFor(def.label, used);
+        used.add(name);
+        added.push({ name, group, ...def });
+      }
+    }
+    if (added.length === 0) return;
+    localStorage.setItem("cms.contentTypes", JSON.stringify(types.map((ct) => (ct.id === "ct-poi" ? { ...ct, fields: [...ct.fields, ...added] } : ct))));
+  },
 };
 
 function mergeById(key, items) {

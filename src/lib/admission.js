@@ -1,0 +1,39 @@
+// Admission, the way editors describe it. The value of an Admission field is
+//   { type, prices, seller, url, note }
+// where `type` says which of these it is, so the rest cannot contradict it:
+//   "free"    admission is free (said outright, never assumed from an empty field)
+//   "paid"    a list of prices (ticket type, price in CZK, optional validity, note)
+//   "link"    tickets are sold elsewhere: the seller and a link, no price
+//   "note"    a sentence instead of a price ("Part of the Prague Castle circuit")
+//   "unknown" nothing is shown about admission
+export const ADMISSION_TYPES = ["free", "paid", "link", "note", "unknown"];
+
+// Ticket types to choose from; any other text can be typed.
+export const TICKET_TYPES = ["Adult", "Reduced fare", "Student", "Child", "Senior", "Family", "Group ticket", "Basic", "Disabled (ZTP)"];
+
+export const blankPrice = () => ({ ticket: "", price: "", from: "", to: "", note: "" });
+
+export function normalizeAdmission(v) {
+  return {
+    type: ADMISSION_TYPES.includes(v?.type) ? v.type : "unknown",
+    prices: Array.isArray(v?.prices) ? v.prices.map((p) => ({ ...blankPrice(), ...p })) : [],
+    seller: v?.seller ?? "",
+    url: v?.url ?? "",
+    note: v?.note ?? "",
+  };
+}
+
+// One line for the version history.
+export function summarizeAdmission(value, tr) {
+  const a = normalizeAdmission(value);
+  switch (a.type) {
+    case "free": return [tr("Free"), a.note].filter(Boolean).join(" · ");
+    case "paid": {
+      const prices = a.prices.filter((p) => p.price !== "").map((p) => `${p.ticket ? `${tr(p.ticket)} ` : ""}${p.price} ${tr("CZK")}`);
+      return [prices.join(", ") || tr("Paid"), a.note].filter(Boolean).join(" · ");
+    }
+    case "link": return [tr("Tickets"), a.seller, a.url].filter(Boolean).join(" · ");
+    case "note": return a.note || "—";
+    default: return "—";
+  }
+}

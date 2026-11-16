@@ -395,7 +395,7 @@ export const FIELD_TYPE_LIST = [
   "Text", "Short text", "Rich text", "Number", "Boolean", "Select", "Date",
   "Media", "Media list", "Reference", "Taxonomy",
   "Link", "Text list", "Key-value", "Date ranges", "Sections", "Separator",
-  "Address", "Coordinates", "Map", "Opening hours", "ID",
+  "Address", "Coordinates", "Map", "Opening hours", "Special days", "Admission", "ID",
 ];
 export const DEFAULT_WORKFLOW_STEPS = WORKFLOW_STEPS;
 export const WORKFLOW_COLOR_PALETTE = WORKFLOW_COLORS;

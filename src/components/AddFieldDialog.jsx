@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   Type, AlignLeft, Pilcrow, Hash, ToggleLeft, ChevronsUpDown, Calendar, Image, Images, Link2, Tags,
-  ExternalLink, List, Braces, CalendarRange, Rows3, Minus, MapPin, MapPinned, Crosshair, Clock, KeyRound,
+  ExternalLink, List, Braces, CalendarRange, Rows3, Minus, MapPin, MapPinned, Crosshair, Clock, CalendarClock, Ticket, KeyRound,
 } from "lucide-react";
 import { useI18n } from "../lib/i18n";
 import { fieldTypeLabel } from "../lib/seed";
@@ -30,6 +30,8 @@ const FIELD_TYPE_ICONS = {
   "Coordinates": Crosshair,
   "Map": MapPinned,
   "Opening hours": Clock,
+  "Special days": CalendarClock,
+  "Admission": Ticket,
   "ID": KeyRound,
 };
 
@@ -59,7 +61,9 @@ const TYPE_GROUPS = [
     ["Map", "A pin on a map, found by address and adjustable by hand"],
     ["Address", "Street, postal code, city and country"],
     ["Coordinates", "Latitude and longitude"],
-    ["Opening hours", "Weekly opening times"],
+    ["Opening hours", "Opening times by period, with breaks and closed days"],
+    ["Special days", "Holidays and other days with different hours"],
+    ["Admission", "Free, prices by ticket type, a ticket link or a note"],
   ] },
   { title: "Structure and layout", types: [
     ["Sections", "Repeating headings with text"],

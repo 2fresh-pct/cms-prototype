@@ -8,6 +8,12 @@ import MediaPicker from "./MediaPicker";
 import EntryReferenceField from "./EntryReferenceField";
 import Toggle from "./Toggle";
 import MapField from "./MapField";
+import Draft from "./Draft";
+import OpeningHoursField from "./OpeningHoursField";
+import SpecialDaysField from "./SpecialDaysField";
+import AdmissionField from "./AdmissionField";
+import { WEEKDAYS, summarizeHours } from "../lib/openingHours";
+import { summarizeAdmission } from "../lib/admission";
 import { holdsSeveral, mediaIds } from "../lib/media";
 
 const INPUT = "w-full rounded-md border border-gray-300 bg-[#fff] h-9 px-3 text-sm focus:border-violet-400 focus:outline-none";
@@ -57,25 +63,7 @@ function AutoGrowText({ value, onCommit, singleLine = false }) {
 const ADD_BUTTON = "flex items-center gap-1 text-xs font-medium text-violet-600 hover:text-violet-700";
 const ICON_BUTTON = "flex h-8 w-8 shrink-0 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-red-600";
 
-export const WEEKDAYS = [
-  ["mon", "Monday"], ["tue", "Tuesday"], ["wed", "Wednesday"], ["thu", "Thursday"],
-  ["fri", "Friday"], ["sat", "Saturday"], ["sun", "Sunday"],
-];
-
-// Structured values are edited as a local draft and written back when focus
-// leaves the editor (or immediately for add/remove), so typing doesn't create
-// a history entry per keystroke.
-function Draft({ value, onCommit, children }) {
-  const [draft, setDraft] = useState(value);
-  const commit = (next) => {
-    if (JSON.stringify(next) !== JSON.stringify(value)) onCommit(next);
-  };
-  return (
-    <div onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) commit(draft); }}>
-      {children(draft, setDraft, commit)}
-    </div>
-  );
-}
+export { WEEKDAYS };
 
 function RepeatingList({ value, onCommit, blank, addLabel, renderItem }) {
   const { t } = useI18n();
@@ -194,47 +182,6 @@ function TaxonomyField({ field, value, onChange, ctx }) {
         ))}
       </div>
     </div>
-  );
-}
-
-function OpeningHours({ value, onChange }) {
-  const { t } = useI18n();
-  return (
-    <Draft value={value ?? {}} onCommit={onChange}>
-      {(hours, setHours, commit) => (
-        <div className="space-y-1.5">
-          {WEEKDAYS.map(([key, label]) => {
-            const day = hours[key];
-            const setDay = (next, immediate) => {
-              const nextHours = { ...hours, [key]: next };
-              setHours(nextHours);
-              if (immediate) commit(nextHours);
-            };
-            return (
-              <div key={key} className="flex items-center gap-3 text-sm">
-                <span className="w-24 text-gray-700">{t(label)}</span>
-                <label className="flex items-center gap-1.5 text-xs text-gray-500">
-                  <input
-                    type="checkbox"
-                    checked={!day}
-                    onChange={(e) => setDay(e.target.checked ? null : { open: "09:00", close: "17:00" }, true)}
-                    className="h-3.5 w-3.5 rounded border-gray-300 accent-violet-600"
-                  />
-                  {t("Closed")}
-                </label>
-                {day && (
-                  <span className="flex items-center gap-1.5">
-                    <input type="time" value={day.open} onChange={(e) => setDay({ ...day, open: e.target.value })} className={INPUT_SM} />
-                    <span className="text-gray-400">–</span>
-                    <input type="time" value={day.close === "24:00" ? "23:59" : day.close} onChange={(e) => setDay({ ...day, close: e.target.value })} className={INPUT_SM} />
-                  </span>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </Draft>
   );
 }
 
@@ -371,20 +318,17 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
       );
 
     case "Opening hours":
-      return <OpeningHours value={value} onChange={onChange} />;
+      return <OpeningHoursField value={value} onChange={onChange} ctx={ctx} />;
+
+    case "Special days":
+      return <SpecialDaysField value={value} onChange={onChange} />;
+
+    case "Admission":
+      return <AdmissionField value={value} onChange={onChange} />;
 
     default:
       return <AutoGrowText value={value} onCommit={onChange} singleLine />;
   }
-}
-
-function summarizeHours(hours, tr) {
-  const open = WEEKDAYS.filter(([k]) => hours?.[k]);
-  if (open.length === 0) return "—";
-  const first = hours[open[0][0]];
-  const same = open.every(([k]) => hours[k].open === first.open && hours[k].close === first.close);
-  const days = open.length === 7 ? tr("Every day") : open.map(([, l]) => tr(l).slice(0, 3)).join(", ");
-  return same ? `${days} ${first.open}–${first.close}` : `${days} (${tr("varies")})`;
 }
 
 // Plain-text rendering of a field value, used by the read-only version history view.
@@ -414,6 +358,8 @@ export function fieldValueText(f, value, ctx, tr) {
     case "Coordinates": return value.lat || value.lng ? `${value.lat}, ${value.lng}` : empty;
     case "Map": return [value.address, typeof value.lat === "number" ? `${value.lat}, ${value.lng}` : ""].filter(Boolean).join(" · ") || empty;
     case "Opening hours": return summarizeHours(value, tr);
+    case "Special days": return value.filter((d) => d.from || d.label).map((d) => `${d.label ? `${d.label} ` : ""}${d.from}${d.to && d.to !== d.from ? `–${d.to}` : ""} ${d.mode === "hours" ? (d.intervals ?? []).map((i) => `${i.open}–${i.close}`).join(", ") : tr("Closed")}`).join(" · ") || empty;
+    case "Admission": return summarizeAdmission(value, tr);
     default: return String(value);
   }
 }

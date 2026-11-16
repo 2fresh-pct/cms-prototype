@@ -3,9 +3,9 @@ import { Link } from "react-router-dom";
 import { useI18n } from "../lib/i18n";
 import { flattenTerms } from "../lib/seed";
 import { RichTextView } from "./RichTextEditor";
-import { WEEKDAYS } from "./FieldEditor";
 import MediaThumb from "./MediaThumb";
 import MapField from "./MapField";
+import { OpeningHoursView, SpecialDaysView, AdmissionView } from "./HoursViews";
 import { OpenEntryButton } from "./EntryReferenceField";
 import { holdsSeveral, mediaIds } from "../lib/media";
 
@@ -132,16 +132,11 @@ export default function FieldView({ field: f, value, ctx, compact, thumbnails = 
       );
     }
     case "Opening hours":
-      return (
-        <dl className={`grid grid-cols-[7rem_1fr] gap-y-1 ${text} text-gray-700`}>
-          {WEEKDAYS.map(([key, label]) => (
-            <Fragment key={key}>
-              <dt className="text-gray-500">{t(label)}</dt>
-              <dd>{value[key] ? `${value[key].open}–${value[key].close}` : t("Closed")}</dd>
-            </Fragment>
-          ))}
-        </dl>
-      );
+      return <OpeningHoursView value={value} text={text} />;
+    case "Special days":
+      return <SpecialDaysView value={value} text={text} />;
+    case "Admission":
+      return <AdmissionView value={value} text={text} />;
     case "Date ranges":
       return (
         <ul className={`space-y-1 ${text} text-gray-700`}>
