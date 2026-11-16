@@ -50,7 +50,7 @@ function EntryLine({ entry, ctx, openable = false }) {
           <p className="min-w-0 truncate text-sm font-medium text-gray-900" title={entry.title}>{entry.title}</p>
           {openable && <OpenEntryButton entry={entry} />}
         </div>
-        <p className="truncate text-xs text-gray-400">
+        <p className="mt-1 truncate text-xs text-gray-400">
           {type ? t(type.name) : ""}{entry.locale ? ` · ${entry.locale.toUpperCase()}` : ""}
         </p>
       </div>
@@ -180,9 +180,9 @@ export default function EntryReferenceField({ field, value, onChange, ctx }) {
   );
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       {ids.length === 0 ? (
-        <div className="flex items-center gap-3 rounded-md border border-dashed border-gray-300 px-3 py-3">
+        <div className="flex items-center gap-4 rounded-md border border-dashed border-gray-300 px-4 py-4">
           {addButton}
           <span className="text-sm text-gray-400">
             {candidates.length === 0 ? t("No content items to link to yet.") : t("No content items linked")}
@@ -190,7 +190,7 @@ export default function EntryReferenceField({ field, value, onChange, ctx }) {
         </div>
       ) : (
         <>
-          <ul className="space-y-1.5">
+          <ul className="space-y-3">
             {ids.map((id) => {
               const entry = byId[id];
               return (
@@ -198,7 +198,7 @@ export default function EntryReferenceField({ field, value, onChange, ctx }) {
                   key={id}
                   onDragOver={(e) => { if (dragId) { e.preventDefault(); if (overId !== id) setOverId(id); } }}
                   onDrop={(e) => { e.preventDefault(); drop(id); }}
-                  className={`flex items-center gap-2 rounded-md border bg-white p-2 ${dragId === id ? "opacity-40" : ""} ${
+                  className={`flex items-center gap-3 rounded-md border bg-white px-3 py-3.5 ${dragId === id ? "opacity-40" : ""} ${
                     overId === id && dragId && dragId !== id ? "border-gray-800 ring-2 ring-gray-800" : "border-gray-300"
                   }`}
                 >
@@ -229,7 +229,7 @@ export default function EntryReferenceField({ field, value, onChange, ctx }) {
               );
             })}
           </ul>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             {addButton}
             {ids.length > 1 && <span className="text-xs text-gray-400">{t("Drag to reorder")}</span>}
           </div>
