@@ -8,6 +8,7 @@ import {
   DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus,
   DEFAULT_CHANNELS, normalizeChannels, ALL_CHANNELS, isAllChannels, resolvePublishedChannelIds,
 } from "../lib/seed";
+import { sharedFields, isEmptyValue, latestValue } from "../lib/sharedFields";
 import PageHeader from "../components/PageHeader";
 import DetailField from "../components/DetailField";
 import FieldEditor from "../components/FieldEditor";
@@ -219,8 +220,22 @@ function ContentDetailPage({ id }) {
     saveTimeoutRef.current = setTimeout(() => setSaveStatus("saved"), 600);
   }
 
+  // A field that is not localized holds one value for all language versions (see
+  // lib/sharedFields.js): it is written to the other versions of this item that
+  // can still be edited too. A published version is left as it is.
   function setFieldValue(fieldName, value) {
-    update({ fieldValues: { ...(entry.fieldValues ?? {}), [fieldName]: value } });
+    const nextValues = { ...(entry.fieldValues ?? {}), [fieldName]: value };
+    const shared = sharedFields(contentTypes.find((c) => c.id === entry.contentTypeId)).some((f) => f.name === fieldName);
+    if (!shared) { update({ fieldValues: nextValues }); return; }
+    if (isPublished) return;
+    const group = normalizeEntryGroupId(entry);
+    setEntries(entries.map((e) => {
+      if (e.id === id) return applyPatch(e, { fieldValues: nextValues });
+      const sibling = e.contentTypeId === entry.contentTypeId && normalizeEntryGroupId(e) === group;
+      if (!sibling || normalizeEntryStatus(e.status, workflowSteps) === publishStepId) return e;
+      return applyPatch(e, { fieldValues: { ...(e.fieldValues ?? {}), [fieldName]: value } });
+    }));
+    flashSaved();
   }
 
   // Publishing is where channels get chosen: the dialog opens from the header
@@ -246,11 +261,21 @@ function ContentDetailPage({ id }) {
   // live, kept as `live`; publishing the draft replaces it.
   function createDraft() {
     const { history: _h, live: _l, ...content } = entry;
-    setEntries(entries.map((e) =>
-      e.id === id
-        ? applyPatch(e, { status: workflowSteps[0]?.id, scheduledPublishAt: null, live: { ...content, publishedAt: entry.updatedAt } }, "New draft created; the published version stays live")
-        : e
-    ));
+    // The draft starts with what the other language versions hold now for the
+    // fields shared between languages, which may have changed while this was live.
+    const others = entries.filter((e) => e.id !== id && e.contentTypeId === entry.contentTypeId && normalizeEntryGroupId(e) === normalizeEntryGroupId(entry));
+    const fresh = {};
+    for (const f of sharedFields(contentTypes.find((c) => c.id === entry.contentTypeId))) {
+      const value = latestValue(others, f.name);
+      if (value !== undefined && JSON.stringify(value) !== JSON.stringify(entry.fieldValues?.[f.name])) fresh[f.name] = value;
+    }
+    const patch = {
+      status: workflowSteps[0]?.id,
+      scheduledPublishAt: null,
+      live: { ...content, publishedAt: entry.updatedAt },
+      ...(Object.keys(fresh).length ? { fieldValues: { ...(entry.fieldValues ?? {}), ...fresh } } : {}),
+    };
+    setEntries(entries.map((e) => (e.id === id ? applyPatch(e, patch, "New draft created; the published version stays live") : e)));
     flashSaved();
   }
 
@@ -294,6 +319,11 @@ function ContentDetailPage({ id }) {
   // comments), linked to its siblings only by groupId.
   function createTranslation(locale) {
     const newId = `e${Date.now()}`;
+    const sharedNow = Object.fromEntries(
+      sharedFields(contentTypes.find((c) => c.id === entry.contentTypeId))
+        .filter((f) => !isEmptyValue(entry.fieldValues?.[f.name]))
+        .map((f) => [f.name, entry.fieldValues[f.name]])
+    );
     const newEntry = {
       id: newId,
       groupId,
@@ -304,6 +334,8 @@ function ContentDetailPage({ id }) {
       channels: entry.channels,
       updatedAt: new Date().toISOString(),
       updatedBy: users[0]?.id,
+      // Fields that are not localized start with the value they have in this version.
+      ...(Object.keys(sharedNow).length ? { fieldValues: sharedNow } : {}),
     };
     setEntries([
       {

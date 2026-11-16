@@ -2,6 +2,8 @@ import { nextTypeColor } from "./typeColors";
 import { POI_TYPE, POI_TAXONOMIES, POI_MEDIA, POI_ENTRIES, POI_KEYWORD_TERMS, OLD_POI_KEYWORD_IDS } from "./poi";
 import { DISCOVERY_CATEGORIES_ID, DISCOVERY_CATEGORIES_TAXONOMY } from "./discoveryCategories";
 import { fieldKeyFor, keyBase } from "./fieldKey";
+import { sharedFields, isEmptyValue, latestValue } from "./sharedFields";
+import { DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus } from "./seed";
 
 // Seed data only reaches localStorage on first load, so people who already
 // have a prototype in their browser would never see content added to the seed
@@ -212,6 +214,43 @@ const MIGRATIONS = {
     }
     if (added.length === 0) return;
     localStorage.setItem("cms.contentTypes", JSON.stringify(types.map((ct) => (ct.id === "ct-poi" ? { ...ct, fields: [...ct.fields, ...added] } : ct))));
+  },
+  // Fields that are not localized hold one value for every language version, but
+  // until now each version kept its own, so a new version started empty. Where a
+  // version has nothing in such a field and another version of the item does, it is
+  // filled from the most recently updated one. A version that has its own value, or
+  // that is published, is left alone.
+  "shared-fields-backfill": () => {
+    const typesRaw = localStorage.getItem("cms.contentTypes");
+    const entriesRaw = localStorage.getItem("cms.entries");
+    if (!typesRaw || !entriesRaw) return; // not seeded yet
+    const types = JSON.parse(typesRaw);
+    const entries = JSON.parse(entriesRaw);
+    if (!Array.isArray(types) || !Array.isArray(entries)) return;
+    let steps = DEFAULT_WORKFLOW_STEPS;
+    try { const raw = JSON.parse(localStorage.getItem("cms.settings.workflowSteps")); if (Array.isArray(raw)) steps = normalizeWorkflowSteps(raw); } catch { /* defaults */ }
+    const publishId = steps[steps.length - 1]?.id;
+
+    const groups = new Map();
+    for (const e of entries) {
+      const key = `${e.contentTypeId}::${e.groupId ?? e.id}`;
+      groups.set(key, [...(groups.get(key) ?? []), e]);
+    }
+    const fills = new Map(); // entry id -> { field: value }
+    for (const members of groups.values()) {
+      if (members.length < 2) continue;
+      const type = types.find((ct) => ct.id === members[0].contentTypeId);
+      for (const f of sharedFields(type)) {
+        const value = latestValue(members, f.name);
+        if (value === undefined) continue;
+        for (const e of members) {
+          if (!isEmptyValue(e.fieldValues?.[f.name]) || normalizeEntryStatus(e.status, steps) === publishId) continue;
+          fills.set(e.id, { ...(fills.get(e.id) ?? {}), [f.name]: value });
+        }
+      }
+    }
+    if (fills.size === 0) return;
+    localStorage.setItem("cms.entries", JSON.stringify(entries.map((e) => (fills.has(e.id) ? { ...e, fieldValues: { ...(e.fieldValues ?? {}), ...fills.get(e.id) } } : e))));
   },
 };
 
