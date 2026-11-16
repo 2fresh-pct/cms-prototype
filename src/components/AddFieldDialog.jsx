@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   Type, AlignLeft, Pilcrow, Hash, ToggleLeft, ChevronsUpDown, Calendar, Image, Images, Link2, Tags,
-  ExternalLink, List, Braces, CalendarRange, Rows3, Minus, MapPin, Crosshair, Clock, KeyRound,
+  ExternalLink, List, Braces, CalendarRange, Rows3, Minus, MapPin, MapPinned, Crosshair, Clock, KeyRound,
 } from "lucide-react";
 import { useI18n } from "../lib/i18n";
 import { fieldTypeLabel } from "../lib/seed";
@@ -28,6 +28,7 @@ const FIELD_TYPE_ICONS = {
   "Separator": Minus,
   "Address": MapPin,
   "Coordinates": Crosshair,
+  "Map": MapPinned,
   "Opening hours": Clock,
   "ID": KeyRound,
 };
@@ -55,6 +56,7 @@ const TYPE_GROUPS = [
     ["Taxonomy", "Terms from a taxonomy"],
   ] },
   { title: "Place and visits", types: [
+    ["Map", "A pin on a map, found by address and adjustable by hand"],
     ["Address", "Street, postal code, city and country"],
     ["Coordinates", "Latitude and longitude"],
     ["Opening hours", "Weekly opening times"],

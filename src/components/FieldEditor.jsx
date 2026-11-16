@@ -7,6 +7,7 @@ import RichTextEditor from "./RichTextEditor";
 import MediaPicker from "./MediaPicker";
 import EntryReferenceField from "./EntryReferenceField";
 import Toggle from "./Toggle";
+import MapField from "./MapField";
 import { holdsSeveral, mediaIds } from "../lib/media";
 
 const INPUT = "w-full rounded-md border border-gray-300 bg-[#fff] h-9 px-3 text-sm focus:border-violet-400 focus:outline-none";
@@ -260,6 +261,9 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
         </div>
       );
 
+    case "Map":
+      return <MapField value={value} onChange={onChange} />;
+
     case "Boolean":
       return <Toggle checked={Boolean(value)} onChange={onChange} label={value ? t("Yes") : t("No")} ariaLabel={field.label ?? field.name} />;
 
@@ -408,6 +412,7 @@ export function fieldValueText(f, value, ctx, tr) {
     case "Sections": return value.map((s) => s.heading).filter(Boolean).join(" · ") || empty;
     case "Address": return [value.street, [value.postalCode, value.city].filter(Boolean).join(" "), value.country].filter(Boolean).join(", ") || empty;
     case "Coordinates": return value.lat || value.lng ? `${value.lat}, ${value.lng}` : empty;
+    case "Map": return [value.address, typeof value.lat === "number" ? `${value.lat}, ${value.lng}` : ""].filter(Boolean).join(" · ") || empty;
     case "Opening hours": return summarizeHours(value, tr);
     default: return String(value);
   }

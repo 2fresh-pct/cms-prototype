@@ -5,6 +5,7 @@ import { flattenTerms } from "../lib/seed";
 import { RichTextView } from "./RichTextEditor";
 import { WEEKDAYS } from "./FieldEditor";
 import MediaThumb from "./MediaThumb";
+import MapField from "./MapField";
 import { OpenEntryButton } from "./EntryReferenceField";
 import { holdsSeveral, mediaIds } from "../lib/media";
 
@@ -178,6 +179,8 @@ export default function FieldView({ field: f, value, ctx, compact, thumbnails = 
       );
     case "Coordinates":
       return <p className={`${text} text-gray-700`}>{value.lat}, {value.lng}</p>;
+    case "Map":
+      return <MapField value={value} readOnly />;
     case "Link":
       return value.url ? <span className={`${text} text-gray-900 underline`}>{value.label || value.url}</span> : null;
     case "Boolean":
