@@ -37,6 +37,8 @@ function ContentTypeEditor({ id }) {
   const [justSaved, setJustSaved] = useState(false);
   const [activeGroup, setActiveGroup] = useState(GENERAL);
   const [focusGroupName, setFocusGroupName] = useState(false);
+  // The option input that was just added ("fieldIndex:optionIndex"), to focus it.
+  const [newOption, setNewOption] = useState(null);
   const [dragIndex, setDragIndex] = useState(null);
   const [overIndex, setOverIndex] = useState(null);
   const [addingField, setAddingField] = useState(false);
@@ -359,6 +361,44 @@ function ContentTypeEditor({ id }) {
                         );
                       })}
                       {!f.targetTypeIds?.length && <span className="text-gray-400">{f.targetName ? t(f.targetName) : t("Any content type")}</span>}
+                    </div>
+                  )}
+                  {f.type === "Select" && (
+                    <div className="space-y-2 pl-7">
+                      <label className="block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Options")}</label>
+                      {(f.options ?? []).map((option, j) => (
+                        <div key={j} className="flex items-center gap-1">
+                          <input
+                            value={option}
+                            autoFocus={newOption === `${i}:${j}`}
+                            onBlur={() => setNewOption(null)}
+                            onChange={(e) => updateField(i, { options: (f.options ?? []).map((o, k) => (k === j ? e.target.value : o)) })}
+                            placeholder={t("Option")}
+                            aria-label={`${t("Option")} ${j + 1}`}
+                            className="h-8 w-72 rounded-md border border-gray-300 bg-white px-2.5 text-sm"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => updateField(i, { options: (f.options ?? []).filter((_, k) => k !== j) })}
+                            aria-label={`${t("Remove")} ${option}`.trim()}
+                            className="flex h-8 w-8 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-red-600"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      ))}
+                      {!(f.options ?? []).length && <p className="text-xs text-gray-400">{t("No options yet. Editors can only pick from the options you add here.")}</p>}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const options = [...(f.options ?? []), ""];
+                          updateField(i, { options });
+                          setNewOption(`${i}:${options.length - 1}`);
+                        }}
+                        className="flex items-center gap-1 text-xs font-medium text-violet-600 hover:text-violet-700"
+                      >
+                        <Plus size={13} /> {t("Add option")}
+                      </button>
                     </div>
                   )}
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-2 pl-7 text-xs text-gray-500">

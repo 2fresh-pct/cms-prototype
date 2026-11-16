@@ -268,7 +268,8 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
       );
 
     case "Select": {
-      const options = field.options ?? [];
+      // Blank and repeated options (half-typed in the type editor) are skipped.
+      const options = [...new Set((field.options ?? []).filter((o) => o.trim()))];
       return (
         <select value={value ?? field.defaultValue ?? ""} onChange={(e) => onChange(e.target.value)} className="w-full rounded-md border border-gray-300 bg-[#fff] h-9 px-3 text-sm">
           {!field.defaultValue && <option value="">{t("None")}</option>}
