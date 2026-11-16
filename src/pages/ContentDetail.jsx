@@ -77,12 +77,16 @@ function GroupHeading({ group, prev }) {
   return <h3 className="border-t border-gray-200 pt-5 text-sm font-semibold text-gray-900">{t(group)}</h3>;
 }
 
+// Space above the first and below the last field of the scrolling card. The card
+// sets it as --pane-pad, because sticky offsets count from inside its padding.
+const PANE_PAD = "2rem";
+
 // The field-group tabs stay at the top of the scrolling card while the fields
-// scroll under them. The card has 20px of padding and sticky offsets count from
-// inside it, so the strip sticks at -top-5 (the card's edge), reaches over the
-// side padding (-mx-5 / px-5) and has the card's background; padding rather than
-// margin, because the card spaces its children with `space-y-*` margins. It
-// reports its height so a rich text toolbar can stick right below it.
+// scroll under them. Sticky offsets count from inside the card's padding, so the
+// strip sticks at -pane-pad (the card's edge), reaches over the side padding
+// (-mx-5 / px-5) and has the card's background; padding rather than margin,
+// because the card spaces its children with `space-y-*` margins. It reports its
+// height so a rich text toolbar can stick right below it.
 function StickyTabs({ onHeight, children }) {
   const ref = useRef(null);
   useLayoutEffect(() => {
@@ -96,7 +100,7 @@ function StickyTabs({ onHeight, children }) {
     return () => { observer.disconnect(); onHeight(0); };
   }, [onHeight]);
   return (
-    <div ref={ref} className="sticky -top-5 z-20 -mx-5 bg-white px-5 pt-2">
+    <div ref={ref} className="sticky top-[calc(var(--pane-pad)*-1)] z-20 -mx-5 bg-white px-5 pt-2">
       {children}
     </div>
   );
@@ -411,7 +415,7 @@ function ContentDetailPage({ id }) {
             </div>
           )}
         {readOnly ? (
-          <div className="min-h-0 flex-1 space-y-5 overflow-y-auto rounded-lg border border-gray-300 bg-white p-5">
+          <div style={{ "--pane-pad": PANE_PAD }} className="min-h-0 flex-1 space-y-5 overflow-y-auto rounded-lg border border-gray-300 bg-white px-5 py-[var(--pane-pad)]">
             <DetailField label={titleField?.label ?? "Title"} required={titleField?.required} localized={titleField?.localized}>
               <p className="text-sm text-gray-900">{viewEntry.title}</p>
             </DetailField>
@@ -468,7 +472,7 @@ function ContentDetailPage({ id }) {
             )}
           </div>
         ) : (
-          <div style={{ "--sticky-tabs": `${tabsHeight}px` }} className="min-h-0 flex-1 space-y-5 overflow-y-auto rounded-lg border border-gray-300 bg-white p-5">
+          <div style={{ "--pane-pad": PANE_PAD, "--sticky-tabs": `${tabsHeight}px` }} className="min-h-0 flex-1 space-y-5 overflow-y-auto rounded-lg border border-gray-300 bg-white px-5 py-[var(--pane-pad)]">
             <DetailField label={titleField?.label ?? "Title"} required={titleField?.required} localized={titleField?.localized}>
               <input
                 value={title}
