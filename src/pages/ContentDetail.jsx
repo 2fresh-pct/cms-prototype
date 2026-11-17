@@ -160,6 +160,15 @@ function ContentDetailPage({ id }) {
   const [selectedVersionId, setSelectedVersionId] = useState(null); // null = current live version
   const [commentDraft, setCommentDraft] = useState("");
   const [langDialogOpen, setLangDialogOpen] = useState(false);
+  const langRef = useRef(null);
+  useEffect(() => {
+    if (!langDialogOpen) return undefined;
+    const onDown = (e) => { if (langRef.current && !langRef.current.contains(e.target)) setLangDialogOpen(false); };
+    const onKey = (e) => { if (e.key === "Escape") setLangDialogOpen(false); };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("mousedown", onDown); document.removeEventListener("keydown", onKey); };
+  }, [langDialogOpen]);
   const [activeGroup, setActiveGroup] = useState(GENERAL);
   const [tabsHeight, setTabsHeight] = useState(0);
 
@@ -421,15 +430,74 @@ function ContentDetailPage({ id }) {
         saveStatus={saveStatus}
         actions={
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setLangDialogOpen(true)}
-              className="flex items-center gap-1.5 rounded-md h-9 px-3 text-sm font-medium text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-200 hover:text-gray-900"
-            >
-              <Languages size={14} /> {t("Languages")}
-              <span className="rounded-full bg-gray-100 px-1.5 text-xs font-normal text-gray-500">
-                {siblings.length + 1}/{LOCALE_LIST.length}
-              </span>
-            </button>
+            <div ref={langRef} className="relative">
+              <button
+                onClick={() => setLangDialogOpen((o) => !o)}
+                aria-haspopup="dialog"
+                aria-expanded={langDialogOpen}
+                className="flex items-center gap-1.5 rounded-md h-9 px-3 text-sm font-medium text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-200 hover:text-gray-900"
+              >
+                <Languages size={14} /> {t("Languages")}
+                <span className="rounded-full bg-gray-100 px-1.5 text-xs font-normal text-gray-500">
+                  {siblings.length + 1}/{LOCALE_LIST.length}
+                </span>
+              </button>
+              {langDialogOpen && (
+                <div role="dialog" aria-label={t("Languages")} className="wf-pop absolute right-0 top-full z-50 mt-2 w-96 rounded-lg border border-gray-300 bg-white p-3">
+                <div className="space-y-2">
+                  {LOCALE_LIST.map((l) => {
+                    const isCurrent = l === entry.locale;
+                    const sibling = isCurrent ? entry : siblings.find((s) => s.locale === l);
+                    const step = sibling ? workflowSteps.find((s) => s.id === normalizeEntryStatus(sibling.status, workflowSteps)) : null;
+                    return (
+                      <div
+                        key={l}
+                        className={`flex items-center justify-between rounded-md border px-3 py-2.5 ${
+                          isCurrent ? "border-violet-200 bg-violet-50" : "border-gray-300"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <span className="w-7 shrink-0 text-sm font-semibold text-gray-500">{LOCALE_LABELS[l]}</span>
+                          <div>
+                            <p className="flex items-center gap-1.5 text-sm font-medium text-gray-900">
+                              {t(LOCALE_NAMES[l] ?? l)}
+                              {l === defaultLocale && (
+                                <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium uppercase text-gray-500">{t("Default")}</span>
+                              )}
+                            </p>
+                            {sibling ? (
+                              <div className="mt-0.5">
+                                <StatusPill status={step?.name ?? sibling.status} color={step?.color} />
+                              </div>
+                            ) : (
+                              <p className="text-xs text-gray-400">{t("No version in this language yet")}</p>
+                            )}
+                          </div>
+                        </div>
+                        {isCurrent ? (
+                          <span className="text-xs font-medium text-violet-600">{t("Current")}</span>
+                        ) : sibling ? (
+                          <button
+                            onClick={() => { setLangDialogOpen(false); navigate(`/content/${sibling.id}`); }}
+                            className="rounded-md border border-gray-300 bg-white h-8 px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                          >
+                            {t("Open")}
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => createTranslation(l)}
+                            className="rounded-md bg-violet-600 h-8 px-2.5 text-xs font-medium text-white hover:bg-violet-700"
+                          >
+                            {t("Create")}
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                </div>
+              )}
+            </div>
             <PreviewButton
               entryId={entry.id}
               channels={channels}
@@ -814,72 +882,6 @@ function ContentDetailPage({ id }) {
           </div>
         )}
       </div>
-
-      <Modal
-        open={langDialogOpen}
-        onClose={() => setLangDialogOpen(false)}
-        title={t("Languages")}
-        footer={
-          <button
-            onClick={() => setLangDialogOpen(false)}
-            className="rounded-md h-9 px-3 text-sm font-medium text-gray-600 hover:bg-gray-100"
-          >
-            {t("Close")}
-          </button>
-        }
-      >
-        <div className="space-y-2">
-          {LOCALE_LIST.map((l) => {
-            const isCurrent = l === entry.locale;
-            const sibling = isCurrent ? entry : siblings.find((s) => s.locale === l);
-            const step = sibling ? workflowSteps.find((s) => s.id === normalizeEntryStatus(sibling.status, workflowSteps)) : null;
-            return (
-              <div
-                key={l}
-                className={`flex items-center justify-between rounded-md border px-3 py-2.5 ${
-                  isCurrent ? "border-violet-200 bg-violet-50" : "border-gray-300"
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <span className="w-7 shrink-0 text-sm font-semibold text-gray-500">{LOCALE_LABELS[l]}</span>
-                  <div>
-                    <p className="flex items-center gap-1.5 text-sm font-medium text-gray-900">
-                      {t(LOCALE_NAMES[l] ?? l)}
-                      {l === defaultLocale && (
-                        <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium uppercase text-gray-500">{t("Default")}</span>
-                      )}
-                    </p>
-                    {sibling ? (
-                      <div className="mt-0.5">
-                        <StatusPill status={step?.name ?? sibling.status} color={step?.color} />
-                      </div>
-                    ) : (
-                      <p className="text-xs text-gray-400">{t("No version in this language yet")}</p>
-                    )}
-                  </div>
-                </div>
-                {isCurrent ? (
-                  <span className="text-xs font-medium text-violet-600">{t("Current")}</span>
-                ) : sibling ? (
-                  <button
-                    onClick={() => { setLangDialogOpen(false); navigate(`/content/${sibling.id}`); }}
-                    className="rounded-md border border-gray-300 bg-white h-8 px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                  >
-                    {t("Open")}
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => createTranslation(l)}
-                    className="rounded-md bg-violet-600 h-8 px-2.5 text-xs font-medium text-white hover:bg-violet-700"
-                  >
-                    {t("Create")}
-                  </button>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </Modal>
 
       <Modal
         open={pendingUnpublish}
