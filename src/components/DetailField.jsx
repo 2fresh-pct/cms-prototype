@@ -10,7 +10,7 @@ function Badge({ icon: Icon, tip, tone = "text-gray-700" }) {
         tabIndex={0}
         role="img"
         aria-label={tip}
-        className={`flex h-6 w-6 cursor-help items-center justify-center rounded-full border border-gray-300 bg-white ${tone} transition-colors hover:border-gray-500 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-800`}
+        className={`flex h-6 w-6 cursor-help items-center justify-center rounded-md border border-gray-300 bg-white ${tone} transition-colors hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-800`}
       >
         <Icon size={13} strokeWidth={2.25} />
       </span>
