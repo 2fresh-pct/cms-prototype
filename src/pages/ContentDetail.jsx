@@ -1,3 +1,4 @@
+import { capHistory } from "../lib/history";
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Smartphone, Globe, Radio, Tv, Mail, MessageSquare, Clock, History, ArrowLeft, MessageCircle, X, Languages, Send, FilePlus, Lock } from "lucide-react";
@@ -208,7 +209,7 @@ function ContentDetailPage({ id }) {
     const newHistoryEntry = changeSummaries.length > 0
       ? [{ id: `h${Date.now()}-${target.id}`, timestamp: new Date().toISOString(), userId: users[0]?.id, summary: changeSummaries.join(", "), snapshot }]
       : [];
-    return { ...merged, history: [...(target.history ?? []), ...newHistoryEntry] };
+    return { ...merged, history: capHistory([...(target.history ?? []), ...newHistoryEntry]) };
   }
 
   function update(patch) {

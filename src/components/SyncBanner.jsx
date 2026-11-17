@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useI18n } from "../lib/i18n";
+import { isStorageFull, subscribeStorageFull } from "../lib/storage";
 import { getSyncState, loadShared, pushNow, subscribe } from "../lib/sync";
 
 const SECONDARY = "rounded-md border border-gray-300 bg-white h-8 px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50";
@@ -11,13 +12,17 @@ export default function SyncBanner() {
   const [state, setState] = useState(getSyncState());
   useEffect(() => subscribe(setState), []);
   const [failed, setFailed] = useState(false);
+  const [storageFull, setStorageFull] = useState(isStorageFull());
+  useEffect(() => subscribeStorageFull(setStorageFull), []);
 
   async function useShared() {
     try { await loadShared(); } catch { setFailed(true); }
   }
 
   let message, actions;
-  if (state.status === "stale") {
+  if (storageFull) {
+    message = t("This browser has no room left to save. The latest changes are not stored. Delete some uploaded images or old items.");
+  } else if (state.status === "stale") {
     message = t("The shared workspace has newer changes saved from another browser.");
     actions = <button onClick={useShared} className={SECONDARY}>{t("Reload to get them")}</button>;
   } else if (state.status === "error") {

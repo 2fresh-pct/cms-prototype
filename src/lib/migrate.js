@@ -1,3 +1,4 @@
+import { capEntriesHistory } from "./history";
 import { nextTypeColor } from "./typeColors";
 import { POI_TYPE, POI_TAXONOMIES, POI_MEDIA, POI_ENTRIES, POI_KEYWORD_TERMS, OLD_POI_KEYWORD_IDS } from "./poi";
 import { DISCOVERY_CATEGORIES_ID, DISCOVERY_CATEGORIES_TAXONOMY } from "./discoveryCategories";
@@ -251,6 +252,17 @@ const MIGRATIONS = {
     }
     if (fills.size === 0) return;
     localStorage.setItem("cms.entries", JSON.stringify(entries.map((e) => (fills.has(e.id) ? { ...e, fieldValues: { ...(e.fieldValues ?? {}), ...fills.get(e.id) } } : e))));
+  },
+  // An item edited many times can carry hundreds of snapshots and fill the browser
+  // storage on its own. Only the newest versions of each item are kept.
+  "cap-history": () => {
+    const raw = localStorage.getItem("cms.entries");
+    if (!raw) return; // not seeded yet
+    const entries = JSON.parse(raw);
+    if (!Array.isArray(entries)) return;
+    const capped = capEntriesHistory(entries);
+    const next = JSON.stringify(capped);
+    if (next.length < raw.length) localStorage.setItem("cms.entries", next);
   },
 };
 

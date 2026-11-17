@@ -89,6 +89,7 @@ export const CS = {
   "Back to All content": "Zpět na obsah",
   "Preview": "Náhled",
   "Version history": "Historie verzí",
+  "This browser has no room left to save. The latest changes are not stored. Delete some uploaded images or old items.": "V tomto prohlížeči došlo místo pro ukládání. Poslední změny se neuložily. Smaž některé nahrané obrázky nebo staré položky.",
   "Versions": "Verze",
   "Current version": "Aktuální verze",
   "No earlier versions yet.": "Zatím žádné starší verze.",

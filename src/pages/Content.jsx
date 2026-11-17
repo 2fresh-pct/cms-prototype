@@ -1,3 +1,4 @@
+import { capHistory } from "../lib/history";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Copy, Trash2, Send } from "lucide-react";
@@ -163,7 +164,7 @@ export default function Content() {
   function withHistory(entry, patch, summary) {
     const merged = { ...entry, ...patch, updatedAt: new Date().toISOString(), updatedBy: users[0]?.id };
     const { history: _omit, live: _live, ...snapshot } = merged;
-    return { ...merged, history: [...(entry.history ?? []), { id: `h${Date.now()}-${entry.id}`, timestamp: merged.updatedAt, userId: users[0]?.id, summary, snapshot }] };
+    return { ...merged, history: capHistory([...(entry.history ?? []), { id: `h${Date.now()}-${entry.id}`, timestamp: merged.updatedAt, userId: users[0]?.id, summary, snapshot }]) };
   }
 
   function changeStatusOfSelected(step) {
