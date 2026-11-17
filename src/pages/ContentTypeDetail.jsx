@@ -9,7 +9,7 @@ import { TYPE_COLORS } from "../lib/typeColors";
 import PageHeader from "../components/PageHeader";
 import DetailField from "../components/DetailField";
 import Modal from "../components/Modal";
-import FieldTypePalette from "../components/FieldTypePalette";
+import AddFieldDialog from "../components/AddFieldDialog";
 import GroupTabs from "../components/GroupTabs";
 import { GENERAL, groupsOf } from "../lib/groups";
 import { fieldKeyFor, keyBase } from "../lib/fieldKey";
@@ -42,8 +42,7 @@ function ContentTypeEditor({ id }) {
   const [newOption, setNewOption] = useState(null);
   const [dragIndex, setDragIndex] = useState(null);
   const [overIndex, setOverIndex] = useState(null);
-  // The field that was just added from the left panel (its index), to scroll to and focus.
-  const [justAdded, setJustAdded] = useState(null);
+  const [addingField, setAddingField] = useState(false);
 
   const dirty = Boolean(type) && JSON.stringify(draft) !== JSON.stringify(baseline);
   const blocker = useBlocker(dirty);
@@ -103,10 +102,7 @@ function ContentTypeEditor({ id }) {
     updateField(i, { label, name: fieldKeyFor(label, used) });
   }
 
-  // A click on a type in the left panel adds a field of that type to the open tab,
-  // named after the type; the name is selected so it can be typed over right away.
-  function addField(fieldType) {
-    const label = fieldType === "Separator" ? "" : t(fieldTypeLabel(fieldType));
+  function addField({ label, type: fieldType }) {
     const used = new Set([...savedNames, ...draft.fields.map((f) => f.name)]);
     const name = fieldKeyFor(label || fieldType, used);
     const field = {
@@ -117,19 +113,8 @@ function ContentTypeEditor({ id }) {
       ...(fieldType === "Taxonomy" ? { taxonomyId: taxonomies[0]?.id } : {}),
     };
     update({ fields: [...draft.fields, field] });
-    setJustAdded(draft.fields.length);
+    setAddingField(false);
   }
-
-  useEffect(() => {
-    if (justAdded === null) return;
-    const card = document.querySelector(`[data-field-index="${justAdded}"]`);
-    if (card) {
-      card.scrollIntoView({ block: "nearest", behavior: "smooth" });
-      const input = card.querySelector("input[data-field-label]");
-      if (input) { input.focus({ preventScroll: true }); input.select(); }
-    }
-    setJustAdded(null);
-  }, [justAdded, draft]);
 
   function removeField(i) {
     update({ fields: draft.fields.filter((_, idx) => idx !== i) });
@@ -198,63 +183,7 @@ function ContentTypeEditor({ id }) {
 
   
   return (
-    <div className="flex h-full min-h-0">
-      <aside className="w-72 shrink-0 space-y-6 overflow-y-auto border-r border-gray-300 bg-white p-3">
-        <div>
-          <p className="px-1 pb-2 text-sm font-semibold text-gray-900">{t("Add element")}</p>
-          <FieldTypePalette onPick={addField} />
-        </div>
-        <div className="space-y-5 border-t border-gray-200 pt-5">
-          <DetailField label="Icon">
-            <div className="grid grid-cols-6 gap-1.5">
-              {TYPE_ICON_KEYS.map((key) => {
-                const Icon = typeIcon(key);
-                const active = (draft.icon ?? "file-text") === key;
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => update({ icon: key })}
-                    aria-label={key}
-                    aria-pressed={active}
-                    title={key}
-                    className={`flex h-9 items-center justify-center rounded-md border ${
-                      active ? "border-gray-700 bg-gray-100 text-gray-900" : "border-gray-300 text-gray-500 hover:bg-gray-50"
-                    }`}
-                  >
-                    <Icon size={16} />
-                  </button>
-                );
-              })}
-            </div>
-          </DetailField>
-          <DetailField label="Color">
-            <div className="flex flex-wrap gap-2">
-              {TYPE_COLORS.map((color) => {
-                const active = (draft.color ?? "").toLowerCase() === color;
-                const taken = contentTypes.some((ct) => ct.id !== id && (ct.color ?? "").toLowerCase() === color);
-                return (
-                  <button
-                    key={color}
-                    type="button"
-                    onClick={() => update({ color })}
-                    aria-label={color}
-                    aria-pressed={active}
-                    title={taken ? t("Also used by another content type") : color}
-                    className={`h-7 w-7 rounded-full border-2 ${active ? "border-gray-800" : "border-white"} ring-1 ring-gray-300 ${taken ? "opacity-50" : ""}`}
-                    style={{ backgroundColor: color }}
-                  />
-                );
-              })}
-            </div>
-          </DetailField>
-          <DetailField label="Entries using this type">
-            <span className="text-sm text-gray-700">{entryCount}</span>
-          </DetailField>
-        </div>
-      </aside>
-
-      <div className="flex-1 overflow-y-auto p-6">
+    <div className="flex-1 overflow-y-auto p-6">
       <PageHeader
         crumbs={["Content types", draft.name || type.name]}
         onBack={() => navigate(-1)}
@@ -288,7 +217,12 @@ function ContentTypeEditor({ id }) {
           </DetailField>
 
           <div>
-            <label className="mb-3 block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Elements")}</label>
+            <div className="mb-3 flex items-center justify-between">
+              <label className="text-xs font-medium uppercase tracking-wide text-gray-400">{t("Elements")}</label>
+              <button onClick={() => setAddingField(true)} className="flex items-center gap-1.5 rounded-md border border-gray-300 bg-white h-9 px-3 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                <Plus size={14} /> {t("Add element")}
+              </button>
+            </div>
             <div className="mb-3">
               <GroupTabs
                 tabs={tabIds.map((id) => ({ id, label: id === GENERAL ? "General" : id }))}
@@ -329,7 +263,6 @@ function ContentTypeEditor({ id }) {
               {draft.fields.map((f, i) => !inActive(f) ? null : (
                 <div
                   key={i}
-                  data-field-index={i}
                   onDragOver={(e) => { if (dragIndex !== null) { e.preventDefault(); if (overIndex !== i) setOverIndex(i); } }}
                   onDrop={(e) => { e.preventDefault(); moveField(dragIndex, i); }}
                   className={`space-y-3 rounded-md border bg-[#fff] p-3 ${dragIndex === i ? "opacity-40" : ""} ${
@@ -399,7 +332,6 @@ function ContentTypeEditor({ id }) {
                         value={f.label ?? f.name}
                         onChange={(e) => renameField(i, e.target.value)}
                         aria-label={t("Label")}
-                        data-field-label
                         className="w-full rounded-md border border-gray-300 bg-white h-8 px-2.5 text-sm"
                       />
                     </div>
@@ -538,6 +470,55 @@ function ContentTypeEditor({ id }) {
             </div>
           </div>
         </div>
+
+        <div className="w-80 shrink-0 space-y-5 self-start rounded-lg border border-gray-300 bg-white p-5">
+          <DetailField label="Icon">
+            <div className="grid grid-cols-6 gap-1.5">
+              {TYPE_ICON_KEYS.map((key) => {
+                const Icon = typeIcon(key);
+                const active = (draft.icon ?? "file-text") === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => update({ icon: key })}
+                    aria-label={key}
+                    aria-pressed={active}
+                    title={key}
+                    className={`flex h-9 items-center justify-center rounded-md border ${
+                      active ? "border-gray-700 bg-gray-100 text-gray-900" : "border-gray-300 text-gray-500 hover:bg-gray-50"
+                    }`}
+                  >
+                    <Icon size={16} />
+                  </button>
+                );
+              })}
+            </div>
+          </DetailField>
+          <DetailField label="Color">
+            <div className="flex flex-wrap gap-2">
+              {TYPE_COLORS.map((color) => {
+                const active = (draft.color ?? "").toLowerCase() === color;
+                const taken = contentTypes.some((ct) => ct.id !== id && (ct.color ?? "").toLowerCase() === color);
+                return (
+                  <button
+                    key={color}
+                    type="button"
+                    onClick={() => update({ color })}
+                    aria-label={color}
+                    aria-pressed={active}
+                    title={taken ? t("Also used by another content type") : color}
+                    className={`h-7 w-7 rounded-full border-2 ${active ? "border-gray-800" : "border-white"} ring-1 ring-gray-300 ${taken ? "opacity-50" : ""}`}
+                    style={{ backgroundColor: color }}
+                  />
+                );
+              })}
+            </div>
+          </DetailField>
+          <DetailField label="Entries using this type">
+            <span className="text-sm text-gray-700">{entryCount}</span>
+          </DetailField>
+        </div>
       </div>
 
       <Modal
@@ -563,7 +544,8 @@ function ContentTypeEditor({ id }) {
       >
         {t("Changes to a content type affect every entry of that type. You have unsaved changes to this one.")}
       </Modal>
-      </div>
+
+      <AddFieldDialog open={addingField} onClose={() => setAddingField(false)} onAdd={addField} />
     </div>
   );
 }
