@@ -66,7 +66,7 @@ function describeChange(key, value, prevEntry, { workflowSteps, channels, fields
       const prevValues = prevEntry.fieldValues ?? {};
       const changed = Object.keys(value).filter((k) => JSON.stringify(value[k]) !== JSON.stringify(prevValues[k]));
       const changedField = fields.find((f) => f.name === changed[0]);
-      return changed.length > 0 ? `Field "${changedField?.label ?? changed[0]}" updated` : null;
+      return changed.length > 0 ? `Element "${changedField?.label ?? changed[0]}" updated` : null;
     }
     default:
       return null;

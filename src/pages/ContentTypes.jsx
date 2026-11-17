@@ -57,7 +57,7 @@ export default function ContentTypes() {
   }
 
   const filterFields = [
-    { key: "fieldType", label: "Has field type", options: FIELD_TYPE_LIST.map((ft) => ({ value: ft, label: fieldTypeLabel(ft) })) },
+    { key: "fieldType", label: "Has element type", options: FIELD_TYPE_LIST.map((ft) => ({ value: ft, label: fieldTypeLabel(ft) })) },
   ];
 
   // Counted from the entries, so it stays right as entries are created and deleted.

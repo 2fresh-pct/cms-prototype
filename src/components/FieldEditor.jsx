@@ -118,7 +118,7 @@ function TaxonomyField({ field, value, onChange, ctx }) {
   const taxonomy = ctx.taxonomies.find((x) => x.id === field.taxonomyId);
   const selected = value ?? [];
   const single = field.multiple === false;
-  if (!taxonomy) return <p className="text-sm text-gray-400">{t("No taxonomy selected for this field.")}</p>;
+  if (!taxonomy) return <p className="text-sm text-gray-400">{t("No taxonomy selected for this element.")}</p>;
   const terms = termsWithPath(taxonomy.terms);
   if (terms.length === 0) return <p className="text-sm text-gray-400">{t("This taxonomy has no terms yet.")}</p>;
 
