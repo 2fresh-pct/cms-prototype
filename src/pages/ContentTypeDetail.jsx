@@ -404,7 +404,7 @@ function ContentTypeEditor({ id }) {
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-2 pl-7 text-xs text-gray-500">
                     <div className="w-48 shrink-0">
                       {/* A separator is layout only: it has no API key and never appears in the content. */}
-                      {f.type !== "Separator" && <code className="rounded bg-gray-100 px-1.5 py-0.5 text-gray-600">{f.name}</code>}
+                      {f.type !== "Separator" && <code className="inline-block max-w-full break-all rounded bg-gray-100 px-1.5 py-0.5 align-middle leading-snug text-gray-600">{f.name}</code>}
                     </div>
                     <label className="flex w-40 shrink-0 items-center gap-2">
                       {t("Group")}
