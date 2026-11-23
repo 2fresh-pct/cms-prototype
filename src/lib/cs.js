@@ -277,6 +277,8 @@ export const CS = {
   "Used in": "Použito v",
   "Not used anywhere yet.": "Zatím nikde nepoužito.",
   "and {n} more": "a {n} dalších",
+  "Linked": "Propojeno",
+  "Embedded in text": "Vloženo v textu",
   "Golden": "Zlatý",
   "Golden accents on warm paper, deeper shadows.": "Zlaté akcenty na teplém papíru, výraznější stíny.",
   "Theme": "Motiv",

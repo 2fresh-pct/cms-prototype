@@ -1,6 +1,6 @@
 import { capHistory } from "../lib/history";
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { Smartphone, Globe, Radio, Tv, Mail, MessageSquare, Clock, History, ArrowLeft, MessageCircle, X, Languages, Send, FilePlus, Lock } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
@@ -10,6 +10,7 @@ import {
   DEFAULT_CHANNELS, normalizeChannels, ALL_CHANNELS, isAllChannels, resolvePublishedChannelIds,
 } from "../lib/seed";
 import { sharedFields, isEmptyValue, latestValue } from "../lib/sharedFields";
+import { usedIn } from "../lib/usage";
 import PageHeader from "../components/PageHeader";
 import DetailField from "../components/DetailField";
 import FieldEditor from "../components/FieldEditor";
@@ -412,6 +413,7 @@ function ContentDetailPage({ id }) {
 
   const groupId = normalizeEntryGroupId(entry);
   const siblings = entries.filter((e) => e.id !== entry.id && normalizeEntryGroupId(e) === groupId);
+  const usages = usedIn(entry, entries, contentTypes, entry.locale);
 
   const history = entry.history ?? [];
   const comments = entry.comments ?? [];
@@ -805,6 +807,27 @@ function ContentDetailPage({ id }) {
                 <Avatar user={author} size={20} />
                 <span className="text-sm text-gray-700">{author?.name}</span>
               </span>
+            </DetailField>
+            <DetailField label="Used in">
+              {usages.length === 0 ? (
+                <p className="text-sm text-gray-400">{t("Not used anywhere yet.")}</p>
+              ) : (
+                <ul className="space-y-2.5">
+                  {usages.slice(0, 8).map((u) => {
+                    const uType = contentTypes.find((ct) => ct.id === u.entry.contentTypeId);
+                    return (
+                      <li key={u.entry.id} className="text-sm">
+                        <Link to={`/content/${u.entry.id}`} className="font-medium text-gray-900 underline-offset-2 hover:underline">{u.entry.title}</Link>
+                        <span className="block text-xs text-gray-500">
+                          {uType ? t(uType.name) : ""} · {u.how.map((h) => t(h === "embedded" ? "Embedded in text" : "Linked")).join(", ")}
+                          {u.locales.length > 0 && ` · ${u.locales.map((l) => LOCALE_LABELS[l] ?? l.toUpperCase()).join(" ")}`}
+                        </span>
+                      </li>
+                    );
+                  })}
+                  {usages.length > 8 && <li className="text-xs text-gray-400">{t("and {n} more", { n: usages.length - 8 })}</li>}
+                </ul>
+              )}
             </DetailField>
             <button
               onClick={openHistory}
