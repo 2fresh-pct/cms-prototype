@@ -113,6 +113,17 @@ export default function FieldView({ field: f, value, ctx, compact, thumbnails = 
     }
     case "Reference": {
       const items = value.map((id) => ctx.entries.find((e) => e.id === id)).filter(Boolean);
+      // In a preview the linked items come with their real content (see Preview).
+      if (ctx.linked) {
+        const live = items.map(ctx.linked.resolve).filter(Boolean);
+        const left = items.length - live.length;
+        return (
+          <div className="space-y-3">
+            {live.map((e) => <Fragment key={e.id}>{ctx.linked.render(e, compact)}</Fragment>)}
+            {left > 0 && <p className="text-xs text-gray-400">{t("Linked items left out because they are not published: {n}", { n: left })}</p>}
+          </div>
+        );
+      }
       return (
         <ul className="space-y-2">
           {items.map((e) => {

@@ -297,7 +297,7 @@ function Toolbar({ editor, onCommit, media, onUpload, locale, content }) {
   );
 }
 
-const itemContext = (c) => ({ entries: c?.entries ?? [], contentTypes: c?.contentTypes ?? [], workflowSteps: c?.workflowSteps ?? [], publishStepId: c?.publishStepId ?? null, plain: Boolean(c?.plain) });
+const itemContext = (c) => ({ entries: c?.entries ?? [], contentTypes: c?.contentTypes ?? [], workflowSteps: c?.workflowSteps ?? [], publishStepId: c?.publishStepId ?? null, plain: Boolean(c?.plain), linked: c?.linked ?? null });
 
 // Writes back when focus leaves the editor (like the other fields), and only
 // if the content really changed, so merely clicking in doesn't create history.

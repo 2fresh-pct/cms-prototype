@@ -14,7 +14,7 @@ import StatusPill from "./StatusPill";
 // rich text JSON, `{ "type": "contentItem", "id": "…" }`.
 
 // What the card needs from the rest of the CMS; provided by the rich text editor.
-export const ContentItemContext = createContext({ entries: [], contentTypes: [], workflowSteps: [], publishStepId: null, locale: null, plain: false });
+export const ContentItemContext = createContext({ entries: [], contentTypes: [], workflowSteps: [], publishStepId: null, locale: null, plain: false, linked: null });
 
 // The item in the language of the text, when it has a version in it (versions of an
 // item share a groupId); otherwise the item as it was picked.
@@ -35,6 +35,10 @@ function ContentItemCard({ node, selected }) {
   const published = entry && ctx.publishStepId && normalizeEntryStatus(entry.status, ctx.workflowSteps) === ctx.publishStepId;
 
   // On the website/app preview the item is shown plainly: no CMS controls or status.
+  if (ctx.plain && ctx.linked) {
+    const live = ctx.linked.resolve(picked);
+    return <NodeViewWrapper className="rte-content-item my-2">{live ? ctx.linked.render(live, false) : null}</NodeViewWrapper>;
+  }
   if (ctx.plain) {
     return (
       <NodeViewWrapper className="rte-content-item my-2">

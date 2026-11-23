@@ -257,6 +257,8 @@ export const CS = {
   "Find faces": "Najít obličeje",
   "Content item as a component": "Obsah jako komponenta",
   "Insert content items": "Vložit položky obsahu",
+  "Show all content": "Zobrazit celý obsah",
+  "Linked items left out because they are not published: {n}": "Vynechané propojené položky, které nejsou publikované: {n}",
   "Insert {n} items": "Vložit položky ({n})",
   "Insert": "Vložit",
   "Content item": "Položka obsahu",

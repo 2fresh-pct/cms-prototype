@@ -7,8 +7,11 @@ import {
 } from "../lib/seed";
 import { Fragment } from "react";
 import FieldView, { isEmpty } from "../components/FieldView";
-import { holdsSeveral } from "../lib/media";
-import { Signal, Wifi, BatteryFull, ChevronLeft } from "lucide-react";
+import MediaThumb from "../components/MediaThumb";
+import { inLocale } from "../components/ContentItemEmbed";
+import { holdsSeveral, mediaIds } from "../lib/media";
+import { htmlToText } from "../lib/richtext";
+import { Signal, Wifi, BatteryFull, ChevronLeft, ChevronDown } from "lucide-react";
 
 function DraftBanner({ compact }) {
   const { t } = useI18n();
@@ -52,6 +55,47 @@ function EntryFields({ entry, type, ctx, compact }) {
         </Fragment>
       ))}
     </div>
+  );
+}
+
+// A content item linked from the entry (a Reference field or an embedded item), shown
+// with its real content, as a website or app would get it when the API includes
+// linked items one level deep: its image, title and summary, and all its fields behind
+// "Show all content". Items inside it are not expanded again.
+function LinkedEntry({ entry, ctx, compact }) {
+  const { t } = useI18n();
+  const type = ctx.contentTypes.find((ct) => ct.id === entry.contentTypeId);
+  const fields = type?.fields ?? [];
+  const values = entry.fieldValues ?? {};
+
+  const mediaField = fields.find((f) => (f.type === "Media" || f.type === "Media list") && mediaIds(values[f.name]).length > 0);
+  const image = mediaField ? ctx.media.find((m) => m.id === mediaIds(values[mediaField.name])[0]) : null;
+
+  const summaryField = fields.find((f) => /summary|perex|excerpt/i.test(f.name) && !isEmpty(values[f.name]));
+  const raw = summaryField ? values[summaryField.name] : htmlToText(entry.body);
+  const summary = typeof raw === "string" ? (htmlToText(raw) || raw) : "";
+  const short = summary.length > 220 ? `${summary.slice(0, 217).trimEnd()}…` : summary;
+
+  // One level only: references inside it fall back to the plain list.
+  const inner = { ...ctx, linked: null };
+  return (
+    <article className="overflow-hidden rounded-md border border-gray-300">
+      {image && <MediaThumb item={image} className={`w-full border-b border-gray-300 ${compact ? "aspect-[16/9]" : "aspect-[21/9]"}`} />}
+      <div className={compact ? "space-y-1.5 px-3 py-2.5" : "space-y-2 px-4 py-3"}>
+        <p className={`font-medium uppercase tracking-wide text-gray-400 ${compact ? "text-[10px]" : "text-xs"}`}>{type ? t(type.name) : ""}</p>
+        <h3 className={`font-semibold text-gray-900 ${compact ? "text-sm" : "text-lg"}`}>{entry.title}</h3>
+        {short && <p className={`text-gray-600 ${compact ? "text-xs" : "text-sm"}`}>{short}</p>}
+        <details className="group pt-1">
+          <summary className={`flex cursor-pointer list-none items-center gap-1 font-medium text-gray-500 hover:text-gray-800 ${compact ? "text-[11px]" : "text-xs"}`}>
+            <ChevronDown size={13} className="transition-transform group-open:rotate-180" />
+            {t("Show all content")}
+          </summary>
+          <div className="mt-3 border-t border-gray-200 pt-4">
+            <EntryFields entry={entry} type={type} ctx={inner} compact />
+          </div>
+        </details>
+      </div>
+    </article>
   );
 }
 
@@ -138,6 +182,15 @@ export default function Preview() {
   const publishStepId = workflowSteps[workflowSteps.length - 1]?.id;
   const isPublished = entry.status === publishStepId;
   const ctx = { taxonomies, media, entries, contentTypes, publishStepId, locale: entry.locale, plain: true };
+  // Linked items come out as they would live: in the language of this entry when it
+  // has a version in it, and only if published (the others are left out).
+  ctx.linked = {
+    resolve: (e) => {
+      const local = inLocale(e, entries, entry.locale);
+      return [local, e].find((x) => x && x.status === publishStepId) ?? null;
+    },
+    render: (e, compact) => <LinkedEntry entry={e} ctx={ctx} compact={compact} />,
+  };
 
   return channel.icon === "smartphone" ? (
     <AppMock entry={entry} channel={channel} isPublished={isPublished} typeName={type ? t(type.name) : ""} type={type} ctx={ctx} />
