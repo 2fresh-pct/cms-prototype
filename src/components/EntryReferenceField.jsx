@@ -59,9 +59,9 @@ export function EntryLine({ entry, ctx, openable = false }) {
   );
 }
 
-// With `single`, picking an item chooses it instead of adding it to a list, and the
-// dialog's button inserts that one item (used to embed an item in rich text).
-export function Picker({ open, onClose, candidates, types, selected, onConfirm, ctx, single = false, title }) {
+// With `insert`, the dialog's button inserts the picked items (used to embed items in
+// rich text) instead of linking them; one or several, in the order they were picked.
+export function Picker({ open, onClose, candidates, types, selected, onConfirm, ctx, insert = false, title }) {
   const { t } = useI18n();
   const [draft, setDraft] = useState(selected);
   const [search, setSearch] = useState("");
@@ -75,7 +75,7 @@ export function Picker({ open, onClose, candidates, types, selected, onConfirm, 
   const shown = candidates.filter(
     (e) => (!typeId || e.contentTypeId === typeId) && (!search || e.title.toLowerCase().includes(search.toLowerCase())),
   );
-  const toggle = (id) => setDraft((d) => (single ? (d.includes(id) ? [] : [id]) : d.includes(id) ? d.filter((x) => x !== id) : [...d, id]));
+  const toggle = (id) => setDraft((d) => (d.includes(id) ? d.filter((x) => x !== id) : [...d, id]));
 
   return (
     <Modal
@@ -88,11 +88,11 @@ export function Picker({ open, onClose, candidates, types, selected, onConfirm, 
           <button type="button" onClick={onClose} className="rounded-md h-9 px-3 text-sm text-gray-500 hover:bg-gray-100">{t("Cancel")}</button>
           <button
             type="button"
-            disabled={single && draft.length === 0}
+            disabled={insert && draft.length === 0}
             onClick={() => onConfirm(draft)}
             className="rounded-md bg-gray-700 h-9 px-3 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-40"
           >
-            {single ? t("Insert") : t("Use {n} selected", { n: draft.length })}
+            {insert ? (draft.length > 1 ? t("Insert {n} items", { n: draft.length }) : t("Insert")) : t("Use {n} selected", { n: draft.length })}
           </button>
         </>
       }
@@ -136,7 +136,7 @@ export function Picker({ open, onClose, candidates, types, selected, onConfirm, 
                   isSelected ? "bg-gray-800 text-white" : "border border-gray-300"
                 }`}
               >
-                {isSelected ? (single ? "✓" : index + 1) : null}
+                {isSelected ? index + 1 : null}
               </span>
               <EntryLine entry={e} ctx={ctx} />
             </button>

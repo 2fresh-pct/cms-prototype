@@ -155,8 +155,8 @@ function Toolbar({ editor, onCommit, media, onUpload, locale, content }) {
 
   function insertItem(ids) {
     setItemOpen(false);
-    if (!ids[0]) return;
-    editor.chain().focus().insertContent({ type: "contentItem", attrs: { entryId: ids[0] } }).run();
+    if (!ids.length) return;
+    editor.chain().focus().insertContent(ids.map((entryId) => ({ type: "contentItem", attrs: { entryId } }))).run();
     onCommit();
   }
 
@@ -281,8 +281,8 @@ function Toolbar({ editor, onCommit, media, onUpload, locale, content }) {
         <Picker
           open={itemOpen}
           onClose={() => setItemOpen(false)}
-          single
-          title={t("Insert a content item")}
+          insert
+          title={t("Insert content items")}
           candidates={itemCandidates}
           types={content.contentTypes}
           selected={[]}
