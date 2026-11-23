@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useI18n } from "./i18n";
+import { autoFocus } from "./faces";
 
 // The prototype has no file server: an upload is read in the browser, a
 // downsized copy is kept as a data URL on the media item (`src`) for thumbnails
@@ -57,6 +58,8 @@ export function useMediaUpload({ media, setMedia, userId }) {
       if (file.size / 1024 > MAX_FILE_KB) { skipped.size.push(file.name); continue; }
       try {
         const { src, width, height } = await thumbnail(file);
+        // Aim the focus point at the faces in the picture, when there are any.
+        const focus = file.type === "image/svg+xml" ? undefined : await autoFocus(src);
         added.push({
           id: `m-up-${Date.now().toString(36)}-${i}`,
           name: file.name,
@@ -67,6 +70,7 @@ export function useMediaUpload({ media, setMedia, userId }) {
           src,
           width,
           height,
+          ...(focus ? { focus } : {}),
         });
       } catch {
         skipped.unreadable.push(file.name);

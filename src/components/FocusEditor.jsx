@@ -1,6 +1,7 @@
-import { useRef, useState } from "react";
-import { Crosshair, Copy, Check, RotateCcw } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Crosshair, Copy, Check, RotateCcw, ScanFace, Loader2 } from "lucide-react";
 import { useI18n } from "../lib/i18n";
+import { detectFaces, focusFromFaces } from "../lib/faces";
 import { CROP_FORMATS, focusOf, isDefaultFocus, objectPosition, toFocus, DEFAULT_FOCUS } from "../lib/focus";
 
 // Sets the focus point of an image and shows what the picture looks like cropped
@@ -16,6 +17,32 @@ export default function FocusEditor({ item, alt, onChange }) {
   const [copied, setCopied] = useState(false);
   const imgRef = useRef(null);
   const focus = dragging ?? saved;
+
+  // Face detection: boxes of the faces found, and what happened ("busy", "none", "error",
+  // or the number found).
+  const [faces, setFaces] = useState([]);
+  const [scan, setScan] = useState(null);
+  async function findFaces({ quiet } = {}) {
+    setScan("busy");
+    try {
+      const found = await detectFaces(item.src);
+      setFaces(found);
+      const point = focusFromFaces(found);
+      if (point) onChange(point);
+      else if (!item.focus) onChange(DEFAULT_FOCUS); // looked, found none: don't look again on every visit
+      setScan(found.length ? found.length : "none");
+    } catch {
+      setScan(quiet ? null : "error");
+    }
+  }
+  // A picture that has never had a focus point gets one from its faces when it is opened.
+  const asked = useRef(false);
+  useEffect(() => {
+    if (item.focus || asked.current) return;
+    asked.current = true;
+    findFaces({ quiet: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const pointFrom = (e) => {
     const r = imgRef.current.getBoundingClientRect();
@@ -70,6 +97,14 @@ export default function FocusEditor({ item, alt, onChange }) {
               draggable={false}
               className="block max-h-[26rem] max-w-full rounded-md border border-gray-300 object-contain"
             />
+            {faces.map((f, i) => (
+              <span
+                key={i}
+                aria-hidden
+                style={{ left: `${f.x}%`, top: `${f.y}%`, width: `${f.w}%`, height: `${f.h}%` }}
+                className="pointer-events-none absolute rounded-sm border-2 border-dashed border-[#fff] shadow-[0_0_0_1px_rgba(0,0,0,0.5)]"
+              />
+            ))}
             <button
               type="button"
               onKeyDown={key}
@@ -87,12 +122,27 @@ export default function FocusEditor({ item, alt, onChange }) {
           <button type="button" onClick={copy} className="flex h-7 items-center gap-1 rounded-md px-2 font-medium text-gray-600 hover:bg-gray-100">
             {copied ? <Check size={13} /> : <Copy size={13} />} {copied ? t("Copied") : t("Copy CSS")}
           </button>
+          <button
+            type="button"
+            onClick={() => findFaces()}
+            disabled={scan === "busy"}
+            className="flex h-7 items-center gap-1 rounded-md px-2 font-medium text-gray-600 hover:bg-gray-100 disabled:opacity-60"
+          >
+            {scan === "busy" ? <Loader2 size={13} className="animate-spin" /> : <ScanFace size={13} />} {t("Find faces")}
+          </button>
           {!isDefaultFocus(focus) && (
             <button type="button" onClick={() => onChange(DEFAULT_FOCUS)} className="flex h-7 items-center gap-1 rounded-md px-2 font-medium text-gray-600 hover:bg-gray-100">
               <RotateCcw size={13} /> {t("Reset to centre")}
             </button>
           )}
         </div>
+        {scan && scan !== "busy" && (
+          <p role="status" className="mt-2 text-center text-xs text-gray-500">
+            {scan === "none" ? t("No face found. The focus point stays where it is.")
+              : scan === "error" ? t("Face detection could not run. Set the focus point by hand.")
+              : t("{n} found. The focus point is set to their centre.", { n: scan })}
+          </p>
+        )}
       </section>
 
       <section>
