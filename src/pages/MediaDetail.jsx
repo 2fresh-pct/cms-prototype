@@ -7,6 +7,7 @@ import PageHeader from "../components/PageHeader";
 import DetailField from "../components/DetailField";
 import MediaThumb from "../components/MediaThumb";
 import Avatar from "../components/Avatar";
+import FocusEditor from "../components/FocusEditor";
 
 const formatSize = (kb) => (kb > 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${kb} KB`);
 
@@ -68,23 +69,26 @@ function MediaEditor({ id }) {
 
       {/* The preview and the details scroll independently, like the entry page. */}
       <div className="flex min-h-0 flex-1 gap-6">
-        <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 overflow-auto rounded-lg border border-gray-300 bg-white p-5">
+        <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-auto rounded-lg border border-gray-300 bg-white p-5">
           {item.src ? (
-            <img
-              src={item.src}
+            <FocusEditor
+              item={item}
               alt={saved[defaultLocale] || item.name}
-              className="max-h-full max-w-full rounded-md border border-gray-300 object-contain"
+              onChange={(focus) => { setMedia(media.map((m) => (m.id === id ? { ...m, focus } : m))); setJustSaved(true); }}
             />
           ) : (
-            <MediaThumb item={item} className="aspect-video w-full max-w-2xl rounded-md border border-gray-300" />
+            <div className="flex flex-1 flex-col items-center justify-center gap-3">
+              <MediaThumb item={item} className="aspect-video w-full max-w-2xl rounded-md border border-gray-300" />
+              <p className="text-xs text-gray-400">{t("Sample file: no picture to show.")}</p>
+            </div>
           )}
-          <p className="text-xs text-gray-400">
-            {item.src
-              ? item.width
+          {item.src && (
+            <p className="text-center text-xs text-gray-400">
+              {item.width
                 ? t("Preview copy of the original ({w} × {h} px)", { w: item.width, h: item.height })
-                : t("Preview copy of the original")
-              : t("Sample file: no picture to show.")}
-          </p>
+                : t("Preview copy of the original")}
+            </p>
+          )}
         </div>
 
         <div className="max-h-full w-96 shrink-0 space-y-5 self-start overflow-y-auto rounded-lg border border-gray-300 bg-white p-5">
