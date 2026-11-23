@@ -137,7 +137,7 @@ export default function Preview() {
   const author = users.find((u) => u.id === entry.updatedBy);
   const publishStepId = workflowSteps[workflowSteps.length - 1]?.id;
   const isPublished = entry.status === publishStepId;
-  const ctx = { taxonomies, media, entries, contentTypes, publishStepId, locale: entry.locale };
+  const ctx = { taxonomies, media, entries, contentTypes, publishStepId, locale: entry.locale, plain: true };
 
   return channel.icon === "smartphone" ? (
     <AppMock entry={entry} channel={channel} isPublished={isPublished} typeName={type ? t(type.name) : ""} type={type} ctx={ctx} />

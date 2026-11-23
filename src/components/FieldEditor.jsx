@@ -203,7 +203,7 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
       return <AutoGrowText value={value} onCommit={onChange} />;
 
     case "Rich text":
-      return <RichTextEditor value={value} onChange={onChange} minHeight={110} media={ctx.media} onUpload={ctx.uploadMedia} locale={ctx.locale} />;
+      return <RichTextEditor value={value} onChange={onChange} minHeight={110} media={ctx.media} onUpload={ctx.uploadMedia} locale={ctx.locale} content={ctx} />;
 
     case "Number":
       return (

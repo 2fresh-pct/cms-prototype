@@ -544,7 +544,7 @@ function ContentDetailPage({ id }) {
             </DetailField>
             {showBody && (
               <DetailField label={bodyField?.label ?? "Body"} required={bodyField?.required} localized={bodyField?.localized}>
-                <RichTextView key={selectedVersionId ?? "current"} value={viewEntry.body} media={media} tiles />
+                <RichTextView key={selectedVersionId ?? "current"} value={viewEntry.body} media={media} content={fieldCtx} tiles />
               </DetailField>
             )}
             {groupTabs}
@@ -630,9 +630,10 @@ function ContentDetailPage({ id }) {
                   placeholder={t("Rich text content goes here…")}
                   onChange={(html) => update({ body: html })}
                   minHeight={220}
-                media={media}
-                onUpload={mediaUpload.upload}
-                locale={entry.locale}
+                  media={media}
+                  onUpload={mediaUpload.upload}
+                  locale={entry.locale}
+                  content={fieldCtx}
                 />
               </DetailField>
             )}

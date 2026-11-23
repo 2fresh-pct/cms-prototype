@@ -4,12 +4,15 @@ import StarterKit from "@tiptap/starter-kit";
 import { Placeholder } from "@tiptap/extensions";
 import { Table, TableRow, TableHeader, TableCell } from "@tiptap/extension-table";
 import {
-  Type, Heading2, Heading3, Bold, Italic, List, ListOrdered, Quote, Link2, Table2, Image as ImageIcon, Undo2, Redo2,
+  Type, Heading2, Heading3, Bold, Italic, List, ListOrdered, Quote, Link2, Table2, Image as ImageIcon, LayoutTemplate, Undo2, Redo2,
 } from "lucide-react";
 import { useI18n } from "../lib/i18n";
 import { toEditorHtml } from "../lib/richtext";
 import { MediaImage } from "../lib/mediaImage";
 import { Library } from "./MediaPicker";
+import { ContentItem, ContentItemContext, inLocale } from "./ContentItemEmbed";
+import { Picker } from "./EntryReferenceField";
+import { normalizeEntryGroupId } from "../lib/seed";
 
 // The allowed palette: no colours, fonts, code or rules, only semantic structure.
 function extensions(placeholder, getMedia = () => []) {
@@ -28,6 +31,7 @@ function extensions(placeholder, getMedia = () => []) {
     TableHeader,
     TableCell,
     MediaImage.configure({ getMedia }),
+    ContentItem,
     ...(placeholder ? [Placeholder.configure({ placeholder })] : []),
   ];
 }
@@ -58,12 +62,13 @@ const Divider = () => <span className="mx-1 h-4 w-px bg-gray-300" />;
 // so there may be no later blur to save an applied or removed link.
 // Stays in view while the content pane scrolls; -top-5 cancels the pane's p-5
 // so the bar sits flush with the top of the scroll area.
-function Toolbar({ editor, onCommit, media, onUpload, locale }) {
+function Toolbar({ editor, onCommit, media, onUpload, locale, content }) {
   const { t } = useI18n();
   const [linkOpen, setLinkOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
   const [linkText, setLinkText] = useState("");
   const [imageOpen, setImageOpen] = useState(false);
+  const [itemOpen, setItemOpen] = useState(false);
   const linkRange = useRef({ from: 0, to: 0 });
   const s = useEditorState({
     editor,
@@ -79,6 +84,7 @@ function Toolbar({ editor, onCommit, media, onUpload, locale }) {
       link: e.isActive("link"),
       table: e.isActive("table"),
       image: e.isActive("mediaImage"),
+      item: e.isActive("contentItem"),
       imageAlt: e.getAttributes("mediaImage").alt ?? "",
       canUndo: e.can().undo(),
       canRedo: e.can().redo(),
@@ -134,6 +140,26 @@ function Toolbar({ editor, onCommit, media, onUpload, locale }) {
     onCommit();
   }
 
+  // Items that can be embedded: any other item, once per item (not once per language
+  // version), shown in the language of this text when it has a version in it.
+  const itemCandidates = (() => {
+    if (!content) return [];
+    const seen = new Set();
+    return content.entries
+      .filter((e) => e.id !== content.entryId)
+      .map((e) => inLocale(e, content.entries, locale))
+      .filter((e) => { const g = normalizeEntryGroupId(e); if (seen.has(g)) return false; seen.add(g); return true; })
+      .filter((e) => normalizeEntryGroupId(e) !== normalizeEntryGroupId(content.entries.find((x) => x.id === content.entryId) ?? {}))
+      .sort((a, b) => a.title.localeCompare(b.title));
+  })();
+
+  function insertItem(ids) {
+    setItemOpen(false);
+    if (!ids[0]) return;
+    editor.chain().focus().insertContent({ type: "contentItem", attrs: { entryId: ids[0] } }).run();
+    onCommit();
+  }
+
   const canApply = linkUrl.trim() !== "" || linkRange.current.from !== linkRange.current.to;
   const onLinkKey = (e) => {
     if (e.key === "Enter") { e.preventDefault(); if (canApply) applyLink(); }
@@ -167,6 +193,7 @@ function Toolbar({ editor, onCommit, media, onUpload, locale }) {
           <Table2 size={15} />
         </ToolButton>
         {media && <ToolButton label={t("Image")} active={s.image} onClick={() => setImageOpen(true)}><ImageIcon size={15} /></ToolButton>}
+        {content && <ToolButton label={t("Content item as a component")} active={s.item} onClick={() => setItemOpen(true)}><LayoutTemplate size={15} /></ToolButton>}
         <Divider />
         <ToolButton label={t("Undo")} disabled={!s.canUndo} onClick={run((c) => c.undo())}><Undo2 size={14} /></ToolButton>
         <ToolButton label={t("Redo")} disabled={!s.canRedo} onClick={run((c) => c.redo())}><Redo2 size={14} /></ToolButton>
@@ -205,6 +232,20 @@ function Toolbar({ editor, onCommit, media, onUpload, locale }) {
         </div>
       )}
 
+      {s.item && (
+        <div className="flex items-center gap-2 border-t border-gray-200 px-2 py-1.5">
+          <button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => { editor.chain().focus().deleteSelection().run(); onCommit(); }}
+            className="shrink-0 rounded-md border border-gray-300 bg-white h-8 px-2.5 text-xs font-medium text-red-600 hover:bg-red-50"
+          >
+            {t("Remove content item")}
+          </button>
+          <span className="text-xs text-gray-500">{t("The website or the app decides how it looks.")}</span>
+        </div>
+      )}
+
       {linkOpen && (
         <div className="space-y-2 border-t border-gray-200 px-2 py-2">
           <div className="grid grid-cols-2 gap-2">
@@ -236,6 +277,19 @@ function Toolbar({ editor, onCommit, media, onUpload, locale }) {
           </div>
         </div>
       )}
+      {content && (
+        <Picker
+          open={itemOpen}
+          onClose={() => setItemOpen(false)}
+          single
+          title={t("Insert a content item")}
+          candidates={itemCandidates}
+          types={content.contentTypes}
+          selected={[]}
+          onConfirm={insertItem}
+          ctx={content}
+        />
+      )}
       {media && (
         <Library open={imageOpen} onClose={() => setImageOpen(false)} media={media} selected={[]} multiple={false} onConfirm={insertImage} onUpload={onUpload} />
       )}
@@ -243,9 +297,13 @@ function Toolbar({ editor, onCommit, media, onUpload, locale }) {
   );
 }
 
+const itemContext = (c) => ({ entries: c?.entries ?? [], contentTypes: c?.contentTypes ?? [], workflowSteps: c?.workflowSteps ?? [], publishStepId: c?.publishStepId ?? null, plain: Boolean(c?.plain) });
+
 // Writes back when focus leaves the editor (like the other fields), and only
 // if the content really changed, so merely clicking in doesn't create history.
-export default function RichTextEditor({ value, onChange, placeholder, minHeight = 160, media, onUpload, locale }) {
+// `content` ({ entries, contentTypes, workflowSteps, publishStepId, entryId, locale }) lets
+// content items be embedded; without it the editor has no such button.
+export default function RichTextEditor({ value, onChange, placeholder, minHeight = 160, media, onUpload, locale, content }) {
   const baseline = useRef(null);
   const mediaRef = useRef(media ?? []);
   mediaRef.current = media ?? [];
@@ -270,15 +328,17 @@ export default function RichTextEditor({ value, onChange, placeholder, minHeight
   if (!editor) return null;
   return (
     <div className="rounded-md border border-gray-300 bg-[#fff] focus-within:border-violet-400">
-      <Toolbar editor={editor} onCommit={() => commit(editor)} media={media} onUpload={onUpload} locale={locale} />
-      <EditorContent editor={editor} style={{ minHeight }} className="px-3 py-2 text-sm text-gray-800" />
+      <ContentItemContext.Provider value={{ ...itemContext(content), locale }}>
+        <Toolbar editor={editor} onCommit={() => commit(editor)} media={media} onUpload={onUpload} locale={locale} content={content} />
+        <EditorContent editor={editor} style={{ minHeight }} className="px-3 py-2 text-sm text-gray-800" />
+      </ContentItemContext.Provider>
     </div>
   );
 }
 
 // Read-only rendering for the version history view.
 // `tiles` shows pictures as compact tiles (as in the editor) instead of full width.
-export function RichTextView({ value, className = "text-sm text-gray-700", media, tiles = false }) {
+export function RichTextView({ value, className = "text-sm text-gray-700", media, tiles = false, content, locale }) {
   const mediaRef = useRef(media ?? []);
   mediaRef.current = media ?? [];
   const editor = useEditor({
@@ -290,5 +350,9 @@ export function RichTextView({ value, className = "text-sm text-gray-700", media
   useEffect(() => { editor?.commands.setContent(toEditorHtml(value)); }, [editor, value]);
   useEffect(() => { editor?.storage.mediaImage.views.forEach((redraw) => redraw()); }, [editor, media]);
   if (!value) return <p className="text-sm text-gray-700">—</p>;
-  return editor ? <EditorContent editor={editor} className={className} /> : null;
+  return editor ? (
+    <ContentItemContext.Provider value={{ ...itemContext(content), locale: locale ?? content?.locale ?? null }}>
+      <EditorContent editor={editor} className={className} />
+    </ContentItemContext.Provider>
+  ) : null;
 }

@@ -1,6 +1,10 @@
+import { createPortal } from "react-dom";
+
+// Drawn on <body>, so a modal opened from inside a sticky bar or another stacking
+// context still sits above the whole page.
 export default function Modal({ open, onClose, title, children, footer, maxWidth = "max-w-sm" }) {
   if (!open) return null;
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
       onClick={onClose}
@@ -13,6 +17,7 @@ export default function Modal({ open, onClose, title, children, footer, maxWidth
         <div className="text-sm text-gray-600">{children}</div>
         {footer && <div className="mt-5 flex justify-end gap-2">{footer}</div>}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
