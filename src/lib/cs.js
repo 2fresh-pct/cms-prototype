@@ -255,6 +255,7 @@ export const CS = {
   "Reset to centre": "Vrátit na střed",
   "Crop preview": "Náhled ořezu",
   "Find faces": "Najít obličeje",
+  "{done} of {total} translated": "Přeloženo {done} z {total}",
   "No face found. The focus point stays where it is.": "Nenalezen žádný obličej. Ohnisko zůstává, kde je.",
   "Face detection could not run. Set the focus point by hand.": "Rozpoznání obličejů se nepodařilo spustit. Nastavte ohnisko ručně.",
   "{n} found. The focus point is set to their centre.": "Nalezeno obličejů: {n}. Ohnisko je nastavené na jejich střed.",

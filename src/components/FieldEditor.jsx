@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { Plus, Trash2, X } from "lucide-react";
 import { useI18n } from "../lib/i18n";
-import { flattenTerms } from "../lib/seed";
+import { flattenTerms, termName } from "../lib/seed";
 import { htmlToText } from "../lib/richtext";
 import RichTextEditor from "./RichTextEditor";
 import MediaPicker from "./MediaPicker";
@@ -103,11 +103,16 @@ function RepeatingList({ value, onCommit, blank, addLabel, renderItem }) {
 const fold = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 // The terms in tree order, each with the names of its parents.
-function termsWithPath(terms, path = [], depth = 0) {
-  return terms.flatMap((term) => [
-    { id: term.id, name: term.name, depth, path },
-    ...termsWithPath(term.children, [...path, term.name], depth + 1),
-  ]);
+// Names are in the language of the entry (`locale`), with the default name as the
+// fallback; `all` holds every name of the term, so a search finds it in any language.
+function termsWithPath(terms, locale, path = [], depth = 0) {
+  return terms.flatMap((term) => {
+    const name = termName(term, locale);
+    return [
+      { id: term.id, name, all: [term.name, ...Object.values(term.names ?? {})], depth, path },
+      ...termsWithPath(term.children, locale, [...path, name], depth + 1),
+    ];
+  });
 }
 
 // Picking terms from a taxonomy: what is picked sits above the list as tags
@@ -119,12 +124,12 @@ function TaxonomyField({ field, value, onChange, ctx }) {
   const selected = value ?? [];
   const single = field.multiple === false;
   if (!taxonomy) return <p className="text-sm text-gray-400">{t("No taxonomy selected for this element.")}</p>;
-  const terms = termsWithPath(taxonomy.terms);
+  const terms = termsWithPath(taxonomy.terms, ctx.locale);
   if (terms.length === 0) return <p className="text-sm text-gray-400">{t("This taxonomy has no terms yet.")}</p>;
 
   const needle = fold(query.trim());
   const filtering = needle !== "";
-  const shown = filtering ? terms.filter((term) => fold(term.name).includes(needle)) : terms;
+  const shown = filtering ? terms.filter((term) => term.all.some((n) => fold(n).includes(needle))) : terms;
   const picked = selected.map((id) => terms.find((term) => term.id === id)).filter(Boolean);
 
   return (
@@ -339,7 +344,7 @@ export function fieldValueText(f, value, ctx, tr) {
     case "Taxonomy": {
       const taxonomy = ctx.taxonomies.find((x) => x.id === f.taxonomyId);
       if (!taxonomy) return empty;
-      const flat = flattenTerms(taxonomy.terms);
+      const flat = flattenTerms(taxonomy.terms, 0, ctx.locale);
       return value.map((id) => flat.find((x) => x.id === id)?.name).filter(Boolean).join(", ") || empty;
     }
     case "Rich text": return htmlToText(value) || empty;

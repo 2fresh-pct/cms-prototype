@@ -334,13 +334,23 @@ export function countTerms(terms) {
   return terms.reduce((sum, t) => sum + 1 + countTerms(t.children), 0);
 }
 
-export function flattenTerms(terms, depth = 0) {
-  return terms.flatMap((t) => [{ id: t.id, name: t.name, depth }, ...flattenTerms(t.children, depth + 1)]);
+// A term's name in a language: its translation (`names[locale]`) when it has one,
+// otherwise `name`, the name in the workspace's default language.
+export const termName = (term, locale) => (locale && term.names?.[locale]) || term.name;
+
+export function flattenTerms(terms, depth = 0, locale) {
+  return terms.flatMap((t) => [{ id: t.id, name: termName(t, locale), depth }, ...flattenTerms(t.children, depth + 1, locale)]);
 }
 
+// How many terms (at every level) have a translation in `locale`.
+export function countTranslated(terms, locale) {
+  return terms.reduce((sum, t) => sum + (t.names?.[locale] ? 1 : 0) + countTranslated(t.children, locale), 0);
+}
+
+// `patch` is an object merged into the term, or a function of the term that returns one.
 export function updateTermInTree(terms, id, patch) {
   return terms.map((t) =>
-    t.id === id ? { ...t, ...patch } : { ...t, children: updateTermInTree(t.children, id, patch) }
+    t.id === id ? { ...t, ...(typeof patch === "function" ? patch(t) : patch) } : { ...t, children: updateTermInTree(t.children, id, patch) }
   );
 }
 

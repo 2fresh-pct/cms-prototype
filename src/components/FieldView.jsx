@@ -108,7 +108,7 @@ export default function FieldView({ field: f, value, ctx, compact, thumbnails = 
     }
     case "Taxonomy": {
       const tx = ctx.taxonomies.find((x) => x.id === f.taxonomyId);
-      const flat = tx ? flattenTerms(tx.terms) : [];
+      const flat = tx ? flattenTerms(tx.terms, 0, ctx.locale) : [];
       return <Chips names={value.map((id) => flat.find((x) => x.id === id)?.name).filter(Boolean)} />;
     }
     case "Reference": {
