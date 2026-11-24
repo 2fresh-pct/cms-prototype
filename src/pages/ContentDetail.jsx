@@ -636,6 +636,7 @@ function ContentDetailPage({ id }) {
                   onUpload={mediaUpload.upload}
                   locale={entry.locale}
                   content={fieldCtx}
+                  options={bodyField?.richText}
                 />
               </DetailField>
             )}

@@ -13,25 +13,33 @@ import { Library } from "./MediaPicker";
 import { ContentItem, ContentItemContext, inLocale } from "./ContentItemEmbed";
 import { Picker } from "./EntryReferenceField";
 import { normalizeEntryGroupId } from "../lib/seed";
+import { richTextOff } from "../lib/richTextOptions";
 
-// The allowed palette: no colours, fonts, code or rules, only semantic structure.
-function extensions(placeholder, getMedia = () => []) {
+// The allowed palette: no colours, fonts, code or rules, only semantic structure. `off`
+// is the set of options the content type switched off (see lib/richTextOptions); an
+// option that is off is removed from the editor itself, so shortcuts, typing
+// shortcuts like "## " and pasted text can't bring it back. Read-only views pass
+// nothing, so they always show everything that is stored.
+function extensions(placeholder, getMedia = () => [], off = new Set()) {
+  const levels = [off.has("heading") ? null : 2, off.has("subheading") ? null : 3].filter(Boolean);
   return [
     StarterKit.configure({
-      heading: { levels: [2, 3] },
+      heading: levels.length ? { levels } : false,
+      bold: off.has("bold") ? false : undefined,
+      italic: off.has("italic") ? false : undefined,
+      bulletList: off.has("bulletList") ? false : undefined,
+      orderedList: off.has("orderedList") ? false : undefined,
+      blockquote: off.has("quote") ? false : undefined,
       code: false,
       codeBlock: false,
       strike: false,
       underline: false,
       horizontalRule: false,
-      link: { openOnClick: false, HTMLAttributes: { rel: "noopener noreferrer nofollow", target: "_blank" } },
+      link: off.has("link") ? false : { openOnClick: false, HTMLAttributes: { rel: "noopener noreferrer nofollow", target: "_blank" } },
     }),
-    Table,
-    TableRow,
-    TableHeader,
-    TableCell,
-    MediaImage.configure({ getMedia }),
-    ContentItem,
+    ...(off.has("table") ? [] : [Table, TableRow, TableHeader, TableCell]),
+    ...(off.has("image") ? [] : [MediaImage.configure({ getMedia })]),
+    ...(off.has("component") ? [] : [ContentItem]),
     ...(placeholder ? [Placeholder.configure({ placeholder })] : []),
   ];
 }
@@ -62,7 +70,7 @@ const Divider = () => <span className="mx-1 h-4 w-px bg-gray-300" />;
 // so there may be no later blur to save an applied or removed link.
 // Stays in view while the content pane scrolls; -top-5 cancels the pane's p-5
 // so the bar sits flush with the top of the scroll area.
-function Toolbar({ editor, onCommit, media, onUpload, locale, content }) {
+function Toolbar({ editor, onCommit, media, onUpload, locale, content, off, componentTypeIds }) {
   const { t } = useI18n();
   const [linkOpen, setLinkOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
@@ -142,11 +150,12 @@ function Toolbar({ editor, onCommit, media, onUpload, locale, content }) {
 
   // Items that can be embedded: any other item, once per item (not once per language
   // version), shown in the language of this text when it has a version in it.
+  const allowedTypes = content ? content.contentTypes.filter((ct) => !componentTypeIds?.length || componentTypeIds.includes(ct.id)) : [];
   const itemCandidates = (() => {
     if (!content) return [];
     const seen = new Set();
     return content.entries
-      .filter((e) => e.id !== content.entryId)
+      .filter((e) => e.id !== content.entryId && allowedTypes.some((ct) => ct.id === e.contentTypeId))
       .map((e) => inLocale(e, content.entries, locale))
       .filter((e) => { const g = normalizeEntryGroupId(e); if (seen.has(g)) return false; seen.add(g); return true; })
       .filter((e) => normalizeEntryGroupId(e) !== normalizeEntryGroupId(content.entries.find((x) => x.id === content.entryId) ?? {}))
@@ -174,26 +183,28 @@ function Toolbar({ editor, onCommit, media, onUpload, locale, content }) {
     <div className="sticky top-[calc(var(--sticky-tabs,0px)-var(--pane-pad,1.25rem))] z-10 rounded-t-md border-b border-gray-300 bg-gray-50">
       <div className="flex flex-wrap items-center gap-0.5 px-1.5 py-1">
         <ToolButton label={t("Regular text")} active={s.paragraph} onClick={run((c) => c.setParagraph())}><Type size={14} /></ToolButton>
-        <ToolButton label={t("Heading")} active={s.h2} onClick={run((c) => c.toggleHeading({ level: 2 }))}><Heading2 size={15} /></ToolButton>
-        <ToolButton label={t("Subheading")} active={s.h3} onClick={run((c) => c.toggleHeading({ level: 3 }))}><Heading3 size={15} /></ToolButton>
-        <Divider />
-        <ToolButton label={t("Bold")} active={s.bold} onClick={run((c) => c.toggleBold())}><Bold size={14} /></ToolButton>
-        <ToolButton label={t("Italic")} active={s.italic} onClick={run((c) => c.toggleItalic())}><Italic size={14} /></ToolButton>
-        <ToolButton label={t("Link")} active={s.link} onClick={openLink}><Link2 size={14} /></ToolButton>
-        <Divider />
-        <ToolButton label={t("Bulleted list")} active={s.bullet} onClick={run((c) => c.toggleBulletList())}><List size={15} /></ToolButton>
-        <ToolButton label={t("Numbered list")} active={s.ordered} onClick={run((c) => c.toggleOrderedList())}><ListOrdered size={15} /></ToolButton>
-        <ToolButton label={t("Quote")} active={s.quote} onClick={run((c) => c.toggleBlockquote())}><Quote size={14} /></ToolButton>
-        <ToolButton
-          label={t("Table")}
-          active={s.table}
-          disabled={s.table}
-          onClick={run((c) => c.insertTable({ rows: 3, cols: 3, withHeaderRow: true }))}
-        >
-          <Table2 size={15} />
-        </ToolButton>
-        {media && <ToolButton label={t("Image")} active={s.image} onClick={() => setImageOpen(true)}><ImageIcon size={15} /></ToolButton>}
-        {content && <ToolButton label={t("Content item as a component")} active={s.item} onClick={() => setItemOpen(true)}><LayoutTemplate size={15} /></ToolButton>}
+        {!off.has("heading") && <ToolButton label={t("Heading")} active={s.h2} onClick={run((c) => c.toggleHeading({ level: 2 }))}><Heading2 size={15} /></ToolButton>}
+        {!off.has("subheading") && <ToolButton label={t("Subheading")} active={s.h3} onClick={run((c) => c.toggleHeading({ level: 3 }))}><Heading3 size={15} /></ToolButton>}
+        {(!off.has("bold") || !off.has("italic") || !off.has("link")) && <Divider />}
+        {!off.has("bold") && <ToolButton label={t("Bold")} active={s.bold} onClick={run((c) => c.toggleBold())}><Bold size={14} /></ToolButton>}
+        {!off.has("italic") && <ToolButton label={t("Italic")} active={s.italic} onClick={run((c) => c.toggleItalic())}><Italic size={14} /></ToolButton>}
+        {!off.has("link") && <ToolButton label={t("Link")} active={s.link} onClick={openLink}><Link2 size={14} /></ToolButton>}
+        {(!off.has("bulletList") || !off.has("orderedList") || !off.has("quote") || !off.has("table")) && <Divider />}
+        {!off.has("bulletList") && <ToolButton label={t("Bulleted list")} active={s.bullet} onClick={run((c) => c.toggleBulletList())}><List size={15} /></ToolButton>}
+        {!off.has("orderedList") && <ToolButton label={t("Numbered list")} active={s.ordered} onClick={run((c) => c.toggleOrderedList())}><ListOrdered size={15} /></ToolButton>}
+        {!off.has("quote") && <ToolButton label={t("Quote")} active={s.quote} onClick={run((c) => c.toggleBlockquote())}><Quote size={14} /></ToolButton>}
+        {!off.has("table") && (
+          <ToolButton
+            label={t("Table")}
+            active={s.table}
+            disabled={s.table}
+            onClick={run((c) => c.insertTable({ rows: 3, cols: 3, withHeaderRow: true }))}
+          >
+            <Table2 size={15} />
+          </ToolButton>
+        )}
+        {media && !off.has("image") && <ToolButton label={t("Image")} active={s.image} onClick={() => setImageOpen(true)}><ImageIcon size={15} /></ToolButton>}
+        {content && !off.has("component") && <ToolButton label={t("Content item as a component")} active={s.item} onClick={() => setItemOpen(true)}><LayoutTemplate size={15} /></ToolButton>}
         <Divider />
         <ToolButton label={t("Undo")} disabled={!s.canUndo} onClick={run((c) => c.undo())}><Undo2 size={14} /></ToolButton>
         <ToolButton label={t("Redo")} disabled={!s.canRedo} onClick={run((c) => c.redo())}><Redo2 size={14} /></ToolButton>
@@ -284,7 +295,7 @@ function Toolbar({ editor, onCommit, media, onUpload, locale, content }) {
           insert
           title={t("Insert content items")}
           candidates={itemCandidates}
-          types={content.contentTypes}
+          types={allowedTypes}
           selected={[]}
           onConfirm={insertItem}
           ctx={content}
@@ -303,7 +314,8 @@ const itemContext = (c) => ({ entries: c?.entries ?? [], contentTypes: c?.conten
 // if the content really changed, so merely clicking in doesn't create history.
 // `content` ({ entries, contentTypes, workflowSteps, publishStepId, entryId, locale }) lets
 // content items be embedded; without it the editor has no such button.
-export default function RichTextEditor({ value, onChange, placeholder, minHeight = 160, media, onUpload, locale, content }) {
+export default function RichTextEditor({ value, onChange, placeholder, minHeight = 160, media, onUpload, locale, content, options }) {
+  const off = richTextOff(options);
   const baseline = useRef(null);
   const mediaRef = useRef(media ?? []);
   mediaRef.current = media ?? [];
@@ -315,7 +327,7 @@ export default function RichTextEditor({ value, onChange, placeholder, minHeight
     onChange(html);
   };
   const editor = useEditor({
-    extensions: extensions(placeholder, () => mediaRef.current),
+    extensions: extensions(placeholder, () => mediaRef.current, off),
     content: toEditorHtml(value),
     editorProps: { attributes: { class: "rte-content rte-tiles" } },
     onCreate: ({ editor: e }) => { baseline.current = e.getHTML(); },
@@ -323,13 +335,13 @@ export default function RichTextEditor({ value, onChange, placeholder, minHeight
   });
 
   // Redraw images when the library changes (an upload inserted straight away).
-  useEffect(() => { editor?.storage.mediaImage.views.forEach((redraw) => redraw()); }, [editor, media]);
+  useEffect(() => { editor?.storage.mediaImage?.views.forEach((redraw) => redraw()); }, [editor, media]);
 
   if (!editor) return null;
   return (
     <div className="rounded-md border border-gray-300 bg-[#fff] focus-within:border-violet-400">
       <ContentItemContext.Provider value={{ ...itemContext(content), locale }}>
-        <Toolbar editor={editor} onCommit={() => commit(editor)} media={media} onUpload={onUpload} locale={locale} content={content} />
+        <Toolbar editor={editor} onCommit={() => commit(editor)} media={media} onUpload={onUpload} locale={locale} content={content} off={off} componentTypeIds={options?.componentTypes} />
         <EditorContent editor={editor} style={{ minHeight }} className="px-3 py-2 text-sm text-gray-800" />
       </ContentItemContext.Provider>
     </div>

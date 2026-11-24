@@ -13,6 +13,7 @@ import AddFieldDialog from "../components/AddFieldDialog";
 import GroupTabs from "../components/GroupTabs";
 import { GENERAL, groupsOf } from "../lib/groups";
 import { fieldKeyFor, keyBase } from "../lib/fieldKey";
+import { RICH_TEXT_OPTIONS, richTextOff } from "../lib/richTextOptions";
 
 export default function ContentTypeDetail() {
   const { id } = useParams();
@@ -361,6 +362,54 @@ function ContentTypeEditor({ id }) {
                         );
                       })}
                       {!f.targetTypeIds?.length && <span className="text-gray-400">{f.targetName ? t(f.targetName) : t("Any content type")}</span>}
+                    </div>
+                  )}
+                  {f.type === "Rich text" && (
+                    <div className="space-y-2 pl-7 text-xs text-gray-500">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="mr-1">{t("Allowed in the text")}</span>
+                        {RICH_TEXT_OPTIONS.map((o) => {
+                          const off = richTextOff(f.richText);
+                          const on = !off.has(o.id);
+                          return (
+                            <button
+                              key={o.id}
+                              type="button"
+                              aria-pressed={on}
+                              onClick={() => {
+                                const next = new Set(off);
+                                if (on) next.add(o.id); else next.delete(o.id);
+                                updateField(i, { richText: { ...f.richText, off: [...next] } });
+                              }}
+                              className={`h-7 rounded-full border px-3 ${on ? "border-gray-800 bg-gray-800 text-white" : "border-gray-300 bg-white text-gray-500 line-through hover:bg-gray-50"}`}
+                            >
+                              {t(o.label)}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {!richTextOff(f.richText).has("component") && (
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="mr-1">{t("Components can be")}</span>
+                          {contentTypes.map((ct) => {
+                            const chosen = f.richText?.componentTypes ?? [];
+                            const on = chosen.includes(ct.id);
+                            return (
+                              <button
+                                key={ct.id}
+                                type="button"
+                                aria-pressed={on}
+                                onClick={() => updateField(i, { richText: { ...f.richText, componentTypes: on ? chosen.filter((x) => x !== ct.id) : [...chosen, ct.id] } })}
+                                className={`h-7 rounded-full border px-3 ${on ? "border-gray-800 bg-gray-800 text-white" : "border-gray-300 bg-white text-gray-600 hover:bg-gray-50"}`}
+                              >
+                                {t(ct.name)}
+                              </button>
+                            );
+                          })}
+                          {!f.richText?.componentTypes?.length && <span className="text-gray-400">{t("Any content type")}</span>}
+                        </div>
+                      )}
+                      <p className="text-gray-400">{t("An option that is off is left out of the editor and of pasted text. Text that already uses it loses it when it is edited.")}</p>
                     </div>
                   )}
                   {f.type === "Select" && (
