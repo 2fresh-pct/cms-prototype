@@ -1,6 +1,5 @@
 import { createContext, useContext } from "react";
 import { Node, mergeAttributes, ReactNodeViewRenderer, NodeViewWrapper } from "@tiptap/react";
-import { AlertTriangle } from "lucide-react";
 import { useI18n } from "../lib/i18n";
 import { normalizeEntryStatus } from "../lib/seed";
 import { inLocale } from "../lib/usage";
@@ -78,14 +77,9 @@ function ContentItemCard({ node, selected, editor, deleteNode }) {
                 </p>
               </div>
               <StatusPill status={step?.name ?? entry.status} color={step?.color} />
+              {!published && <StatusPill status="Not published" color="#d97706" />}
               {editor.isEditable && <RemoveButton onRemove={() => { deleteNode(); setTimeout(() => ctx.commit?.(), 0); }} />}
             </div>
-            {!published && (
-              <p className="mt-2 flex items-center gap-1.5 text-xs text-amber-800">
-                <AlertTriangle size={12} className="shrink-0" />
-                {t("Not published")}
-              </p>
-            )}
           </>
         ) : (
           <div className="flex items-center justify-between gap-3">
