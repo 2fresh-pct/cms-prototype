@@ -285,7 +285,6 @@ export const CS = {
   "Insert {n} items": "Vložit položky ({n})",
   "Insert": "Vložit",
   "Content item": "Položka obsahu",
-  "Remove content item": "Odebrat položku obsahu",
   "{done} of {total} translated": "Přeloženo {done} z {total}",
   "No face found. The focus point stays where it is.": "Nenalezen žádný obličej. Ohnisko zůstává, kde je.",
   "Face detection could not run. Set the focus point by hand.": "Rozpoznání obličejů se nepodařilo spustit. Nastavte ohnisko ručně.",

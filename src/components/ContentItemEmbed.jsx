@@ -26,7 +26,7 @@ function RemoveButton({ onRemove }) {
       onClick={onRemove}
       className="shrink-0 rounded-md border border-gray-300 bg-white h-7 px-2.5 text-xs font-medium text-red-600 hover:bg-red-50"
     >
-      {t("Remove content item")}
+      {t("Remove")}
     </button>
   );
 }
