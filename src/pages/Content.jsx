@@ -190,7 +190,7 @@ export default function Content() {
     const scheduling = mode === "schedule" && scheduledAt;
     const patch = scheduling
       ? { scheduledPublishAt: new Date(scheduledAt).toISOString(), channels: channelsValue }
-      : { status: publishStepId, scheduledPublishAt: null, channels: channelsValue, live: null };
+      : { status: publishStepId, scheduledPublishAt: null, channels: channelsValue, live: null, publishedAt: new Date().toISOString() };
     const summary = scheduling
       ? `Scheduled to publish on ${new Date(scheduledAt).toLocaleString(dateLocale, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}`
       : `Status changed to "${publishStep?.name}"`;

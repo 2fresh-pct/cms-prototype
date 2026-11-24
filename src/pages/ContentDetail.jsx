@@ -33,6 +33,11 @@ function formatScheduled(iso, locale = "en-GB") {
   return new Date(iso).toLocaleString(locale, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 }
 
+// With the year, for moments that can lie far in the past (when something went live).
+function formatWhen(iso, locale = "en-GB") {
+  return new Date(iso).toLocaleString(locale, { day: "numeric", month: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+
 // Turns one key of an update() patch into a human-readable history line, or
 // null if that key's new value doesn't actually differ from what's on the
 // entry already (so blur-without-editing doesn't log a no-op change).
@@ -138,6 +143,12 @@ export default function ContentDetail() {
 function ContentDetailPage({ id }) {
   const { t, dateLocale } = useI18n();
   const fmtDate = (iso) => formatScheduled(iso, dateLocale);
+  // When a published entry went live: recorded at publishing; for older entries the
+  // last history step that was Published, else its last update.
+  const publishedAtOf = (e) =>
+    e.publishedAt ??
+    [...(e.history ?? [])].reverse().find((h) => normalizeEntryStatus(h.snapshot?.status, workflowSteps) === publishStepId)?.timestamp ??
+    e.updatedAt;
   const navigate = useNavigate();
   const [entries, setEntries] = useLocalStorage("cms.entries", seedEntries);
   const [defaultLocale] = useLocalStorage("cms.settings.defaultLocale", "en");
@@ -283,7 +294,8 @@ function ContentDetailPage({ id }) {
     const patch = {
       status: workflowSteps[0]?.id,
       scheduledPublishAt: null,
-      live: { ...content, publishedAt: entry.updatedAt },
+      live: { ...content, publishedAt: publishedAtOf(entry) },
+      publishedAt: null,
       ...(Object.keys(fresh).length ? { fieldValues: { ...(entry.fieldValues ?? {}), ...fresh } } : {}),
     };
     setEntries(entries.map((e) => (e.id === id ? applyPatch(e, patch, "New draft created; the published version stays live") : e)));
@@ -293,7 +305,7 @@ function ContentDetailPage({ id }) {
   // Takes the live version offline; a published item goes back to an editable
   // draft, a draft that sits over a live version just loses that live version.
   function confirmUnpublish() {
-    const patch = isPublished ? { status: workflowSteps[0]?.id, scheduledPublishAt: null, live: null } : { live: null };
+    const patch = isPublished ? { status: workflowSteps[0]?.id, scheduledPublishAt: null, live: null, publishedAt: null } : { live: null };
     setEntries(entries.map((e) => (e.id === id ? applyPatch(e, patch, "Unpublished") : e)));
     flashSaved();
     setPendingUnpublish(false);
@@ -329,7 +341,7 @@ function ContentDetailPage({ id }) {
     const channelsValue = channels.every((c) => channelIds.includes(c.id)) ? ALL_CHANNELS : channelIds;
     const patch = mode === "schedule" && scheduledAt
       ? { scheduledPublishAt: new Date(scheduledAt).toISOString(), channels: channelsValue }
-      : { status: publishStepId, scheduledPublishAt: null, channels: channelsValue, live: null };
+      : { status: publishStepId, scheduledPublishAt: null, channels: channelsValue, live: null, publishedAt: new Date().toISOString() };
     const alsoIds = new Set(includeUsed ? unpublishedUsedBy(versionIds).map((u) => u.entry.id) : []);
     setEntries(entries.map((e) => (versionIds.includes(e.id) || alsoIds.has(e.id) ? applyPatch(e, patch) : e)));
     setSaveStatus("saving");
@@ -749,6 +761,9 @@ function ContentDetailPage({ id }) {
                       {t("Unpublish")}
                     </button>
                   </div>
+                  <p className="mt-2 flex items-center gap-1.5 text-xs text-gray-500">
+                    <Clock size={12} /> {t("Live since {when}", { when: formatWhen(publishedAtOf(entry), dateLocale) })}
+                  </p>
                   <button
                     onClick={createDraft}
                     className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-md bg-violet-600 h-9 px-3 text-sm font-medium text-white hover:bg-violet-700"
@@ -769,6 +784,9 @@ function ContentDetailPage({ id }) {
                     <div className="mt-3 flex flex-wrap items-center gap-2 rounded-md bg-gray-50 px-2.5 py-2 ring-1 ring-inset ring-gray-200">
                       <span className="text-xs text-gray-500">{t("Live version")}</span>
                       <StatusPill status={publishedStep?.name ?? "Published"} color={publishedStep?.color} />
+                      <span className="flex w-full items-center gap-1.5 text-xs text-gray-500">
+                        <Clock size={12} /> {t("Live since {when}", { when: formatWhen(entry.live.publishedAt ?? entry.live.updatedAt, dateLocale) })}
+                      </span>
                       <button
                         onClick={() => setPendingUnpublish(true)}
                         className="rounded-md border border-gray-300 bg-white h-7 px-2.5 text-xs font-medium text-red-600 hover:bg-red-50"
