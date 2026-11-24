@@ -390,7 +390,7 @@ function ContentTypeEditor({ id }) {
                       </div>
                       {!richTextOff(f.richText).has("component") && (
                         <div className="flex flex-wrap items-center gap-1.5">
-                          <span className="mr-1">{t("Components can be")}</span>
+                          <span className="mr-1">{t("Allowed content types")}</span>
                           {contentTypes.map((ct) => {
                             const chosen = f.richText?.componentTypes ?? [];
                             const on = chosen.includes(ct.id);
@@ -409,7 +409,6 @@ function ContentTypeEditor({ id }) {
                           {!f.richText?.componentTypes?.length && <span className="text-gray-400">{t("Any content type")}</span>}
                         </div>
                       )}
-                      <p className="text-gray-400">{t("An option that is off is left out of the editor and of pasted text. Text that already uses it loses it when it is edited.")}</p>
                     </div>
                   )}
                   {f.type === "Select" && (
