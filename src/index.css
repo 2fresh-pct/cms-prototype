@@ -105,7 +105,8 @@ select.no-chevron { background-image: none; }
 .rte-content ol { list-style: decimal; padding-left: 1.25rem; }
 .rte-content li > p { margin: 0; }
 .rte-content blockquote { border-left: 3px solid #cfcfcf; padding-left: 0.75rem; color: #2d2d2d; }
-.rte-content a { text-decoration: underline; text-underline-offset: 2px; }
+.rte-content a { color: #3446d4; text-decoration: underline; text-underline-offset: 2px; }
+.rte-content a:hover { color: #222f9e; }
 .rte-content table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 .rte-content th, .rte-content td { border: 1px solid #d4d4d4; padding: 0.35rem 0.5rem; vertical-align: top; text-align: left; }
 .rte-content th { background: #f3f3f3; font-weight: 600; }
@@ -365,6 +366,8 @@ html[data-mode="dark"] .bg-white\/90 { background-color: rgba(29, 26, 20, 0.9); 
 html[data-mode="dark"] .ring-black\/10 { --tw-ring-color: rgba(255, 255, 255, 0.16); }
 
 /* Rich text, written with fixed light-mode colours above. */
+html[data-mode="dark"] .rte-content a { color: #9fb0ff; }
+html[data-mode="dark"] .rte-content a:hover { color: #c3cfff; }
 html[data-mode="dark"] .rte-content h2,
 html[data-mode="dark"] .rte-content h3 { color: var(--color-gray-900); }
 html[data-mode="dark"] .rte-content blockquote { color: var(--color-gray-700); border-left-color: var(--color-gray-300); }
