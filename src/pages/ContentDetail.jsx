@@ -10,7 +10,7 @@ import {
   DEFAULT_CHANNELS, normalizeChannels, ALL_CHANNELS, isAllChannels, resolvePublishedChannelIds,
 } from "../lib/seed";
 import { sharedFields, isEmptyValue, latestValue } from "../lib/sharedFields";
-import { usedIn } from "../lib/usage";
+import { usedIn, usedEntryIds, inLocale } from "../lib/usage";
 import PageHeader from "../components/PageHeader";
 import DetailField from "../components/DetailField";
 import FieldEditor from "../components/FieldEditor";
@@ -301,13 +301,37 @@ function ContentDetailPage({ id }) {
 
   // Each language version stays its own entry (own status, history, comments):
   // the dialog just applies the same publish action to every ticked version.
-  function confirmPublish({ mode, scheduledAt, channelIds, versionIds }) {
+  // The items that publishing these versions would leave unpublished although the
+  // versions use them (linked or embedded), reached through other items' uses too, each
+  // in the language of the version that uses it when it has one. Published items are
+  // passed through without being listed.
+  function unpublishedUsedBy(versionIds) {
+    const queue = versionIds.map((vid) => entries.find((e) => e.id === vid)).filter(Boolean);
+    const seen = new Set(queue.map((e) => e.id));
+    const found = new Map();
+    while (queue.length) {
+      const host = queue.shift();
+      for (const { id: usedId, how } of usedEntryIds(host, contentTypes)) {
+        const picked = entries.find((e) => e.id === usedId);
+        if (!picked) continue;
+        const version = inLocale(picked, entries, host.locale);
+        if (seen.has(version.id)) continue;
+        seen.add(version.id);
+        queue.push(version);
+        if (normalizeEntryStatus(version.status, workflowSteps) !== publishStepId) found.set(version.id, { entry: version, how });
+      }
+    }
+    return [...found.values()];
+  }
+
+  function confirmPublish({ mode, scheduledAt, channelIds, versionIds, includeUsed }) {
     if (channelIds.length === 0 || versionIds.length === 0) return;
     const channelsValue = channels.every((c) => channelIds.includes(c.id)) ? ALL_CHANNELS : channelIds;
     const patch = mode === "schedule" && scheduledAt
       ? { scheduledPublishAt: new Date(scheduledAt).toISOString(), channels: channelsValue }
       : { status: publishStepId, scheduledPublishAt: null, channels: channelsValue, live: null };
-    setEntries(entries.map((e) => (versionIds.includes(e.id) ? applyPatch(e, patch) : e)));
+    const alsoIds = new Set(includeUsed ? unpublishedUsedBy(versionIds).map((u) => u.entry.id) : []);
+    setEntries(entries.map((e) => (versionIds.includes(e.id) || alsoIds.has(e.id) ? applyPatch(e, patch) : e)));
     setSaveStatus("saving");
     clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current = setTimeout(() => setSaveStatus("saved"), 600);
@@ -942,6 +966,12 @@ function ContentDetailPage({ id }) {
         })}
         texts={{ now: "This entry will go live now on:", schedule: "At the scheduled time, this entry will go live on:" }}
         emptyLabel="No version in this language yet"
+        usedFor={(ids) => unpublishedUsedBy(ids).map(({ entry: u, how }) => ({
+          id: u.id,
+          title: u.title,
+          typeName: t(contentTypes.find((ct) => ct.id === u.contentTypeId)?.name ?? ""),
+          how,
+        }))}
         onConfirm={confirmPublish}
       />
     </div>

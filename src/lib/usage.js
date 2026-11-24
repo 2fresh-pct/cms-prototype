@@ -40,3 +40,29 @@ export function usedIn(entry, entries, contentTypes, locale) {
     }))
     .sort((a, b) => a.entry.title.localeCompare(b.entry.title));
 }
+
+
+// The item in the language of `locale` when it has a version in it (versions of an item
+// share a groupId); otherwise the item as it is.
+export function inLocale(entry, entries, locale) {
+  if (!entry || !locale || entry.locale === locale) return entry;
+  const group = normalizeEntryGroupId(entry);
+  return entries.find((e) => normalizeEntryGroupId(e) === group && e.locale === locale) ?? entry;
+}
+
+// The items an entry uses: those it links in Reference fields and those it embeds as
+// components in rich text (the body and Rich text fields). [{ id, how }], how being
+// "linked" or "embedded"; an item used both ways is listed once with "embedded".
+export function usedEntryIds(entry, contentTypes) {
+  const type = contentTypes.find((ct) => ct.id === entry.contentTypeId);
+  const found = new Map();
+  const note = (id, how) => { if (id && (!found.has(id) || how === "embedded")) found.set(id, how); };
+  const embeds = (html) => { if (typeof html === "string") for (const m of html.matchAll(/data-content-item="([^"]+)"/g)) note(m[1], "embedded"); };
+  for (const f of type?.fields ?? []) {
+    const v = entry.fieldValues?.[f.name];
+    if (f.type === "Reference" && Array.isArray(v)) v.forEach((id) => note(id, "linked"));
+    if (f.type === "Rich text") embeds(v);
+  }
+  embeds(entry.body);
+  return [...found].map(([id, how]) => ({ id, how }));
+}

@@ -29,16 +29,20 @@ function defaultScheduleValue() {
 //   initialVersionIds entries ticked when it opens
 //   texts             { now, schedule }: the line above the channels
 //   emptyLabel        what an empty language row says
+//   usedFor           optional; (versionIds) => the not yet published items those
+//                     versions use ([{ id, title, typeName, how }]). When there are
+//                     some, a checkbox offers to publish them too.
 //   onConfirm         called with { mode: "now" | "schedule", scheduledAt,
-//                     channelIds, versionIds }
+//                     channelIds, versionIds, includeUsed }
 export default function PublishDialog({
-  open, onClose, title, channels, initialChannelIds, languageRows, initialVersionIds, texts, emptyLabel, onConfirm,
+  open, onClose, title, channels, initialChannelIds, languageRows, initialVersionIds, texts, emptyLabel, usedFor, onConfirm,
 }) {
   const { t } = useI18n();
   const [mode, setMode] = useState("now");
   const [scheduledAt, setScheduledAt] = useState("");
   const [channelIds, setChannelIds] = useState([]);
   const [versionIds, setVersionIds] = useState([]);
+  const [includeUsed, setIncludeUsed] = useState(false);
 
   // Fresh choices each time the dialog opens.
   const [wasOpen, setWasOpen] = useState(false);
@@ -48,10 +52,12 @@ export default function PublishDialog({
     setScheduledAt(defaultScheduleValue());
     setChannelIds(initialChannelIds);
     setVersionIds(initialVersionIds);
+    setIncludeUsed(false);
   }
   if (!open && wasOpen) setWasOpen(false);
 
   const toggle = (list, setList, id) => setList(list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
+  const used = open && usedFor ? usedFor(versionIds) : [];
   const canConfirm = channelIds.length > 0 && versionIds.length > 0 && (mode !== "schedule" || Boolean(scheduledAt));
 
   return (
@@ -66,7 +72,7 @@ export default function PublishDialog({
             {t("Cancel")}
           </button>
           <button
-            onClick={() => canConfirm && onConfirm({ mode, scheduledAt, channelIds, versionIds })}
+            onClick={() => canConfirm && onConfirm({ mode, scheduledAt, channelIds, versionIds, includeUsed: includeUsed && used.length > 0 })}
             disabled={!canConfirm}
             className="rounded-md bg-violet-600 h-9 px-3 text-sm font-medium text-white hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-40"
           >
@@ -163,6 +169,35 @@ export default function PublishDialog({
         </div>
         {versionIds.length === 0 && <p className="mt-1.5 text-xs text-red-600">{t("Select at least one language")}</p>}
       </div>
+
+      {used.length > 0 && (
+        <div className="mt-4 rounded-md border border-gray-300 px-3 py-2.5">
+          <label className="flex cursor-pointer items-start gap-2.5 text-sm text-gray-800">
+            <input
+              type="checkbox"
+              checked={includeUsed}
+              onChange={(e) => setIncludeUsed(e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-gray-300 accent-violet-600"
+            />
+            <span>
+              {t("Also publish the {n} content items used in it", { n: used.length })}
+              <span className="block text-xs text-gray-500">{t("Components and linked items that are not published yet. They go live the same way, on the same channels.")}</span>
+            </span>
+          </label>
+          <ul className="mt-2 space-y-0.5 pl-6 text-xs text-gray-600">
+            {used.slice(0, 6).map((u) => (
+              <li key={u.id} className="truncate">
+                <span className="font-medium text-gray-800">{u.title}</span>
+                <span className="text-gray-400"> · {u.typeName} · {t(u.how === "embedded" ? "Embedded in text" : "Linked")}</span>
+              </li>
+            ))}
+            {used.length > 6 && <li className="text-gray-400">{t("and {n} more", { n: used.length - 6 })}</li>}
+          </ul>
+          {!includeUsed && (
+            <p className="mt-2 pl-6 text-xs text-amber-800">{t("If they stay unpublished, they will be missing from the published item.")}</p>
+          )}
+        </div>
+      )}
     </Modal>
   );
 }

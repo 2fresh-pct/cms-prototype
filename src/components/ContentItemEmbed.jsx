@@ -2,7 +2,8 @@ import { createContext, useContext } from "react";
 import { Node, mergeAttributes, ReactNodeViewRenderer, NodeViewWrapper } from "@tiptap/react";
 import { AlertTriangle } from "lucide-react";
 import { useI18n } from "../lib/i18n";
-import { normalizeEntryGroupId, normalizeEntryStatus } from "../lib/seed";
+import { normalizeEntryStatus } from "../lib/seed";
+import { inLocale } from "../lib/usage";
 import { typeIcon } from "../lib/typeIcons";
 import { OpenEntryButton } from "./EntryReferenceField";
 import StatusPill from "./StatusPill";
@@ -16,13 +17,7 @@ import StatusPill from "./StatusPill";
 // What the card needs from the rest of the CMS; provided by the rich text editor.
 export const ContentItemContext = createContext({ entries: [], contentTypes: [], workflowSteps: [], publishStepId: null, locale: null, plain: false, linked: null });
 
-// The item in the language of the text, when it has a version in it (versions of an
-// item share a groupId); otherwise the item as it was picked.
-export function inLocale(entry, entries, locale) {
-  if (!entry || !locale || entry.locale === locale) return entry;
-  const group = normalizeEntryGroupId(entry);
-  return entries.find((e) => normalizeEntryGroupId(e) === group && e.locale === locale) ?? entry;
-}
+export { inLocale };
 
 function ContentItemCard({ node, selected }) {
   const { t } = useI18n();
