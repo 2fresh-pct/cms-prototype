@@ -83,7 +83,7 @@ function ContentItemCard({ node, selected, editor, deleteNode }) {
             {!published && (
               <p className="mt-2 flex items-center gap-1.5 text-xs text-amber-800">
                 <AlertTriangle size={12} className="shrink-0" />
-                {t("Not published yet: it appears in the text only once it is published.")}
+                {t("Not published")}
               </p>
             )}
           </>
