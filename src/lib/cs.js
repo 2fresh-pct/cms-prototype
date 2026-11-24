@@ -260,6 +260,7 @@ export const CS = {
   "Insert content items": "Vložit položky obsahu",
   "Show all content": "Zobrazit celý obsah",
   "Cancel schedule": "Zrušit naplánování",
+  "Insert content": "Vložit obsah",
   "Live since {when}": "Živě od {when}",
   "Select a date": "Vyberte datum",
   "Previous year": "Předchozí rok",

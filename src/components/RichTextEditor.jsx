@@ -45,23 +45,32 @@ function extensions(placeholder, getMedia = () => [], off = new Set()) {
   ];
 }
 
+// The name of a button shows right away on hover or keyboard focus, in a small bubble
+// under it (the browser's own `title` tooltip waits about a second).
 function ToolButton({ label, active, disabled, onClick, children }) {
   return (
-    <button
-      type="button"
-      title={label}
-      aria-label={label}
-      aria-pressed={active}
-      disabled={disabled}
-      // Keep the editor's selection: a button press must not steal focus.
-      onMouseDown={(e) => e.preventDefault()}
-      onClick={onClick}
-      className={`flex h-7 min-w-7 items-center justify-center rounded px-1.5 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-30 ${
-        active ? "bg-gray-700 text-white" : "text-gray-600 hover:bg-gray-200"
-      }`}
-    >
-      {children}
-    </button>
+    <span className="group/tip relative inline-flex">
+      <button
+        type="button"
+        aria-label={label}
+        aria-pressed={active}
+        disabled={disabled}
+        // Keep the editor's selection: a button press must not steal focus.
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={onClick}
+        className={`flex h-7 min-w-7 items-center justify-center rounded px-1.5 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-30 ${
+          active ? "bg-gray-700 text-white" : "text-gray-600 hover:bg-gray-200"
+        }`}
+      >
+        {children}
+      </button>
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute left-1/2 top-full z-30 mt-1.5 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-xs font-medium normal-case tracking-normal text-gray-50 opacity-0 shadow-lg group-hover/tip:opacity-100 group-focus-within/tip:opacity-100"
+      >
+        {label}
+      </span>
+    </span>
   );
 }
 
@@ -204,8 +213,8 @@ function Toolbar({ editor, onCommit, media, onUpload, locale, content, off, comp
             <Table2 size={15} />
           </ToolButton>
         )}
-        {media && !off.has("image") && <ToolButton label={t("Image")} active={s.image} onClick={() => setImageOpen(true)}><ImageIcon size={15} /></ToolButton>}
-        {content && !off.has("component") && <ToolButton label={t("Content item as a component")} active={s.item} onClick={() => setItemOpen(true)}><LayoutTemplate size={15} /></ToolButton>}
+        {media && !off.has("image") && <ToolButton label={t("Media")} active={s.image} onClick={() => setImageOpen(true)}><ImageIcon size={15} /></ToolButton>}
+        {content && !off.has("component") && <ToolButton label={t("Insert content")} active={s.item} onClick={() => setItemOpen(true)}><LayoutTemplate size={15} /></ToolButton>}
         <Divider />
         <ToolButton label={t("Undo")} disabled={!s.canUndo} onClick={run((c) => c.undo())}><Undo2 size={14} /></ToolButton>
         <ToolButton label={t("Redo")} disabled={!s.canRedo} onClick={run((c) => c.redo())}><Redo2 size={14} /></ToolButton>
