@@ -10,6 +10,7 @@ import FieldView, { isEmpty } from "../components/FieldView";
 import MediaThumb from "../components/MediaThumb";
 import { inLocale } from "../components/ContentItemEmbed";
 import { holdsSeveral, mediaIds } from "../lib/media";
+import { groupsOf } from "../lib/groups";
 import { htmlToText } from "../lib/richtext";
 import { Signal, Wifi, BatteryFull, ChevronLeft, ChevronDown } from "lucide-react";
 
@@ -30,12 +31,28 @@ function EntryFields({ entry, type, ctx, compact }) {
   const fields = type?.fields ?? [];
   const bodyField = fields.find((f) => f.core === "body") ?? fields.find((f) => f.name === "body");
   const extra = fields.filter((f) => !f.core && !["title", "slug", "body"].includes(f.name));
-  const shown = extra.filter((f) => !isEmpty(entry.fieldValues?.[f.name]));
+  // Ungrouped fields the type lists before its body (a subtitle) come before the body.
+  const bodyIndex = bodyField ? fields.indexOf(bodyField) : -1;
+  const typeGroups = groupsOf(type);
+  const isTop = (f) => bodyIndex > -1 && fields.indexOf(f) < bodyIndex && (!f.group || !typeGroups.includes(f.group));
+  const filled = extra.filter((f) => !isEmpty(entry.fieldValues?.[f.name]));
+  const top = filled.filter(isTop);
+  const shown = filled.filter((f) => !isTop(f));
   const hasBody = !isEmpty(entry.body);
   const h = compact ? "text-[11px]" : "text-xs";
 
+  const field = (f) => (
+    <div key={f.name}>
+      {f.type !== "Sections" && !(f.type === "Media" && !holdsSeveral(f)) && (
+        <p className={`mb-1.5 font-medium uppercase tracking-wide text-gray-400 ${h}`}>{t(f.label ?? f.name)}</p>
+      )}
+      <FieldView field={f} value={entry.fieldValues?.[f.name]} ctx={ctx} compact={compact} />
+    </div>
+  );
+
   return (
     <div className={compact ? "space-y-4" : "space-y-6"}>
+      {top.map(field)}
       {bodyField || !type ? (
         hasBody
           ? <FieldView field={{ type: "Rich text" }} value={entry.body} ctx={ctx} compact={compact} />

@@ -22,7 +22,7 @@ import Avatar from "../components/Avatar";
 import Modal from "../components/Modal";
 import GroupTabs from "../components/GroupTabs";
 import { slugify, slugOf } from "../lib/slug";
-import { GENERAL, sectionsOf } from "../lib/groups";
+import { GENERAL, sectionsOf, groupsOf } from "../lib/groups";
 import PreviewButton from "../components/PreviewButton";
 import PublishDialog from "../components/PublishDialog";
 import { useMediaUpload } from "../lib/mediaUpload";
@@ -416,10 +416,16 @@ function ContentDetailPage({ id }) {
   const bodyField = coreField("body") ?? type?.fields.find((f) => f.name === "body");
   const showBody = !type || Boolean(bodyField);
   const extraFields = (type?.fields ?? []).filter((f) => !f.core && !["title", "slug", "body"].includes(f.name));
-  // Fields outside the title / slug / body slots are shown in tabs, one per group.
-  const sections = sectionsOf(type, extraFields);
+  // Ungrouped fields that the content type lists before its body (a subtitle, say) are
+  // shown above the body, in the type's order; the rest are shown in tabs, one per group.
+  const bodyIndex = bodyField && type ? type.fields.indexOf(bodyField) : -1;
+  const typeGroups = groupsOf(type);
+  const beforeBody = (f) => bodyIndex > -1 && type.fields.indexOf(f) < bodyIndex && (!f.group || !typeGroups.includes(f.group));
+  const topFields = extraFields.filter(beforeBody);
+  const tabFields = extraFields.filter((f) => !beforeBody(f));
+  const sections = sectionsOf(type, tabFields);
   const activeSection = sections.find((s) => (s.name ?? GENERAL) === activeGroup) ?? sections[0];
-  const visibleFields = sections.length > 1 ? activeSection.fields : extraFields;
+  const visibleFields = sections.length > 1 ? activeSection.fields : tabFields;
   const groupTabs = sections.length > 1 && (
     <StickyTabs onHeight={setTabsHeight}>
       <GroupTabs tabs={sections.map((s) => ({ id: s.name ?? GENERAL, label: s.name ?? "General" }))} active={activeSection.name ?? GENERAL} onSelect={setActiveGroup} />
@@ -436,6 +442,28 @@ function ContentDetailPage({ id }) {
     if (follow ? Boolean(entry.slug) : next !== entry.slug) update({ slug: follow ? null : next });
   }
   const fieldCtx = { taxonomies, media, entries, contentTypes, workflowSteps, publishStepId, entryId: entry.id, locale: entry.locale, uploadMedia: mediaUpload.upload };
+  const viewField = (f) => f.type === "Separator" ? <FieldSeparator key={f.name} /> : (
+    <Fragment key={f.name}>
+      <DetailField label={f.label ?? f.name} required={f.required} localized={f.localized}>
+        {isEmpty(viewEntry.fieldValues?.[f.name])
+          ? <p className="text-sm text-gray-400">—</p>
+          : <FieldView field={f} value={viewEntry.fieldValues?.[f.name]} ctx={fieldCtx} compact thumbnails />}
+      </DetailField>
+    </Fragment>
+  );
+  const editField = (f) => f.type === "Separator" ? <FieldSeparator key={f.name} /> : (
+    <Fragment key={f.name}>
+      <DetailField label={f.label ?? f.name} required={f.required} localized={f.localized}>
+        <FieldEditor
+          key={`${entry.id}-${f.name}`}
+          field={f}
+          value={entry.fieldValues?.[f.name]}
+          onChange={(value) => setFieldValue(f.name, value)}
+          ctx={fieldCtx}
+        />
+      </DetailField>
+    </Fragment>
+  );
   const author = users.find((u) => u.id === entry.updatedBy);
   const displayStatus = normalizeEntryStatus(entry.status, workflowSteps);
   const currentStep = workflowSteps.find((s) => s.id === displayStatus);
@@ -580,6 +608,7 @@ function ContentDetailPage({ id }) {
             <DetailField label="Slug" required={slugField?.required} localized={slugField?.localized}>
               <p className="text-sm text-gray-500">/{slugOf(viewEntry)}</p>
             </DetailField>
+            {topFields.map(viewField)}
             {showBody && (
               <DetailField label={bodyField?.label ?? "Body"} required={bodyField?.required} localized={bodyField?.localized}>
                 <RichTextView key={selectedVersionId ?? "current"} value={viewEntry.body} media={media} content={fieldCtx} tiles />
@@ -587,15 +616,7 @@ function ContentDetailPage({ id }) {
             )}
             {groupTabs}
             {singleGroupHeading}
-            {visibleFields.map((f) => f.type === "Separator" ? <FieldSeparator key={f.name} /> : (
-              <Fragment key={f.name}>
-                <DetailField label={f.label ?? f.name} required={f.required} localized={f.localized}>
-                  {isEmpty(viewEntry.fieldValues?.[f.name])
-                    ? <p className="text-sm text-gray-400">—</p>
-                    : <FieldView field={f} value={viewEntry.fieldValues?.[f.name]} ctx={fieldCtx} compact thumbnails />}
-                </DetailField>
-              </Fragment>
-            ))}
+            {visibleFields.map(viewField)}
             {/* A published item shows these in the side panel; a past version has no such panel, so they go here. */}
             {historyMode && (
               <>
@@ -660,6 +681,7 @@ function ContentDetailPage({ id }) {
               )}
               {slugTaken && <p className="mt-1.5 text-xs text-amber-700">{t("Another item in this language already uses this slug.")}</p>}
             </DetailField>
+            {topFields.map(editField)}
             {showBody && (
               <DetailField label={bodyField?.label ?? "Body"} required={bodyField?.required} localized={bodyField?.localized}>
                 <RichTextEditor
@@ -679,19 +701,7 @@ function ContentDetailPage({ id }) {
 
             {groupTabs}
             {singleGroupHeading}
-            {visibleFields.map((f) => f.type === "Separator" ? <FieldSeparator key={f.name} /> : (
-              <Fragment key={f.name}>
-                <DetailField label={f.label ?? f.name} required={f.required} localized={f.localized}>
-                  <FieldEditor
-                    key={`${entry.id}-${f.name}`}
-                    field={f}
-                    value={entry.fieldValues?.[f.name]}
-                    onChange={(value) => setFieldValue(f.name, value)}
-                    ctx={fieldCtx}
-                  />
-                </DetailField>
-              </Fragment>
-            ))}
+            {visibleFields.map(editField)}
           </div>
         )}
         </div>
