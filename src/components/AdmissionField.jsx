@@ -3,6 +3,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { useI18n } from "../lib/i18n";
 import Draft from "./Draft";
 import { ADMISSION_TYPES, TICKET_TYPES, blankPrice, normalizeAdmission } from "../lib/admission";
+import DatePicker from "./DatePicker";
 
 const FIELD = "h-9 w-full rounded-md border border-gray-300 bg-[#fff] px-3 text-sm focus:border-violet-400 focus:outline-none";
 const LABEL = "mb-1.5 block text-xs font-medium text-gray-900";
@@ -72,11 +73,11 @@ export default function AdmissionField({ value, onChange }) {
                       </div>
                       <div>
                         <label className={LABEL}>{t("Valid from")}</label>
-                        <input type="date" value={p.from} onChange={(e) => setPrice(i, { from: e.target.value })} className={FIELD} />
+                        <DatePicker value={p.from} onChange={(v) => setPrice(i, { from: v })} ariaLabel={t("Valid from")} className={`${FIELD} w-full`} />
                       </div>
                       <div>
                         <label className={LABEL}>{t("Valid until")}</label>
-                        <input type="date" value={p.to} onChange={(e) => setPrice(i, { to: e.target.value })} className={FIELD} />
+                        <DatePicker value={p.to} onChange={(v) => setPrice(i, { to: v })} ariaLabel={t("Valid until")} className={`${FIELD} w-full`} />
                       </div>
                       <div className="col-span-2 flex items-end gap-2">
                         <div className="min-w-0 flex-1">

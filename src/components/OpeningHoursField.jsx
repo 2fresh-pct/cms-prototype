@@ -3,6 +3,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { useI18n } from "../lib/i18n";
 import Draft from "./Draft";
 import TimeIntervals from "./TimeIntervals";
+import DatePicker from "./DatePicker";
 import {
   WEEKDAYS, DEFAULT_INTERVAL, normalizeHours, newSeason, hoursForDate, layersFromEntry, formatIntervals, formatDate,
 } from "../lib/openingHours";
@@ -76,7 +77,7 @@ function Preview({ hours, ctx }) {
     <div className="rounded-md bg-gray-50 px-3 py-3 ring-1 ring-inset ring-gray-200">
       <div className="flex flex-wrap items-center gap-3">
         <span className="text-xs font-medium uppercase tracking-wide text-gray-900">{t("What visitors see")}</span>
-        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} aria-label={t("Date")} className={FIELD} />
+        <DatePicker value={date} onChange={setDate} ariaLabel={t("Date")} className={FIELD} />
       </div>
       {result && (
         <p className="mt-2.5 text-sm text-gray-900">

@@ -3,6 +3,7 @@ import { Smartphone, Globe, Radio, Tv, Mail, MessageSquare } from "lucide-react"
 import { useI18n } from "../lib/i18n";
 import { LOCALE_LIST, LOCALE_LABELS, LOCALE_NAMES } from "../lib/seed";
 import Modal from "./Modal";
+import DatePicker from "./DatePicker";
 import StatusPill from "./StatusPill";
 
 const CHANNEL_ICONS = { smartphone: Smartphone, globe: Globe, radio: Radio, tv: Tv, mail: Mail, "message-square": MessageSquare };
@@ -98,12 +99,22 @@ export default function PublishDialog({
       {mode === "schedule" && (
         <div className="mb-4">
           <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Publish date & time")}</label>
-          <input
-            type="datetime-local"
-            value={scheduledAt}
-            onChange={(e) => setScheduledAt(e.target.value)}
-            className="w-full rounded-md border border-gray-300 bg-[#fff] h-9 px-3 text-sm focus:border-violet-400 focus:outline-none"
-          />
+          <div className="flex gap-2">
+            <DatePicker
+              value={scheduledAt.slice(0, 10)}
+              onChange={(date) => setScheduledAt(date ? `${date}T${scheduledAt.slice(11, 16) || "09:00"}` : "")}
+              ariaLabel={t("Publish date & time")}
+              className="h-9 min-w-0 flex-1 px-3"
+            />
+            <input
+              type="time"
+              value={scheduledAt.slice(11, 16)}
+              onChange={(e) => setScheduledAt(scheduledAt ? `${scheduledAt.slice(0, 10)}T${e.target.value}` : "")}
+              disabled={!scheduledAt}
+              aria-label={t("Time")}
+              className="w-28 rounded-md border border-gray-300 bg-[#fff] h-9 px-3 text-sm focus:border-violet-400 focus:outline-none disabled:opacity-50"
+            />
+          </div>
         </div>
       )}
 

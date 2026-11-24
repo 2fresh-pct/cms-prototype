@@ -15,6 +15,7 @@ import AdmissionField from "./AdmissionField";
 import { WEEKDAYS, summarizeHours } from "../lib/openingHours";
 import { summarizeAdmission } from "../lib/admission";
 import { holdsSeveral, mediaIds } from "../lib/media";
+import DatePicker from "./DatePicker";
 
 const INPUT = "w-full rounded-md border border-gray-300 bg-[#fff] h-9 px-3 text-sm focus:border-violet-400 focus:outline-none";
 const INPUT_SM = "rounded-md border border-gray-300 bg-[#fff] h-9 px-3 text-sm focus:border-violet-400 focus:outline-none";
@@ -231,7 +232,7 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
     }
 
     case "Date":
-      return <input type="date" value={value ?? ""} onChange={(e) => onChange(e.target.value)} className="rounded-md border border-gray-300 bg-[#fff] h-9 px-3 text-sm" />;
+      return <DatePicker value={value ?? ""} onChange={onChange} className="h-9 w-44 px-3" />;
 
     case "Media":
     case "Media list":
@@ -277,9 +278,9 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
         <RepeatingList value={value} onCommit={onChange} blank={{ from: "", to: "", note: "" }} addLabel="Add period"
           renderItem={(item, set) => (
             <div className="flex flex-wrap items-center gap-2">
-              <input type="date" value={item.from} onChange={(e) => set((it) => ({ ...it, from: e.target.value }))} className={INPUT_SM} />
+              <DatePicker value={item.from} onChange={(v) => set((it) => ({ ...it, from: v }))} className={`${INPUT_SM} w-40`} />
               <span className="text-gray-400">–</span>
-              <input type="date" value={item.to} onChange={(e) => set((it) => ({ ...it, to: e.target.value }))} className={INPUT_SM} />
+              <DatePicker value={item.to} onChange={(v) => set((it) => ({ ...it, to: v }))} className={`${INPUT_SM} w-40`} />
               <input placeholder={t("Note")} value={item.note} onChange={(e) => set((it) => ({ ...it, note: e.target.value }))} className={`${INPUT_SM} min-w-32 flex-1`} />
             </div>
           )} />

@@ -3,6 +3,7 @@ import { useI18n } from "../lib/i18n";
 import Draft from "./Draft";
 import TimeIntervals from "./TimeIntervals";
 import { DEFAULT_INTERVAL } from "../lib/openingHours";
+import DatePicker from "./DatePicker";
 
 const FIELD = "h-9 rounded-md border border-gray-300 bg-[#fff] px-3 text-sm focus:border-violet-400 focus:outline-none";
 const ADD = "flex items-center gap-1 text-xs font-medium text-violet-600 hover:text-violet-700";
@@ -65,9 +66,9 @@ export default function SpecialDaysField({ value, onChange }) {
                     aria-label={t("Name")}
                     className={`${FIELD} w-60`}
                   />
-                  <input type="date" value={d.from} onChange={(e) => patch(i, { from: e.target.value }, false)} aria-label={t("Date")} className={FIELD} />
+                  <DatePicker value={d.from} onChange={(v) => patch(i, { from: v }, false)} ariaLabel={t("Date")} className={FIELD} />
                   <span className="text-gray-500">–</span>
-                  <input type="date" value={d.to} onChange={(e) => patch(i, { to: e.target.value }, false)} aria-label={t("Until (optional)")} title={t("Until (optional)")} className={FIELD} />
+                  <DatePicker value={d.to} onChange={(v) => patch(i, { to: v }, false)} ariaLabel={t("Until (optional)")} title={t("Until (optional)")} className={FIELD} />
                   <select
                     value={d.mode}
                     onChange={(e) => {

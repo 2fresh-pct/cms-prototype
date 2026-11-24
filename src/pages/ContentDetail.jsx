@@ -780,16 +780,18 @@ function ContentDetailPage({ id }) {
                 </>
               )}
               {entry.scheduledPublishAt && (
-                <p className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-gray-500">
-                  <Clock size={12} />
-                  {t("Scheduled for {when}", { when: fmtDate(entry.scheduledPublishAt) })}
+                <div className="mt-3 flex flex-wrap items-center gap-2 rounded-md bg-gray-50 px-2.5 py-2 ring-1 ring-inset ring-gray-200">
+                  <span className="flex items-center gap-1.5 text-xs text-gray-500">
+                    <Clock size={12} />
+                    {t("Scheduled for {when}", { when: fmtDate(entry.scheduledPublishAt) })}
+                  </span>
                   <button
                     onClick={() => update({ scheduledPublishAt: null })}
-                    className="font-medium text-violet-600 hover:underline"
+                    className="rounded-md border border-gray-300 bg-white h-7 px-2.5 text-xs font-medium text-red-600 hover:bg-red-50"
                   >
-                    {t("Cancel")}
+                    {t("Cancel schedule")}
                   </button>
-                </p>
+                </div>
               )}
             </DetailField>
             <DetailField label="Content type">
