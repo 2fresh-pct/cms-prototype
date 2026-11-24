@@ -14,6 +14,7 @@ import { ContentItem, ContentItemContext, inLocale } from "./ContentItemEmbed";
 import { Picker } from "./EntryReferenceField";
 import { normalizeEntryGroupId } from "../lib/seed";
 import { richTextOff } from "../lib/richTextOptions";
+import { isVideo } from "../lib/media";
 
 // The allowed palette: no colours, fonts, code or rules, only semantic structure. `off`
 // is the set of options the content type switched off (see lib/richTextOptions); an
@@ -302,7 +303,7 @@ function Toolbar({ editor, onCommit, media, onUpload, locale, content, off, comp
         />
       )}
       {media && (
-        <Library open={imageOpen} onClose={() => setImageOpen(false)} media={media} selected={[]} multiple={false} onConfirm={insertImage} onUpload={onUpload} />
+        <Library open={imageOpen} onClose={() => setImageOpen(false)} media={media.filter((m) => !isVideo(m))} selected={[]} multiple={false} onConfirm={insertImage} onUpload={onUpload} />
       )}
     </div>
   );

@@ -4,7 +4,10 @@ import { Check, GripVertical, ImagePlus, Upload, X } from "lucide-react";
 import { useI18n } from "../lib/i18n";
 import Modal from "./Modal";
 import MediaThumb from "./MediaThumb";
-import { mediaIds } from "../lib/media";
+import { isVideo, mediaIds } from "../lib/media";
+
+// "image/jpeg" -> "JPEG", "vector" -> "SVG"
+const kindLabel = (kind) => (kind === "vector" ? "SVG" : (kind.split("/")[1] ?? kind).toUpperCase());
 
 const formatSize = (kb) => (kb > 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${kb} KB`);
 
@@ -29,13 +32,15 @@ export function Library({ open, onClose, media, selected, multiple, onConfirm, o
   const { t } = useI18n();
   const [draft, setDraft] = useState(selected);
   const [search, setSearch] = useState("");
+  // File type filter: "" (all), "image", "video" or one exact kind such as "image/webp".
+  const [kind, setKind] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const fileRef = useRef(null);
 
   // A fresh draft each time the dialog opens.
   const [wasOpen, setWasOpen] = useState(false);
-  if (open && !wasOpen) { setWasOpen(true); setDraft(selected); setSearch(""); setMessage(""); }
+  if (open && !wasOpen) { setWasOpen(true); setDraft(selected); setSearch(""); setKind(""); setMessage(""); }
   if (!open && wasOpen) setWasOpen(false);
 
   // Bring the current choice into view when the dialog opens.
@@ -44,7 +49,9 @@ export function Library({ open, onClose, media, selected, multiple, onConfirm, o
     if (open) gridRef.current?.querySelector("[aria-pressed=true]")?.scrollIntoView({ block: "nearest" });
   }, [open]);
 
-  const shown = media.filter((m) => !search || m.name.toLowerCase().includes(search.toLowerCase()));
+  const kinds = [...new Set(media.map((m) => m.kind).filter(Boolean))].sort();
+  const matchesKind = (m) => !kind || (kind === "video" ? isVideo(m) : kind === "image" ? !isVideo(m) : m.kind === kind);
+  const shown = media.filter((m) => matchesKind(m) && (!search || m.name.toLowerCase().includes(search.toLowerCase())));
 
   // Uploaded files are added to the library and selected straight away.
   async function handleFiles(fileList) {
@@ -57,6 +64,7 @@ export function Library({ open, onClose, media, selected, multiple, onConfirm, o
     if (added.length) {
       setDraft((d) => (multiple ? [...d, ...added.map((m) => m.id)] : [added[0].id]));
       setSearch("");
+      setKind("");
       gridRef.current?.scrollTo({ top: 0 }); // new files are listed first
     }
   }
@@ -92,7 +100,7 @@ export function Library({ open, onClose, media, selected, multiple, onConfirm, o
             <input
               ref={fileRef}
               type="file"
-              accept="image/*"
+              accept="image/*,video/*"
               multiple
               hidden
               onChange={(e) => { handleFiles([...e.target.files]); e.target.value = ""; }}
@@ -114,6 +122,21 @@ export function Library({ open, onClose, media, selected, multiple, onConfirm, o
           placeholder={t("Search media…")}
           className="w-full rounded-md border border-gray-300 bg-[#fff] h-9 px-3 text-sm focus:border-violet-400 focus:outline-none"
         />
+        {kinds.length > 1 && (
+          <select
+            value={kind}
+            onChange={(e) => setKind(e.target.value)}
+            aria-label={t("File type")}
+            className="shrink-0 rounded-md border border-gray-300 bg-[#fff] h-9 px-3 text-sm"
+          >
+            <option value="">{t("All file types")}</option>
+            <option value="image">{t("Images")}</option>
+            <option value="video">{t("Videos")}</option>
+            <optgroup label={t("File type")}>
+              {kinds.map((k) => <option key={k} value={k}>{kindLabel(k)}</option>)}
+            </optgroup>
+          </select>
+        )}
       </div>
       {message && <p role="alert" className="mb-3 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800 ring-1 ring-inset ring-amber-200">{message}</p>}
       <div ref={gridRef} className="grid max-h-[55vh] grid-cols-2 gap-3 overflow-y-auto pr-1 sm:grid-cols-3 md:grid-cols-4">

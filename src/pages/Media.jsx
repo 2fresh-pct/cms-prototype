@@ -11,6 +11,8 @@ import { FilterBar } from "../components/FilterBar";
 import SegmentedControl from "../components/SegmentedControl";
 import MediaThumb from "../components/MediaThumb";
 import { useMediaUpload } from "../lib/mediaUpload";
+import { isVideo } from "../lib/media";
+import { deleteVideo } from "../lib/videoStore";
 
 function formatDate(iso, locale) {
   return new Date(iso).toLocaleDateString(locale, { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -60,7 +62,7 @@ export default function Media() {
   const bulkActions = [
     {
       label: "Delete", icon: Trash2, danger: true,
-      onSelect: () => { setMedia(media.filter((m) => !selected.has(m.id))); setSelected(new Set()); },
+      onSelect: () => { media.filter((m) => selected.has(m.id)).forEach((m) => { if (isVideo(m)) deleteVideo(m.id); }); setMedia(media.filter((m) => !selected.has(m.id))); setSelected(new Set()); },
       confirm: { title: "Delete selected files?", message: "{n} selected will be permanently deleted. Content that uses them will lose the reference. This can't be undone.", confirmLabel: "Delete" },
     },
   ];
@@ -119,7 +121,7 @@ export default function Media() {
           <input
             ref={fileRef}
             type="file"
-            accept="image/*"
+            accept="image/*,video/*"
             multiple
             hidden
             onChange={(e) => { handleFiles([...e.target.files]); e.target.value = ""; }}

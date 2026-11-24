@@ -8,6 +8,8 @@ import DetailField from "../components/DetailField";
 import MediaThumb from "../components/MediaThumb";
 import Avatar from "../components/Avatar";
 import FocusEditor from "../components/FocusEditor";
+import VideoPlayer from "../components/VideoPlayer";
+import { isVideo, formatDuration } from "../lib/media";
 
 const formatSize = (kb) => (kb > 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${kb} KB`);
 
@@ -70,6 +72,7 @@ function MediaEditor({ id }) {
       {/* The preview and the details scroll independently, like the entry page. */}
       <div className="flex min-h-0 flex-1 gap-6">
         <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-auto rounded-lg border border-gray-300 bg-white p-5">
+          {isVideo(item) && <VideoPlayer item={item} />}
           {item.src ? (
             <FocusEditor
               item={item}
@@ -122,6 +125,9 @@ function MediaEditor({ id }) {
             <DetailField label="File name"><span className="break-all text-sm text-gray-700">{item.name}</span></DetailField>
             <DetailField label="Type"><span className="text-sm text-gray-700">{item.kind}</span></DetailField>
             <DetailField label="Size"><span className="text-sm text-gray-700">{formatSize(item.sizeKb)}</span></DetailField>
+            {item.duration > 0 && (
+              <DetailField label="Duration"><span className="text-sm text-gray-700">{formatDuration(item.duration)}</span></DetailField>
+            )}
             {item.width && (
               <DetailField label="Dimensions"><span className="text-sm text-gray-700">{item.width} × {item.height} px</span></DetailField>
             )}
