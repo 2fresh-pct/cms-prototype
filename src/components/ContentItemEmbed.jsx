@@ -44,11 +44,11 @@ function ContentItemCard({ node, selected, editor, deleteNode }) {
   // On the website/app preview the item is shown plainly: no CMS controls or status.
   if (ctx.plain && ctx.linked) {
     const live = ctx.linked.resolve(picked);
-    return <NodeViewWrapper className="rte-content-item my-2 max-w-[800px]">{live ? ctx.linked.render(live, false) : null}</NodeViewWrapper>;
+    return <NodeViewWrapper className="rte-content-item my-2">{live ? ctx.linked.render(live, false) : null}</NodeViewWrapper>;
   }
   if (ctx.plain) {
     return (
-      <NodeViewWrapper className="rte-content-item my-2 max-w-[800px]">
+      <NodeViewWrapper className="rte-content-item my-2">
         <div className="rounded-md border border-gray-300 px-3 py-2.5" contentEditable={false}>
           <p className="text-sm font-medium text-gray-900">{entry?.title ?? t("Missing item")}</p>
           {type && <p className="text-xs text-gray-500">{t(type.name)}</p>}
@@ -58,7 +58,7 @@ function ContentItemCard({ node, selected, editor, deleteNode }) {
   }
 
   return (
-    <NodeViewWrapper className="rte-content-item my-2 max-w-[800px]" data-drag-handle>
+    <NodeViewWrapper className="rte-content-item my-2" data-drag-handle>
       <div
         className={`rounded-md border bg-gray-50 px-3 py-2.5 ${selected ? "border-gray-800 ring-2 ring-gray-800" : "border-gray-300"}`}
         contentEditable={false}
@@ -118,6 +118,7 @@ export const ContentItem = Node.create({
   },
 
   addNodeView() {
-    return ReactNodeViewRenderer(ContentItemCard);
+    // The outer element is what gets the selection outline, so it holds the max width.
+    return ReactNodeViewRenderer(ContentItemCard, { className: "max-w-[800px]" });
   },
 });
