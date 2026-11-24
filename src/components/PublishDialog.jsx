@@ -65,7 +65,7 @@ export default function PublishDialog({
       open={open}
       onClose={onClose}
       title={title}
-      maxWidth="max-w-md"
+      maxWidth="max-w-xl"
       footer={
         <>
           <button onClick={onClose} className="rounded-md h-9 px-3 text-sm font-medium text-gray-600 hover:bg-gray-100">
@@ -179,10 +179,7 @@ export default function PublishDialog({
               onChange={(e) => setIncludeUsed(e.target.checked)}
               className="mt-0.5 h-4 w-4 rounded border-gray-300 accent-violet-600"
             />
-            <span>
-              {t("Also publish the {n} content items used in it", { n: used.length })}
-              <span className="block text-xs text-gray-500">{t("Components and linked items that are not published yet. They go live the same way, on the same channels.")}</span>
-            </span>
+            <span>{t("Also publish the {n} content items used in it", { n: used.length })}</span>
           </label>
           <ul className="mt-2 space-y-0.5 pl-6 text-xs text-gray-600">
             {used.slice(0, 6).map((u) => (

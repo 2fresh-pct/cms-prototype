@@ -260,7 +260,6 @@ export const CS = {
   "Insert content items": "Vložit položky obsahu",
   "Show all content": "Zobrazit celý obsah",
   "Also publish the {n} content items used in it": "Publikovat také položky obsahu, které jsou v ní použité ({n})",
-  "Components and linked items that are not published yet. They go live the same way, on the same channels.": "Komponenty a propojené položky, které ještě nejsou publikované. Zveřejní se stejným způsobem a ve stejných kanálech.",
   "If they stay unpublished, they will be missing from the published item.": "Pokud zůstanou nepublikované, v publikované položce budou chybět.",
   "Video": "Video",
   "Loading…": "Načítání…",
