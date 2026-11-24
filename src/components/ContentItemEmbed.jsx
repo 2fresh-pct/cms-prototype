@@ -15,11 +15,24 @@ import StatusPill from "./StatusPill";
 // rich text JSON, `{ "type": "contentItem", "id": "…" }`.
 
 // What the card needs from the rest of the CMS; provided by the rich text editor.
-export const ContentItemContext = createContext({ entries: [], contentTypes: [], workflowSteps: [], publishStepId: null, locale: null, plain: false, linked: null });
+export const ContentItemContext = createContext({ entries: [], contentTypes: [], workflowSteps: [], publishStepId: null, locale: null, plain: false, linked: null, commit: null });
 
 export { inLocale };
 
-function ContentItemCard({ node, selected }) {
+function RemoveButton({ onRemove }) {
+  const { t } = useI18n();
+  return (
+    <button
+      type="button"
+      onClick={onRemove}
+      className="shrink-0 rounded-md border border-gray-300 bg-white h-7 px-2.5 text-xs font-medium text-red-600 hover:bg-red-50"
+    >
+      {t("Remove content item")}
+    </button>
+  );
+}
+
+function ContentItemCard({ node, selected, editor, deleteNode }) {
   const { t } = useI18n();
   const ctx = useContext(ContentItemContext);
   const picked = ctx.entries.find((e) => e.id === node.attrs.entryId);
@@ -65,6 +78,7 @@ function ContentItemCard({ node, selected }) {
                 </p>
               </div>
               <StatusPill status={step?.name ?? entry.status} color={step?.color} />
+              {editor.isEditable && <RemoveButton onRemove={() => { deleteNode(); setTimeout(() => ctx.commit?.(), 0); }} />}
             </div>
             {!published && (
               <p className="mt-2 flex items-center gap-1.5 text-xs text-amber-800">
@@ -74,7 +88,10 @@ function ContentItemCard({ node, selected }) {
             )}
           </>
         ) : (
-          <p className="text-sm italic text-gray-500">{t("Missing item")}</p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm italic text-gray-500">{t("Missing item")}</p>
+            {editor.isEditable && <RemoveButton onRemove={() => { deleteNode(); setTimeout(() => ctx.commit?.(), 0); }} />}
+          </div>
         )}
       </div>
     </NodeViewWrapper>

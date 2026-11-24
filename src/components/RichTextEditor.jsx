@@ -253,20 +253,6 @@ function Toolbar({ editor, onCommit, media, onUpload, locale, content, off, comp
         </div>
       )}
 
-      {s.item && (
-        <div className="flex items-center gap-2 border-t border-gray-200 px-2 py-1.5">
-          <button
-            type="button"
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => { editor.chain().focus().deleteSelection().run(); onCommit(); }}
-            className="shrink-0 rounded-md border border-gray-300 bg-white h-8 px-2.5 text-xs font-medium text-red-600 hover:bg-red-50"
-          >
-            {t("Remove content item")}
-          </button>
-          <span className="text-xs text-gray-500">{t("The website or the app decides how it looks.")}</span>
-        </div>
-      )}
-
       {linkOpen && (
         <div className="space-y-2 border-t border-gray-200 px-2 py-2">
           <div className="grid grid-cols-2 gap-2">
@@ -350,7 +336,7 @@ export default function RichTextEditor({ value, onChange, placeholder, minHeight
   if (!editor) return null;
   return (
     <div className="rounded-md border border-gray-300 bg-[#fff] focus-within:border-violet-400">
-      <ContentItemContext.Provider value={{ ...itemContext(content), locale }}>
+      <ContentItemContext.Provider value={{ ...itemContext(content), locale, commit: () => commit(editor) }}>
         <Toolbar editor={editor} onCommit={() => commit(editor)} media={media} onUpload={onUpload} locale={locale} content={content} off={off} componentTypeIds={options?.componentTypes} />
         <EditorContent editor={editor} style={{ minHeight }} className="px-3 py-2 text-sm text-gray-800" />
       </ContentItemContext.Provider>
