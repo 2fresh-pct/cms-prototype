@@ -31,7 +31,7 @@ function RemoveButton({ onRemove }) {
   );
 }
 
-function ContentItemCard({ node, selected, editor, deleteNode }) {
+function ContentItemCard({ node, editor, deleteNode }) {
   const { t } = useI18n();
   const ctx = useContext(ContentItemContext);
   const picked = ctx.entries.find((e) => e.id === node.attrs.entryId);
@@ -60,7 +60,7 @@ function ContentItemCard({ node, selected, editor, deleteNode }) {
   return (
     <NodeViewWrapper className="rte-content-item my-2" data-drag-handle>
       <div
-        className={`rounded-md border bg-gray-50 px-3 py-2.5 ${selected ? "border-gray-800 ring-2 ring-gray-800" : "border-gray-300"}`}
+        className="rounded-md border border-gray-300 bg-gray-50 px-3 py-2.5"
         contentEditable={false}
       >
         {entry ? (
@@ -73,7 +73,7 @@ function ContentItemCard({ node, selected, editor, deleteNode }) {
                   <OpenEntryButton entry={entry} />
                 </div>
                 <p className="truncate text-xs text-gray-500">
-                  {t("Content item")}{type ? ` · ${t(type.name)}` : ""}{entry.locale ? ` · ${entry.locale.toUpperCase()}` : ""}
+                  {type ? `${t("Content type")}: ${t(type.name)}` : ""}
                 </p>
               </div>
               <StatusPill status={step?.name ?? entry.status} color={step?.color} />
@@ -119,6 +119,6 @@ export const ContentItem = Node.create({
 
   addNodeView() {
     // The outer element is what gets the selection outline, so it holds the max width.
-    return ReactNodeViewRenderer(ContentItemCard, { className: "max-w-[800px]" });
+    return ReactNodeViewRenderer(ContentItemCard, { className: "rte-item-node max-w-[800px]" });
   },
 });

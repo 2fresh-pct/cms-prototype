@@ -386,6 +386,8 @@ html[data-mode="dark"] .rte-tiles figure.rte-image figcaption { color: var(--col
 html[data-mode="dark"] .rte-content p.is-editor-empty:first-child::before { color: var(--placeholder); }
 html[data-mode="dark"] .rte-content .selectedCell { background: var(--tint); }
 html[data-mode="dark"] .rte-content[contenteditable="true"] .ProseMirror-selectednode { outline-color: #c9962b; }
+/* A selected item card: the outline hugs the card (same corners as the card, rounded-md). */
+.rte-content[contenteditable="true"] .rte-item-node.ProseMirror-selectednode { outline-offset: 0; border-radius: var(--radius-md, 0.375rem); }
 
 /* The map: its light tiles are inverted so the streets are dark; the pin, the
    controls and the attribution are drawn for the dark page. */
