@@ -260,7 +260,6 @@ export const CS = {
   "Insert content items": "Vložit položky obsahu",
   "Show all content": "Zobrazit celý obsah",
   "Also publish the {n} content items used in it": "Publikovat také položky obsahu, které jsou v ní použité ({n})",
-  "If they stay unpublished, they will be missing from the published item.": "Pokud zůstanou nepublikované, v publikované položce budou chybět.",
   "Video": "Video",
   "Loading…": "Načítání…",
   "File type": "Typ souboru",

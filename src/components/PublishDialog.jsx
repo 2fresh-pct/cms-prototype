@@ -190,9 +190,6 @@ export default function PublishDialog({
             ))}
             {used.length > 6 && <li className="text-gray-400">{t("and {n} more", { n: used.length - 6 })}</li>}
           </ul>
-          {!includeUsed && (
-            <p className="mt-2 pl-6 text-xs text-amber-800">{t("If they stay unpublished, they will be missing from the published item.")}</p>
-          )}
         </div>
       )}
     </Modal>
