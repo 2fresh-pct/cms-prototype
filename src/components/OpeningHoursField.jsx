@@ -9,7 +9,6 @@ import {
 } from "../lib/openingHours";
 
 const FIELD = "h-9 rounded-md border border-gray-300 bg-[#fff] px-3 text-sm focus:border-violet-400 focus:outline-none";
-const ADD = "flex items-center gap-1 text-xs font-medium text-violet-600 hover:text-violet-700";
 
 // A day and month ("MM-DD") without a year, since a period repeats every year.
 function MonthDay({ value, onChange, label }) {
@@ -226,8 +225,12 @@ export default function OpeningHoursField({ value, onChange, ctx }) {
               );
             })}
 
-            <button type="button" onClick={() => save([...seasons, newSeason("04-01", "10-31")], true)} className={ADD}>
-              <Plus size={13} /> {t("Add period")}
+            <button
+              type="button"
+              onClick={() => save([...seasons, newSeason("04-01", "10-31")], true)}
+              className="flex items-center gap-1.5 rounded-md border border-gray-300 bg-white h-9 px-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              <Plus size={14} /> {t("Add")}
             </button>
 
             <Preview hours={hours} ctx={ctx} />

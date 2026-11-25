@@ -535,6 +535,7 @@ export const CS = {
   "Add item": "Přidat položku",
   "Add attribute": "Přidat atribut",
   "Add period": "Přidat období",
+  "Add": "Přidat",
   "Add section": "Přidat sekci",
   "Value": "Hodnota",
   "Note": "Poznámka",
