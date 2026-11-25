@@ -621,7 +621,7 @@ function ContentDetailPage({ id }) {
           )}
         {readOnly ? (
           <div style={{ "--pane-pad": PANE_PAD }} className="min-h-0 flex-1 space-y-8 overflow-y-auto rounded-lg border border-gray-300 bg-white px-5 py-[var(--pane-pad)]">
-            <DetailField label={titleField?.label ?? "Title"} required={titleField?.required} localized={titleField?.localized}>
+            <DetailField label="Title" required={titleField?.required} localized={titleField?.localized}>
               <p className="text-sm text-gray-900">{viewEntry.title}</p>
             </DetailField>
             <DetailField label="Slug" required={slugField?.required} localized={slugField?.localized}>
@@ -666,7 +666,7 @@ function ContentDetailPage({ id }) {
           </div>
         ) : (
           <div style={{ "--pane-pad": PANE_PAD, "--sticky-tabs": `${tabsHeight}px` }} className="min-h-0 flex-1 space-y-8 overflow-y-auto rounded-lg border border-gray-300 bg-white px-5 py-[var(--pane-pad)]">
-            <DetailField label={titleField?.label ?? "Title"} required={titleField?.required} localized={titleField?.localized}>
+            <DetailField label="Title" required={titleField?.required} localized={titleField?.localized}>
               <input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}

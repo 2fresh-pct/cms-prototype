@@ -261,10 +261,11 @@ function ContentTypeEditor({ id }) {
                     <div className="min-w-32 flex-1">
                       <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Name")}</label>
                       <input
-                        value={f.label ?? f.name}
+                        value={fixed ? t(f.core === "slug" || f.name === "slug" ? "Slug" : "Title") : f.label ?? f.name}
                         onChange={(e) => renameField(i, e.target.value)}
+                        disabled={fixed}
                         aria-label={t("Label")}
-                        className="w-full rounded-md border border-gray-300 bg-white h-8 px-2.5 text-sm"
+                        className="w-full rounded-md border border-gray-300 bg-white h-8 px-2.5 text-sm disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
                       />
                     </div>
                     )}
