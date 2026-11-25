@@ -2,6 +2,7 @@ import { capEntriesHistory } from "./history";
 import { nextTypeColor } from "./typeColors";
 import { POI_TYPE, POI_TAXONOMIES, POI_MEDIA, POI_ENTRIES, POI_KEYWORD_TERMS, OLD_POI_KEYWORD_IDS } from "./poi";
 import { DISCOVERY_CATEGORIES_ID, DISCOVERY_CATEGORIES_TAXONOMY } from "./discoveryCategories";
+import { EVENT_CATEGORY_TERMS } from "./eventCategories";
 import { fieldKeyFor, keyBase } from "./fieldKey";
 import { sharedFields, isEmptyValue, latestValue } from "./sharedFields";
 import { DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus } from "./seed";
@@ -252,6 +253,22 @@ const MIGRATIONS = {
     }
     if (fills.size === 0) return;
     localStorage.setItem("cms.entries", JSON.stringify(entries.map((e) => (fills.has(e.id) ? { ...e, fieldValues: { ...(e.fieldValues ?? {}), ...fills.get(e.id) } } : e))));
+  },
+  // The editors made a taxonomy called "Kategorie akcí" by hand. If it has no terms yet,
+  // it gets the event categories.
+  "event-categories": () => {
+    const raw = localStorage.getItem("cms.taxonomies");
+    if (!raw) return; // not seeded yet
+    const taxonomies = JSON.parse(raw);
+    if (!Array.isArray(taxonomies)) return;
+    const fold = (x) => String(x ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").trim().toLowerCase();
+    let changed = false;
+    const next = taxonomies.map((x) => {
+      if (!fold(x.name).startsWith("kategorie akc") || (x.terms ?? []).length > 0) return x;
+      changed = true;
+      return { ...x, terms: EVENT_CATEGORY_TERMS };
+    });
+    if (changed) localStorage.setItem("cms.taxonomies", JSON.stringify(next));
   },
   // An item edited many times can carry hundreds of snapshots and fill the browser
   // storage on its own. Only the newest versions of each item are kept.
