@@ -22,7 +22,7 @@ import Avatar from "../components/Avatar";
 import Modal from "../components/Modal";
 import GroupTabs from "../components/GroupTabs";
 import { slugify, slugOf } from "../lib/slug";
-import { GENERAL, sectionsOf, groupsOf } from "../lib/groups";
+import { GENERAL, sectionsOf } from "../lib/groups";
 import PreviewButton from "../components/PreviewButton";
 import PublishDialog from "../components/PublishDialog";
 import { useMediaUpload } from "../lib/mediaUpload";
@@ -416,11 +416,12 @@ function ContentDetailPage({ id }) {
   const bodyField = coreField("body") ?? type?.fields.find((f) => f.name === "body");
   const showBody = !type || Boolean(bodyField);
   const extraFields = (type?.fields ?? []).filter((f) => !f.core && !["title", "slug", "body"].includes(f.name));
-  // Ungrouped fields that the content type lists before its body (a subtitle, say) are
-  // shown above the body, in the type's order; the rest are shown in tabs, one per group.
+  // A type without tabs shows its fields in the type's order: those it lists before its
+  // body (a subtitle, say) go above the body. A type with tabs keeps its fields in the
+  // tabs, below the title, slug and body.
   const bodyIndex = bodyField && type ? type.fields.indexOf(bodyField) : -1;
-  const typeGroups = groupsOf(type);
-  const beforeBody = (f) => bodyIndex > -1 && type.fields.indexOf(f) < bodyIndex && (!f.group || !typeGroups.includes(f.group));
+  const hasTabs = sectionsOf(type, extraFields).length > 1;
+  const beforeBody = (f) => !hasTabs && bodyIndex > -1 && type.fields.indexOf(f) < bodyIndex;
   const topFields = extraFields.filter(beforeBody);
   const tabFields = extraFields.filter((f) => !beforeBody(f));
   const sections = sectionsOf(type, tabFields);

@@ -10,7 +10,7 @@ import FieldView, { isEmpty } from "../components/FieldView";
 import MediaThumb from "../components/MediaThumb";
 import { inLocale } from "../components/ContentItemEmbed";
 import { holdsSeveral, mediaIds } from "../lib/media";
-import { groupsOf } from "../lib/groups";
+import { sectionsOf } from "../lib/groups";
 import { htmlToText } from "../lib/richtext";
 import { Signal, Wifi, BatteryFull, ChevronLeft, ChevronDown } from "lucide-react";
 
@@ -31,10 +31,11 @@ function EntryFields({ entry, type, ctx, compact }) {
   const fields = type?.fields ?? [];
   const bodyField = fields.find((f) => f.core === "body") ?? fields.find((f) => f.name === "body");
   const extra = fields.filter((f) => !f.core && !["title", "slug", "body"].includes(f.name));
-  // Ungrouped fields the type lists before its body (a subtitle) come before the body.
+  // A type without tabs lists its fields in the type's order, so those before the body
+  // (a subtitle) come before it; a type with tabs keeps them after it.
   const bodyIndex = bodyField ? fields.indexOf(bodyField) : -1;
-  const typeGroups = groupsOf(type);
-  const isTop = (f) => bodyIndex > -1 && fields.indexOf(f) < bodyIndex && (!f.group || !typeGroups.includes(f.group));
+  const hasTabs = sectionsOf(type, extra).length > 1;
+  const isTop = (f) => !hasTabs && bodyIndex > -1 && fields.indexOf(f) < bodyIndex;
   const filled = extra.filter((f) => !isEmpty(entry.fieldValues?.[f.name]));
   const top = filled.filter(isTop);
   const shown = filled.filter((f) => !isTop(f));
