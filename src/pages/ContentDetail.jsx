@@ -22,7 +22,7 @@ import Avatar from "../components/Avatar";
 import Modal from "../components/Modal";
 import GroupTabs from "../components/GroupTabs";
 import { slugify, slugOf } from "../lib/slug";
-import { GENERAL, sectionsOf } from "../lib/groups";
+import { GENERAL, sectionsOf, groupsOf } from "../lib/groups";
 import PreviewButton from "../components/PreviewButton";
 import PublishDialog from "../components/PublishDialog";
 import { useMediaUpload } from "../lib/mediaUpload";
@@ -418,15 +418,24 @@ function ContentDetailPage({ id }) {
   const extraFields = (type?.fields ?? []).filter((f) => !f.core && !["title", "slug", "body"].includes(f.name));
   // A type without tabs shows its fields in the type's order: those it lists before its
   // body (a subtitle, say) go above the body. A type with tabs keeps its fields in the
-  // tabs, below the title, slug and body.
+  // tabs; the body goes into the tab of its own group, at its place in the type's
+  // order, unless that group has no tab (then it stays above the tabs, with the title
+  // and slug).
   const bodyIndex = bodyField && type ? type.fields.indexOf(bodyField) : -1;
-  const hasTabs = sectionsOf(type, extraFields).length > 1;
+  const typeGroups = groupsOf(type);
+  const allSections = sectionsOf(type, extraFields);
+  const hasTabs = allSections.length > 1;
+  const bodyGroup = bodyField?.group && typeGroups.includes(bodyField.group) ? bodyField.group : null;
+  const bodyInTab = Boolean(showBody && bodyField && hasTabs && allSections.some((sec) => (sec.name ?? null) === bodyGroup));
   const beforeBody = (f) => !hasTabs && bodyIndex > -1 && type.fields.indexOf(f) < bodyIndex;
   const topFields = extraFields.filter(beforeBody);
   const tabFields = extraFields.filter((f) => !beforeBody(f));
   const sections = sectionsOf(type, tabFields);
   const activeSection = sections.find((s) => (s.name ?? GENERAL) === activeGroup) ?? sections[0];
   const visibleFields = sections.length > 1 ? activeSection.fields : tabFields;
+  const itemsInTab = bodyInTab && (activeSection.name ?? null) === bodyGroup
+    ? [...visibleFields, bodyField].sort((a, b) => type.fields.indexOf(a) - type.fields.indexOf(b))
+    : visibleFields;
   const groupTabs = sections.length > 1 && (
     <StickyTabs onHeight={setTabsHeight}>
       <GroupTabs tabs={sections.map((s) => ({ id: s.name ?? GENERAL, label: s.name ?? "General" }))} active={activeSection.name ?? GENERAL} onSelect={setActiveGroup} />
@@ -443,6 +452,27 @@ function ContentDetailPage({ id }) {
     if (follow ? Boolean(entry.slug) : next !== entry.slug) update({ slug: follow ? null : next });
   }
   const fieldCtx = { taxonomies, media, entries, contentTypes, workflowSteps, publishStepId, entryId: entry.id, locale: entry.locale, uploadMedia: mediaUpload.upload };
+  const viewBody = () => (
+    <DetailField key="body" label={bodyField?.label ?? "Body"} required={bodyField?.required} localized={bodyField?.localized}>
+      <RichTextView key={selectedVersionId ?? "current"} value={viewEntry.body} media={media} content={fieldCtx} tiles />
+    </DetailField>
+  );
+  const editBody = () => (
+    <DetailField key="body" label={bodyField?.label ?? "Body"} required={bodyField?.required} localized={bodyField?.localized}>
+      <RichTextEditor
+        key={`${entry.id}-body`}
+        value={entry.body}
+        placeholder={t("Rich text content goes here…")}
+        onChange={(html) => update({ body: html })}
+        minHeight={220}
+        media={media}
+        onUpload={mediaUpload.upload}
+        locale={entry.locale}
+        content={fieldCtx}
+        options={bodyField?.richText}
+      />
+    </DetailField>
+  );
   const viewField = (f) => f.type === "Separator" ? <FieldSeparator key={f.name} /> : (
     <Fragment key={f.name}>
       <DetailField label={f.label ?? f.name} required={f.required} localized={f.localized}>
@@ -610,14 +640,10 @@ function ContentDetailPage({ id }) {
               <p className="text-sm text-gray-500">/{slugOf(viewEntry)}</p>
             </DetailField>
             {topFields.map(viewField)}
-            {showBody && (
-              <DetailField label={bodyField?.label ?? "Body"} required={bodyField?.required} localized={bodyField?.localized}>
-                <RichTextView key={selectedVersionId ?? "current"} value={viewEntry.body} media={media} content={fieldCtx} tiles />
-              </DetailField>
-            )}
+            {showBody && !bodyInTab && viewBody()}
             {groupTabs}
             {singleGroupHeading}
-            {visibleFields.map(viewField)}
+            {itemsInTab.map((f) => (f === bodyField ? viewBody() : viewField(f)))}
             {/* A published item shows these in the side panel; a past version has no such panel, so they go here. */}
             {historyMode && (
               <>
@@ -683,26 +709,11 @@ function ContentDetailPage({ id }) {
               {slugTaken && <p className="mt-1.5 text-xs text-amber-700">{t("Another item in this language already uses this slug.")}</p>}
             </DetailField>
             {topFields.map(editField)}
-            {showBody && (
-              <DetailField label={bodyField?.label ?? "Body"} required={bodyField?.required} localized={bodyField?.localized}>
-                <RichTextEditor
-                  key={`${entry.id}-body`}
-                  value={entry.body}
-                  placeholder={t("Rich text content goes here…")}
-                  onChange={(html) => update({ body: html })}
-                  minHeight={220}
-                  media={media}
-                  onUpload={mediaUpload.upload}
-                  locale={entry.locale}
-                  content={fieldCtx}
-                  options={bodyField?.richText}
-                />
-              </DetailField>
-            )}
+            {showBody && !bodyInTab && editBody()}
 
             {groupTabs}
             {singleGroupHeading}
-            {visibleFields.map(editField)}
+            {itemsInTab.map((f) => (f === bodyField ? editBody() : editField(f)))}
           </div>
         )}
         </div>
