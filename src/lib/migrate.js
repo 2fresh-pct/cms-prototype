@@ -99,50 +99,21 @@ const MIGRATIONS = {
   // old key (in items, their version history and their live version) move with it.
   // Fields still called "New field" keep theirs.
   "field-keys-from-names": () => {
-    const typesRaw = localStorage.getItem("cms.contentTypes");
-    if (!typesRaw) return; // not seeded yet: seeded fields have proper keys
-    const types = JSON.parse(typesRaw);
-    if (!Array.isArray(types)) return;
-    const renames = {}; // content type id -> { old key: new key }
-    const nextTypes = types.map((ct) => {
-      const used = new Set(ct.fields.map((f) => f.name));
-      const map = {};
-      const fields = ct.fields.map((f) => {
-        const label = (f.label ?? "").trim();
-        if (!/^field\d+$/.test(f.name) || !keyBase(label) || label.toLowerCase() === "new field") return f;
-        used.delete(f.name);
-        const key = fieldKeyFor(label, used);
-        used.add(key);
-        if (key === f.name) return f;
-        map[f.name] = key;
-        return { ...f, name: key };
-      });
-      renames[ct.id] = map;
-      return { ...ct, fields };
+    renameFieldKeys((ct, f) => {
+      const label = (f.label ?? "").trim();
+      if (!/^field\d+$/.test(f.name) || !keyBase(label) || label.toLowerCase() === "new field") return null;
+      return label;
     });
-
-    const entriesRaw = localStorage.getItem("cms.entries");
-    let nextEntries = null;
-    if (entriesRaw) {
-      const entries = JSON.parse(entriesRaw);
-      if (Array.isArray(entries)) {
-        nextEntries = entries.map((e) => {
-          const map = renames[e.contentTypeId];
-          if (!map || Object.keys(map).length === 0) return e;
-          const remap = (values) => (values ? Object.fromEntries(Object.entries(values).map(([k, v]) => [map[k] ?? k, v])) : values);
-          const next = { ...e };
-          if (e.fieldValues) next.fieldValues = remap(e.fieldValues);
-          if (e.live?.fieldValues) next.live = { ...e.live, fieldValues: remap(e.live.fieldValues) };
-          if (Array.isArray(e.history)) {
-            next.history = e.history.map((h) => (h.snapshot?.fieldValues ? { ...h, snapshot: { ...h.snapshot, fieldValues: remap(h.snapshot.fieldValues) } } : h));
-          }
-          return next;
-        });
-      }
-    }
-    // Both are worked out before either is written, so a failure leaves them in step.
-    if (nextEntries) localStorage.setItem("cms.entries", JSON.stringify(nextEntries));
-    localStorage.setItem("cms.contentTypes", JSON.stringify(nextTypes));
+  },
+  // POI elements whose key no longer says what the element is called ("popis místa" was
+  // `history`, "média" was `dalsiObrazky`): the keys follow the names now, in the type and
+  // in the items that hold values under them. The fixed title and slug keep theirs.
+  "poi-keys-from-names": () => {
+    renameFieldKeys((ct, f) => {
+      if (ct.id !== "ct-poi" || f.type === "Separator" || f.core === "title" || f.core === "slug") return null;
+      const label = (f.label ?? "").trim();
+      return keyBase(label) && keyBase(label) !== f.name ? label : null;
+    });
   },
   // Every content type's icon gets its own colour: a type that shares a colour
   // with one earlier in the list is given the next unused one.
@@ -282,6 +253,56 @@ const MIGRATIONS = {
     if (next.length < raw.length) localStorage.setItem("cms.entries", next);
   },
 };
+
+// Renames field keys. `labelFor(type, field)` returns the name the new key is built
+// from, or null to leave the field alone. Values held under an old key (in items, their
+// version history and their live version) move with it.
+function renameFieldKeys(labelFor) {
+  const typesRaw = localStorage.getItem("cms.contentTypes");
+  if (!typesRaw) return; // not seeded yet: seeded fields have proper keys
+  const types = JSON.parse(typesRaw);
+  if (!Array.isArray(types)) return;
+  const renames = {}; // content type id -> { old key: new key }
+  const nextTypes = types.map((ct) => {
+    const used = new Set(ct.fields.map((f) => f.name));
+    const map = {};
+    const fields = ct.fields.map((f) => {
+      const label = labelFor(ct, f);
+      if (!label) return f;
+      used.delete(f.name);
+      const key = fieldKeyFor(label, used);
+      used.add(key);
+      if (key === f.name) return f;
+      map[f.name] = key;
+      return { ...f, name: key };
+    });
+    renames[ct.id] = map;
+    return { ...ct, fields };
+  });
+
+  const entriesRaw = localStorage.getItem("cms.entries");
+  let nextEntries = null;
+  if (entriesRaw) {
+    const entries = JSON.parse(entriesRaw);
+    if (Array.isArray(entries)) {
+      nextEntries = entries.map((e) => {
+        const map = renames[e.contentTypeId];
+        if (!map || Object.keys(map).length === 0) return e;
+        const remap = (values) => (values ? Object.fromEntries(Object.entries(values).map(([k, v]) => [map[k] ?? k, v])) : values);
+        const next = { ...e };
+        if (e.fieldValues) next.fieldValues = remap(e.fieldValues);
+        if (e.live?.fieldValues) next.live = { ...e.live, fieldValues: remap(e.live.fieldValues) };
+        if (Array.isArray(e.history)) {
+          next.history = e.history.map((h) => (h.snapshot?.fieldValues ? { ...h, snapshot: { ...h.snapshot, fieldValues: remap(h.snapshot.fieldValues) } } : h));
+        }
+        return next;
+      });
+    }
+  }
+  // Both are worked out before either is written, so a failure leaves them in step.
+  if (nextEntries) localStorage.setItem("cms.entries", JSON.stringify(nextEntries));
+  localStorage.setItem("cms.contentTypes", JSON.stringify(nextTypes));
+}
 
 function mergeById(key, items) {
   const raw = localStorage.getItem(key);
