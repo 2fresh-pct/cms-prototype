@@ -92,6 +92,7 @@ function ContentTypeEditor({ id }) {
   // saved fields so a new field is never mistaken for a removed saved one.
   const savedNames = new Set(type.fields.map((f) => f.name));
   const typeLocked = (f) => savedNames.has(f.name);
+  const isFixed = (f) => f.core === "title" || f.core === "slug" || (!f.core && (f.name === "title" || f.name === "slug"));
 
   // The API key of a new field comes from its name (see lib/fieldKey.js) and is
   // made unique among all fields. It follows the name while the field is new;
@@ -125,7 +126,7 @@ function ContentTypeEditor({ id }) {
   // Dropping a field card onto another moves it to that position; the editor
   // renders a type's fields in this order.
   function moveField(from, to) {
-    if (from !== null && from !== to) {
+    if (from !== null && from !== to && !isFixed(draft.fields[from]) && !isFixed(draft.fields[to])) {
       const next = [...draft.fields];
       const [moved] = next.splice(from, 1);
       next.splice(to, 0, moved);
@@ -142,7 +143,7 @@ function ContentTypeEditor({ id }) {
   // Groups are the tabs fields sit under (see lib/groups). A field with no group
   // is in "General", which is not a real group and so can't be renamed or deleted.
   const groups = draft.groups ?? [];
-  const hasGeneral = draft.fields.some((f) => !f.group || !groups.includes(f.group));
+  const hasGeneral = draft.fields.some((f) => !isFixed(f) && (!f.group || !groups.includes(f.group)));
   const tabIds = [...(hasGeneral || groups.length === 0 ? [GENERAL] : []), ...groups];
   const activeId = tabIds.includes(activeGroup) ? activeGroup : tabIds[0];
   const activeName = activeId === GENERAL ? null : activeId;
@@ -184,85 +185,11 @@ function ContentTypeEditor({ id }) {
   }
 
   
-  return (
-    <div className="flex-1 overflow-y-auto p-6">
-      <PageHeader
-        crumbs={["Content types", draft.name || type.name]}
-        onBack={() => navigate(-1)}
-        saveStatus={dirty ? "unsaved" : justSaved ? "saved" : null}
-        actions={
-          <>
-            {dirty && (
-              <button onClick={discard} className="rounded-md h-9 px-3 text-sm text-gray-500 hover:bg-gray-100">
-                {t("Discard changes")}
-              </button>
-            )}
-            <button
-              onClick={save}
-              disabled={!dirty}
-              className="rounded-md bg-gray-700 h-9 px-3 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              {t("Save")}
-            </button>
-          </>
-        }
-      />
-
-      <div className="flex gap-6">
-        <div className="flex-1 space-y-5 rounded-lg border border-gray-300 bg-white p-5">
-          <DetailField label="Name">
-            <input
-              value={draft.name}
-              onChange={(e) => update({ name: e.target.value })}
-              className="w-full rounded-md border border-gray-300 bg-white h-9 px-3 text-sm focus:border-violet-400 focus:outline-none"
-            />
-          </DetailField>
-
-          <div>
-            <div className="mb-3 flex items-center justify-between">
-              <label className="text-xs font-medium uppercase tracking-wide text-gray-400">{t("Elements")}</label>
-              <button onClick={() => setAddingField(true)} className="flex items-center gap-1.5 rounded-md border border-gray-300 bg-white h-9 px-3 text-sm font-medium text-gray-700 hover:bg-gray-50">
-                <Plus size={14} /> {t("Add element")}
-              </button>
-            </div>
-            <div className="mb-3">
-              <GroupTabs
-                tabs={tabIds.map((id) => ({ id, label: id === GENERAL ? "General" : id }))}
-                active={activeId}
-                onSelect={setActiveGroup}
-                onMove={moveGroup}
-                fixedId={GENERAL}
-                trailing={
-                  <button onClick={addGroup} className="flex items-center gap-1 rounded-md h-7 px-2 text-xs font-medium text-gray-600 hover:bg-gray-100">
-                    <Plus size={13} /> {t("Add group")}
-                  </button>
-                }
-              />
-              {activeName !== null && (
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <label className="text-xs text-gray-500" htmlFor="group-name">{t("Group name")}</label>
-                  <input
-                    id="group-name"
-                    key={activeName}
-                    defaultValue={activeName}
-                    autoFocus={focusGroupName}
-                    onFocus={(e) => { if (focusGroupName) { e.target.select(); setFocusGroupName(false); } }}
-                    onBlur={(e) => { if (!renameGroup(activeName, e.target.value)) e.target.value = activeName; }}
-                    onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
-                    className="w-48 rounded-md border border-gray-300 bg-white h-8 px-2.5 text-sm focus:border-violet-400 focus:outline-none"
-                  />
-                  <button
-                    onClick={() => deleteGroup(activeName)}
-                    className="flex items-center gap-1 rounded-md h-7 px-2 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-red-600"
-                  >
-                    <Trash2 size={13} /> {t("Delete group")}
-                  </button>
-                  <span className="text-xs text-gray-400">{t("Its elements move to General.")}</span>
-                </div>
-              )}
-            </div>
-            <div className="space-y-3">
-              {draft.fields.map((f, i) => !inActive(f) ? null : (
+  // The title and slug are fixed in every content type: always first, above the tabs on
+  // an item's page, so they have no tab and can be neither moved nor deleted.
+  const renderField = (f, i) => {
+    const fixed = isFixed(f);
+    return (
                 <div
                   key={i}
                   onDragOver={(e) => { if (dragIndex !== null) { e.preventDefault(); if (overIndex !== i) setOverIndex(i); } }}
@@ -272,6 +199,7 @@ function ContentTypeEditor({ id }) {
                   }`}
                 >
                   <div className="flex flex-wrap items-end gap-2">
+                    {fixed ? <span className="w-5 shrink-0" /> : (
                     <span
                       draggable
                       title={t("Drag to reorder")}
@@ -286,11 +214,12 @@ function ContentTypeEditor({ id }) {
                     >
                       <GripVertical size={15} />
                     </span>
+                    )}
                     <div>
                       <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Type")}</label>
                       <select
                         value={f.type}
-                        disabled={typeLocked(f)}
+                        disabled={typeLocked(f) || fixed}
                         title={typeLocked(f) ? t("The type of a saved element can't be changed. Add a new element instead.") : undefined}
                         onChange={(e) => {
                           const nextType = e.target.value;
@@ -339,9 +268,11 @@ function ContentTypeEditor({ id }) {
                       />
                     </div>
                     )}
+                    {!fixed && (
                     <button onClick={() => removeField(i)} aria-label={t("Delete element")} className="ml-auto flex h-8 w-8 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-red-600">
                       <Trash2 size={14} />
                     </button>
+                    )}
                   </div>
                   {f.type === "Reference" && (
                     <div className="flex flex-wrap items-center gap-1.5 pl-7 text-xs text-gray-500">
@@ -456,6 +387,7 @@ function ContentTypeEditor({ id }) {
                       {/* A separator is layout only: it has no API key and never appears in the content. */}
                       {f.type !== "Separator" && <code className="inline-block max-w-full break-all rounded bg-gray-100 px-1.5 py-0.5 align-middle leading-snug text-gray-600">{f.name}</code>}
                     </div>
+                    {!fixed && (
                     <label className="flex w-40 shrink-0 items-center gap-2">
                       {t("Group")}
                       <select
@@ -467,6 +399,7 @@ function ContentTypeEditor({ id }) {
                         {groups.map((g) => <option key={g} value={g}>{t(g)}</option>)}
                       </select>
                     </label>
+                    )}
                     {f.type !== "Separator" && (
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pl-2">
                     <label className="flex items-center gap-1.5">
@@ -513,8 +446,96 @@ function ContentTypeEditor({ id }) {
                     )}
                   </div>
                 </div>
-              ))}
-              {!draft.fields.some(inActive) && (
+    );
+  };
+
+  return (
+    <div className="flex-1 overflow-y-auto p-6">
+      <PageHeader
+        crumbs={["Content types", draft.name || type.name]}
+        onBack={() => navigate(-1)}
+        saveStatus={dirty ? "unsaved" : justSaved ? "saved" : null}
+        actions={
+          <>
+            {dirty && (
+              <button onClick={discard} className="rounded-md h-9 px-3 text-sm text-gray-500 hover:bg-gray-100">
+                {t("Discard changes")}
+              </button>
+            )}
+            <button
+              onClick={save}
+              disabled={!dirty}
+              className="rounded-md bg-gray-700 h-9 px-3 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {t("Save")}
+            </button>
+          </>
+        }
+      />
+
+      <div className="flex gap-6">
+        <div className="flex-1 space-y-5 rounded-lg border border-gray-300 bg-white p-5">
+          <DetailField label="Name">
+            <input
+              value={draft.name}
+              onChange={(e) => update({ name: e.target.value })}
+              className="w-full rounded-md border border-gray-300 bg-white h-9 px-3 text-sm focus:border-violet-400 focus:outline-none"
+            />
+          </DetailField>
+
+          <div>
+            <div className="mb-3 flex items-center justify-between">
+              <label className="text-xs font-medium uppercase tracking-wide text-gray-400">{t("Elements")}</label>
+              <button onClick={() => setAddingField(true)} className="flex items-center gap-1.5 rounded-md border border-gray-300 bg-white h-9 px-3 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                <Plus size={14} /> {t("Add element")}
+              </button>
+            </div>
+            <div className="mb-4 space-y-3">
+              {draft.fields
+                .map((f, i) => ({ f, i }))
+                .filter(({ f }) => isFixed(f))
+                .sort((a, b) => Number(a.f.core === "slug" || a.f.name === "slug") - Number(b.f.core === "slug" || b.f.name === "slug"))
+                .map(({ f, i }) => renderField(f, i))}
+            </div>
+            <div className="mb-3">
+              <GroupTabs
+                tabs={tabIds.map((id) => ({ id, label: id === GENERAL ? "General" : id }))}
+                active={activeId}
+                onSelect={setActiveGroup}
+                onMove={moveGroup}
+                fixedId={GENERAL}
+                trailing={
+                  <button onClick={addGroup} className="flex items-center gap-1 rounded-md h-7 px-2 text-xs font-medium text-gray-600 hover:bg-gray-100">
+                    <Plus size={13} /> {t("Add group")}
+                  </button>
+                }
+              />
+              {activeName !== null && (
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <label className="text-xs text-gray-500" htmlFor="group-name">{t("Group name")}</label>
+                  <input
+                    id="group-name"
+                    key={activeName}
+                    defaultValue={activeName}
+                    autoFocus={focusGroupName}
+                    onFocus={(e) => { if (focusGroupName) { e.target.select(); setFocusGroupName(false); } }}
+                    onBlur={(e) => { if (!renameGroup(activeName, e.target.value)) e.target.value = activeName; }}
+                    onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+                    className="w-48 rounded-md border border-gray-300 bg-white h-8 px-2.5 text-sm focus:border-violet-400 focus:outline-none"
+                  />
+                  <button
+                    onClick={() => deleteGroup(activeName)}
+                    className="flex items-center gap-1 rounded-md h-7 px-2 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-red-600"
+                  >
+                    <Trash2 size={13} /> {t("Delete group")}
+                  </button>
+                  <span className="text-xs text-gray-400">{t("Its elements move to General.")}</span>
+                </div>
+              )}
+            </div>
+            <div className="space-y-3">
+              {draft.fields.map((f, i) => (!isFixed(f) && inActive(f) ? renderField(f, i) : null))}
+              {!draft.fields.some((f) => !isFixed(f) && inActive(f)) && (
                 <p className="py-4 text-center text-sm text-gray-400">{activeName === null ? t("No elements yet.") : t("No elements in this group yet.")}</p>
               )}
             </div>
