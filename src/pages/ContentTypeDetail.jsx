@@ -13,7 +13,7 @@ import AddFieldDialog from "../components/AddFieldDialog";
 import GroupTabs from "../components/GroupTabs";
 import { GENERAL, groupsOf } from "../lib/groups";
 import { fieldKeyFor, keyBase } from "../lib/fieldKey";
-import { RICH_TEXT_OPTIONS, richTextOff } from "../lib/richTextOptions";
+import { RICH_TEXT_OPTIONS, DEFAULT_RICH_TEXT_OFF, richTextOff } from "../lib/richTextOptions";
 
 export default function ContentTypeDetail() {
   const { id } = useParams();
@@ -112,6 +112,7 @@ function ContentTypeEditor({ id }) {
       type: fieldType,
       group: activeName,
       ...(fieldType === "Taxonomy" ? { taxonomyId: taxonomies[0]?.id } : {}),
+      ...(fieldType === "Rich text" ? { richText: { off: DEFAULT_RICH_TEXT_OFF } } : {}),
     };
     update({ fields: [...draft.fields, field] });
     setAddingField(false);
@@ -297,6 +298,7 @@ function ContentTypeEditor({ id }) {
                             type: nextType,
                             taxonomyId: nextType === "Taxonomy" ? (f.taxonomyId ?? taxonomies[0]?.id) : undefined,
                             ...(nextType === "Separator" ? { required: false, localized: false } : {}),
+                            ...(nextType === "Rich text" && !f.richText ? { richText: { off: DEFAULT_RICH_TEXT_OFF } } : {}),
                           });
                         }}
                         className="w-48 rounded-md border border-gray-300 bg-white h-8 px-2.5 text-sm disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"

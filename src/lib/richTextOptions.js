@@ -18,3 +18,7 @@ export const RICH_TEXT_OPTIONS = [
 ];
 
 export const richTextOff = (options) => new Set(options?.off ?? []);
+
+// What a new rich text element starts with switched off. Elements saved without a
+// setting keep everything on.
+export const DEFAULT_RICH_TEXT_OFF = ["quote", "table", "image", "component"];
