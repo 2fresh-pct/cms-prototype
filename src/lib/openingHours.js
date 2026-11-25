@@ -9,7 +9,9 @@
 // `to` are "MM-DD" and repeat every year (both empty: the whole year), and
 // `days` has an entry per weekday, { mode, intervals }, where mode is "closed",
 // "open" (the intervals are the open times, several when there is a break) or
-// "all-day". The older shape, one { open, close } or null per weekday, is read as
+// "all-day". A period can instead be a specific date, { name, date: "YYYY-MM-DD",
+// intervals } (a concert at 19:00, say): it applies on that date only, over the
+// regular hours (a temporary closure still wins). The older shape, one { open, close } or null per weekday, is read as
 // a single whole-year period.
 
 export const WEEKDAYS = [
@@ -37,10 +39,15 @@ const normalizeDays = (days) => Object.fromEntries(KEYS.map((k) => [k, normalize
 
 export function normalizeHours(value) {
   if (Array.isArray(value?.seasons)) {
-    return { seasons: value.seasons.map((s) => ({ name: s.name ?? "", from: s.from ?? "", to: s.to ?? "", days: normalizeDays(s.days) })) };
+    return {
+      seasons: value.seasons.map((s) => ({
+        name: s.name ?? "", from: s.from ?? "", to: s.to ?? "", days: normalizeDays(s.days),
+        date: s.date ?? null, intervals: Array.isArray(s.intervals) ? s.intervals : [],
+      })),
+    };
   }
   if (value && KEYS.some((k) => k in value)) {
-    return { seasons: [{ name: "", from: "", to: "", days: normalizeDays(value) }] };
+    return { seasons: [{ name: "", from: "", to: "", days: normalizeDays(value), date: null, intervals: [] }] };
   }
   return { seasons: [] };
 }
@@ -50,7 +57,12 @@ export function normalizeHours(value) {
 export function newSeason(from = "", to = "") {
   const open = () => ({ mode: "open", intervals: [{ ...DEFAULT_INTERVAL }] });
   const days = Object.fromEntries(KEYS.map((k) => [k, k === "sat" || k === "sun" ? CLOSED() : open()]));
-  return { name: "", from, to, days };
+  return { name: "", from, to, days, date: null, intervals: [] };
+}
+
+// A specific date with a start time (and, optionally, an end time).
+export function newDateSeason(date) {
+  return { ...newSeason(), date, intervals: [{ open: "19:00", close: "" }] };
 }
 
 // Is "MM-DD" inside a period (which may run over the new year)?
@@ -69,6 +81,10 @@ export function hoursForDate(date, { hours, specials = [], closures = [] }) {
   const closure = closures.find((c) => c.from && inRange(date, c.from, c.to));
   if (closure) return { kind: "closure", note: closure.note ?? "", until: closure.to || closure.from };
 
+  const { seasons } = normalizeHours(hours);
+  const term = seasons.find((s) => s.date === date);
+  if (term) return { kind: "date", name: term.name, intervals: term.intervals };
+
   const special = specials.find((s) => s.from && inRange(date, s.from, s.to));
   if (special) {
     return special.mode === "hours"
@@ -76,9 +92,9 @@ export function hoursForDate(date, { hours, specials = [], closures = [] }) {
       : { kind: "special-closed", label: special.label ?? "" };
   }
 
-  const { seasons } = normalizeHours(hours);
   const md = date.slice(5);
-  const season = seasons.filter((s) => s.from || s.to).find((s) => inPeriod(s, md)) ?? seasons.find((s) => !s.from && !s.to);
+  const regular = seasons.filter((s) => !s.date);
+  const season = regular.filter((s) => s.from || s.to).find((s) => inPeriod(s, md)) ?? regular.find((s) => !s.from && !s.to);
   if (!season) return { kind: "unknown" };
   const day = season.days[JS_DAY[new Date(`${date}T12:00:00`).getDay()]];
   return { kind: "regular", season: season.name, mode: day.mode, intervals: day.intervals };
@@ -100,7 +116,9 @@ export function layersFromEntry(ctx) {
   return { specials, closures };
 }
 
-export const formatIntervals = (intervals) => (intervals ?? []).filter((i) => i.open || i.close).map((i) => `${i.open}–${i.close}`).join(", ");
+// "09:00–17:00"; a start time alone (an event) is just "19:00".
+export const formatIntervals = (intervals) =>
+  (intervals ?? []).filter((i) => i.open || i.close).map((i) => (i.close ? `${i.open}–${i.close}` : i.open)).join(", ");
 
 // "1. 4." from "04-01" and "24. 12. 2026" from "2026-12-24", in the UI's date format.
 export const formatMonthDay = (md, locale) => {
@@ -123,6 +141,7 @@ export function summarizeHours(value, tr) {
   if (seasons.length === 0) return "—";
   return seasons
     .map((s) => {
+      if (s.date) return `${s.name ? `${s.name}: ` : ""}${s.date} ${formatIntervals(s.intervals) || "—"}`;
       const days = WEEKDAYS.map(([k, label]) => `${tr(label).slice(0, 2)} ${describeDay(s.days[k], tr)}`).join(", ");
       return `${s.name ? `${s.name}: ` : ""}${days}`;
     })

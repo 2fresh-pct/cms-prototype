@@ -5,7 +5,7 @@ import Draft from "./Draft";
 import TimeIntervals from "./TimeIntervals";
 import DatePicker from "./DatePicker";
 import {
-  WEEKDAYS, DEFAULT_INTERVAL, normalizeHours, newSeason, hoursForDate, layersFromEntry, formatIntervals, formatDate,
+  WEEKDAYS, DEFAULT_INTERVAL, normalizeHours, newSeason, newDateSeason, hoursForDate, layersFromEntry, formatIntervals, formatDate,
 } from "../lib/openingHours";
 
 const FIELD = "h-9 rounded-md border border-gray-300 bg-[#fff] px-3 text-sm focus:border-violet-400 focus:outline-none";
@@ -54,6 +54,10 @@ function Preview({ hours, ctx }) {
       case "closure":
         text = result.until ? `${t("Temporarily closed")} ${t("until {date}", { date: formatDate(result.until, dateLocale) })}` : t("Temporarily closed");
         source = result.note || t("Temporary closure");
+        break;
+      case "date":
+        text = formatIntervals(result.intervals) || "—";
+        source = result.name || t("Specific date");
         break;
       case "special-closed":
         text = t("Closed");
@@ -124,7 +128,13 @@ export default function OpeningHoursField({ value, onChange, ctx }) {
         return (
           <div className="space-y-4">
             {seasons.map((s, i) => {
-              const dated = Boolean(s.from || s.to);
+              const isDate = s.date != null;
+              const dated = !isDate && Boolean(s.from || s.to);
+              const kind = isDate ? "date" : dated ? "period" : "year";
+              const changeKind = (next) => {
+                if (next === "date") patch(i, { date: todayLocal(), from: "", to: "", intervals: [{ open: "19:00", close: "" }] }, true);
+                else patch(i, { date: null, intervals: [], ...(next === "period" ? { from: "04-01", to: "10-31" } : { from: "", to: "" }) }, true);
+              };
               return (
                 <div key={i} className="space-y-4 rounded-md border border-gray-300 bg-[#fff] p-3">
                   <div className="flex flex-wrap items-center gap-2">
@@ -136,14 +146,21 @@ export default function OpeningHoursField({ value, onChange, ctx }) {
                       className={`${FIELD} w-56`}
                     />
                     <select
-                      value={dated ? "period" : "year"}
-                      onChange={(e) => patch(i, e.target.value === "period" ? { from: "04-01", to: "10-31" } : { from: "", to: "" }, true)}
+                      value={kind}
+                      onChange={(e) => changeKind(e.target.value)}
                       aria-label={t("Applies")}
                       className={FIELD}
                     >
                       <option value="year">{t("Whole year")}</option>
                       <option value="period">{t("Only in a period")}</option>
+                      <option value="date">{t("Specific date")}</option>
                     </select>
+                    {isDate && (
+                      <span className="flex flex-wrap items-center gap-2">
+                        <DatePicker value={s.date} onChange={(date) => patch(i, { date: date || s.date }, true)} ariaLabel={t("Date")} className={`${FIELD} w-44`} />
+                        <TimeIntervals intervals={s.intervals} onChange={(intervals, now) => patch(i, { intervals }, now)} optionalEnd />
+                      </span>
+                    )}
                     {dated && (
                       <span className="flex flex-wrap items-center gap-2 text-sm text-gray-700">
                         {t("From")}
@@ -163,6 +180,7 @@ export default function OpeningHoursField({ value, onChange, ctx }) {
                     </button>
                   </div>
 
+                  {!isDate && (
                   <div className="space-y-3">
                     {WEEKDAYS.map(([key, label]) => {
                       const day = s.days[key];
@@ -189,7 +207,9 @@ export default function OpeningHoursField({ value, onChange, ctx }) {
                       );
                     })}
                   </div>
+                  )}
 
+                  {!isDate && (
                   <button
                     type="button"
                     onClick={() => {
@@ -201,6 +221,7 @@ export default function OpeningHoursField({ value, onChange, ctx }) {
                   >
                     {t("Use Monday for Monday to Friday")}
                   </button>
+                  )}
                 </div>
               );
             })}

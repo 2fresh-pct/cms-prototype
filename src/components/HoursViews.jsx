@@ -13,6 +13,14 @@ export function OpeningHoursView({ value, text = "text-sm" }) {
   return (
     <div className="space-y-4">
       {seasons.map((s, i) => {
+        if (s.date) {
+          return (
+            <section key={i}>
+              <h4 className="mb-1.5 text-sm font-semibold text-gray-900">{[s.name, formatDate(s.date, dateLocale)].filter(Boolean).join(" · ")}</h4>
+              <p className={`${text} text-gray-700`}>{formatIntervals(s.intervals) || "—"}</p>
+            </section>
+          );
+        }
         const period = s.from || s.to
           ? `${formatMonthDay(s.from || "01-01", dateLocale)} – ${formatMonthDay(s.to || "12-31", dateLocale)}`
           : t("Whole year");
