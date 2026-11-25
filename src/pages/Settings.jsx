@@ -752,23 +752,24 @@ export default function Settings() {
       </div>
 
       <Modal
+        maxWidth="max-w-xl"
         open={leaving}
         onClose={keepEditing}
         title={t("Save your changes?")}
         footer={
           <>
-            <button onClick={keepEditing} className="rounded-md h-9 px-3 text-sm text-gray-500 hover:bg-gray-100">
+            <button onClick={keepEditing} className="whitespace-nowrap rounded-md h-9 px-3 text-sm text-gray-500 hover:bg-gray-100">
               {t("Keep editing")}
             </button>
             <button
               onClick={() => { guardRef.current?.discard?.(); leave(); }}
-              className="rounded-md border border-gray-300 h-9 px-3 text-sm font-medium text-red-600 hover:bg-red-50"
+              className="whitespace-nowrap rounded-md border border-gray-300 h-9 px-3 text-sm font-medium text-red-600 hover:bg-red-50"
             >
               {t("Discard changes")}
             </button>
             <button
               onClick={() => { guardRef.current?.save?.(); leave(); }}
-              className="rounded-md bg-gray-700 h-9 px-3 text-sm font-medium text-white hover:bg-gray-800"
+              className="whitespace-nowrap rounded-md bg-gray-700 h-9 px-3 text-sm font-medium text-white hover:bg-gray-800"
             >
               {t("Save changes")}
             </button>

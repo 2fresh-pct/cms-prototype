@@ -593,20 +593,21 @@ function ContentTypeEditor({ id }) {
       </div>
 
       <Modal
+        maxWidth="max-w-xl"
         open={blocker.state === "blocked"}
         onClose={() => blocker.reset?.()}
         title={t("Save your changes?")}
         footer={
           <>
-            <button onClick={() => blocker.reset?.()} className="rounded-md h-9 px-3 text-sm text-gray-500 hover:bg-gray-100">
+            <button onClick={() => blocker.reset?.()} className="whitespace-nowrap rounded-md h-9 px-3 text-sm text-gray-500 hover:bg-gray-100">
               {t("Keep editing")}
             </button>
-            <button onClick={() => blocker.proceed?.()} className="rounded-md border border-gray-300 h-9 px-3 text-sm font-medium text-red-600 hover:bg-red-50">
+            <button onClick={() => blocker.proceed?.()} className="whitespace-nowrap rounded-md border border-gray-300 h-9 px-3 text-sm font-medium text-red-600 hover:bg-red-50">
               {t("Discard changes")}
             </button>
             <button
               onClick={() => { save(); blocker.proceed?.(); }}
-              className="rounded-md bg-gray-700 h-9 px-3 text-sm font-medium text-white hover:bg-gray-800"
+              className="whitespace-nowrap rounded-md bg-gray-700 h-9 px-3 text-sm font-medium text-white hover:bg-gray-800"
             >
               {t("Save changes")}
             </button>
