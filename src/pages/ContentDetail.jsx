@@ -22,7 +22,7 @@ import Avatar from "../components/Avatar";
 import Modal from "../components/Modal";
 import GroupTabs from "../components/GroupTabs";
 import { slugify, slugOf } from "../lib/slug";
-import { GENERAL, sectionsOf, groupsOf } from "../lib/groups";
+import { GENERAL, sectionsOf } from "../lib/groups";
 import PreviewButton from "../components/PreviewButton";
 import PublishDialog from "../components/PublishDialog";
 import { useMediaUpload } from "../lib/mediaUpload";
@@ -416,26 +416,14 @@ function ContentDetailPage({ id }) {
   const bodyField = coreField("body") ?? type?.fields.find((f) => f.name === "body");
   const showBody = !type || Boolean(bodyField);
   const extraFields = (type?.fields ?? []).filter((f) => !f.core && !["title", "slug", "body"].includes(f.name));
-  // A type without tabs shows its fields in the type's order: those it lists before its
-  // body (a subtitle, say) go above the body. A type with tabs keeps its fields in the
-  // tabs; the body goes into the tab of its own group, at its place in the type's
-  // order, unless that group has no tab (then it stays above the tabs, with the title
-  // and slug).
-  const bodyIndex = bodyField && type ? type.fields.indexOf(bodyField) : -1;
-  const typeGroups = groupsOf(type);
-  const allSections = sectionsOf(type, extraFields);
-  const hasTabs = allSections.length > 1;
-  const bodyGroup = bodyField?.group && typeGroups.includes(bodyField.group) ? bodyField.group : null;
-  const bodyInTab = Boolean(showBody && bodyField && hasTabs && allSections.some((sec) => (sec.name ?? null) === bodyGroup));
-  const beforeBody = (f) => !hasTabs && bodyIndex > -1 && type.fields.indexOf(f) < bodyIndex;
-  const topFields = extraFields.filter(beforeBody);
-  const tabFields = extraFields.filter((f) => !beforeBody(f));
-  const sections = sectionsOf(type, tabFields);
+  // Only the title and slug are always above the tabs. Everything else, the body
+  // included, is laid out in the type's order and goes into the tab of its group (or
+  // straight down the page when the type has no tabs).
+  const layoutFields = showBody && bodyField ? [...extraFields, bodyField] : extraFields;
+  const byTypeOrder = (a, b) => (type?.fields.indexOf(a) ?? 0) - (type?.fields.indexOf(b) ?? 0);
+  const sections = sectionsOf(type, layoutFields);
   const activeSection = sections.find((s) => (s.name ?? GENERAL) === activeGroup) ?? sections[0];
-  const visibleFields = sections.length > 1 ? activeSection.fields : tabFields;
-  const itemsInTab = bodyInTab && (activeSection.name ?? null) === bodyGroup
-    ? [...visibleFields, bodyField].sort((a, b) => type.fields.indexOf(a) - type.fields.indexOf(b))
-    : visibleFields;
+  const itemsInTab = [...(sections.length > 1 ? activeSection.fields : layoutFields)].sort(byTypeOrder);
   const groupTabs = sections.length > 1 && (
     <StickyTabs onHeight={setTabsHeight}>
       <GroupTabs tabs={sections.map((s) => ({ id: s.name ?? GENERAL, label: s.name ?? "General" }))} active={activeSection.name ?? GENERAL} onSelect={setActiveGroup} />
@@ -639,8 +627,7 @@ function ContentDetailPage({ id }) {
             <DetailField label="Slug" required={slugField?.required} localized={slugField?.localized}>
               <p className="text-sm text-gray-500">/{slugOf(viewEntry)}</p>
             </DetailField>
-            {topFields.map(viewField)}
-            {showBody && !bodyInTab && viewBody()}
+            {showBody && !bodyField && viewBody()}
             {groupTabs}
             {singleGroupHeading}
             {itemsInTab.map((f) => (f === bodyField ? viewBody() : viewField(f)))}
@@ -708,8 +695,7 @@ function ContentDetailPage({ id }) {
               )}
               {slugTaken && <p className="mt-1.5 text-xs text-amber-700">{t("Another item in this language already uses this slug.")}</p>}
             </DetailField>
-            {topFields.map(editField)}
-            {showBody && !bodyInTab && editBody()}
+            {showBody && !bodyField && editBody()}
 
             {groupTabs}
             {singleGroupHeading}

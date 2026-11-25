@@ -10,7 +10,6 @@ import FieldView, { isEmpty } from "../components/FieldView";
 import MediaThumb from "../components/MediaThumb";
 import { inLocale } from "../components/ContentItemEmbed";
 import { holdsSeveral, mediaIds } from "../lib/media";
-import { sectionsOf, groupsOf } from "../lib/groups";
 import { htmlToText } from "../lib/richtext";
 import { Signal, Wifi, BatteryFull, ChevronLeft, ChevronDown } from "lucide-react";
 
@@ -31,39 +30,18 @@ function EntryFields({ entry, type, ctx, compact }) {
   const fields = type?.fields ?? [];
   const bodyField = fields.find((f) => f.core === "body") ?? fields.find((f) => f.name === "body");
   const extra = fields.filter((f) => !f.core && !["title", "slug", "body"].includes(f.name));
-  // A type without tabs lists its fields in the type's order, so those before the body
-  // (a subtitle) come before it; a type with tabs keeps them after it.
-  const bodyIndex = bodyField ? fields.indexOf(bodyField) : -1;
-  const hasTabs = sectionsOf(type, extra).length > 1;
-  const isTop = (f) => !hasTabs && bodyIndex > -1 && fields.indexOf(f) < bodyIndex;
+  // Everything but the title and slug (the body included) in the type's order.
   const filled = extra.filter((f) => !isEmpty(entry.fieldValues?.[f.name]));
-  const top = filled.filter(isTop);
-  const shown = filled.filter((f) => !isTop(f));
   const hasBody = !isEmpty(entry.body);
-  // With tabs the body sits among the fields of its own group, in the type's order.
-  const bodyGroup = bodyField?.group && groupsOf(type).includes(bodyField.group) ? bodyField.group : null;
-  const bodyInList = Boolean(bodyField && hasTabs && sectionsOf(type, extra).some((sec) => (sec.name ?? null) === bodyGroup));
-  const sequence = bodyInList
-    ? [...shown, bodyField].sort((a, b) => fields.indexOf(a) - fields.indexOf(b))
-    : shown;
+  const sequence = bodyField ? [...filled, bodyField].sort((a, b) => fields.indexOf(a) - fields.indexOf(b)) : filled;
   const bodyBlock = hasBody
     ? <FieldView field={{ type: "Rich text" }} value={entry.body} ctx={ctx} compact={compact} />
     : <p className="italic text-gray-400">{t("No body content yet.")}</p>;
   const h = compact ? "text-[11px]" : "text-xs";
 
-  const field = (f) => (
-    <div key={f.name}>
-      {f.type !== "Sections" && !(f.type === "Media" && !holdsSeveral(f)) && (
-        <p className={`mb-1.5 font-medium uppercase tracking-wide text-gray-400 ${h}`}>{t(f.label ?? f.name)}</p>
-      )}
-      <FieldView field={f} value={entry.fieldValues?.[f.name]} ctx={ctx} compact={compact} />
-    </div>
-  );
-
   return (
     <div className={compact ? "space-y-4" : "space-y-6"}>
-      {top.map(field)}
-      {(bodyField || !type) && !bodyInList ? bodyBlock : null}
+      {!type ? bodyBlock : null}
       {sequence.map((f, i) => (
         <Fragment key={f.name}>
           {f.group && f.group !== sequence[i - 1]?.group && (
