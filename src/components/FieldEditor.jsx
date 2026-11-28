@@ -246,7 +246,7 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
       return <input disabled value={ctx.entryId} className="w-full rounded-md border border-gray-300 bg-gray-50 h-9 px-3 text-sm text-gray-500" />;
 
     case "Short text":
-      return <AutoGrowText value={value} onCommit={onChange} />;
+      return <AutoGrowText key={value ?? ""} value={value} onCommit={onChange} />;
 
     case "Rich text":
       return <RichTextEditor value={value} onChange={onChange} minHeight={110} media={ctx.media} onUpload={ctx.uploadMedia} locale={ctx.locale} content={ctx} options={field.richText} />;
@@ -260,7 +260,8 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
       );
 
     case "Map":
-      return <MapField value={value} onChange={onChange} />;
+      // A chosen place also fills the address elements beside the map (street, postal code...).
+      return <MapField value={value} onChange={(v, parts) => (parts && ctx.placeChosen ? ctx.placeChosen(field.name, v, parts) : onChange(v))} />;
 
     case "Boolean":
       return <Toggle checked={Boolean(value)} onChange={onChange} label={value ? t("Yes") : t("No")} ariaLabel={field.label ?? field.name} />;
@@ -381,7 +382,7 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
       return <AdmissionField value={value} onChange={onChange} />;
 
     default:
-      return <AutoGrowText value={value} onCommit={onChange} singleLine />;
+      return <AutoGrowText key={value ?? ""} value={value} onCommit={onChange} singleLine />;
   }
 }
 

@@ -17,7 +17,22 @@ function formatAddress(parts, name, fallback) {
   return [...new Set(segments.filter(Boolean))].join(", ") || fallback;
 }
 
-// Up to five places that match what is being typed: [{ name, address, lat, lng }].
+// The address of a place in parts, for filling in the separate address elements:
+// { street, postalCode, quarter, district, city, region, country }.
+export function addressParts(parts, name) {
+  const place = parts.city ?? parts.town ?? parts.village ?? parts.municipality ?? "";
+  return {
+    street: [parts.road ?? parts.pedestrian ?? parts.square ?? name, parts.house_number].filter(Boolean).join(" "),
+    postalCode: parts.postcode ?? "",
+    quarter: parts.suburb ?? parts.quarter ?? parts.neighbourhood ?? "",
+    district: (parts.city_district ?? place).replace(/^obvod\s+/i, ""),
+    city: place,
+    region: parts.state ?? parts.region ?? parts.state_district ?? "",
+    country: parts.country ?? "",
+  };
+}
+
+// Up to five places that match what is being typed: [{ name, address, parts, lat, lng }].
 // Nominatim cannot complete a half-typed word ("Staroměst"), so the matching is done
 // by Photon (OpenStreetMap data, made for search as you type); the Czech address of
 // each place, in the format above, is then asked of Nominatim in one request.
@@ -46,7 +61,8 @@ export async function suggest(query, signal) {
         ? formatAddress(hit.address ?? {}, hit.name, hit.display_name)
         : [[p.street, p.housenumber].filter(Boolean).join(" "), p.postcode, p.district, p.city].filter(Boolean).join(", ");
       const name = hit?.name ?? p.name ?? "";
-      return { name: name && !address.startsWith(name) ? name : "", address, lat, lng };
+      const detail = hit ? addressParts(hit.address ?? {}, hit.name) : { street: [p.street, p.housenumber].filter(Boolean).join(" "), postalCode: p.postcode ?? "", quarter: p.district ?? "", district: "", city: p.city ?? "", region: p.state ?? "", country: p.country ?? "" };
+      return { name: name && !address.startsWith(name) ? name : "", address, parts: detail, lat, lng };
     })
     .filter((x) => x.address && (seen.has(`${x.name}|${x.address}`) ? false : seen.add(`${x.name}|${x.address}`)));
 }
@@ -58,14 +74,14 @@ export async function geocode(query) {
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const [hit] = await res.json();
   if (!hit) return null;
-  return { lat: Number(hit.lat), lng: Number(hit.lon), address: formatAddress(hit.address ?? {}, hit.name, hit.display_name) };
+  return { lat: Number(hit.lat), lng: Number(hit.lon), address: formatAddress(hit.address ?? {}, hit.name, hit.display_name), parts: addressParts(hit.address ?? {}, hit.name) };
 }
 
-// The address nearest to a point, or null when there is none.
+// The address nearest to a point ({ address, parts }), or null when there is none.
 export async function reverseGeocode(lat, lng) {
   const url = `${BASE}/reverse?format=jsonv2&addressdetails=1&zoom=18&accept-language=cs&lat=${lat}&lon=${lng}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const hit = await res.json();
-  return hit && !hit.error ? formatAddress(hit.address ?? {}, hit.name, hit.display_name) : null;
+  return hit && !hit.error ? { address: formatAddress(hit.address ?? {}, hit.name, hit.display_name), parts: addressParts(hit.address ?? {}, hit.name) } : null;
 }

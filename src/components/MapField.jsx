@@ -7,10 +7,9 @@ import { geocode, reverseGeocode, suggest } from "../lib/geocode";
 
 // The value of a Map field: { address, lat, lng } (lat and lng are null while no
 // pin is placed). Shown as a card: the address on top, the pin's coordinates under
-// it, followed in brackets by the address those coordinates stand for (looked up
-// again whenever the pin moves; it is not saved, and does not replace the address
-// above), with "use the address at the pin" and "remove pin", then the map with its
-// pin. The address is typed as "Staroměstské náměstí 1/3, 110 00, Staré Město,
+// it, with "use the address at the pin" (the address those coordinates stand for,
+// looked up again whenever the pin moves; it is not saved or shown, and does not
+// replace the address above) and "remove pin", then the map with its pin. The address is typed as "Staroměstské náměstí 1/3, 110 00, Staré Město,
 // Praha 1"; while typing, matching places are offered, and choosing one sets the
 // address and puts the pin there (Enter with nothing chosen looks up the best match).
 // Click the map or drag the pin to adjust it by hand. With `readOnly` it is a still picture.
@@ -22,6 +21,7 @@ const hasPin = (v) => typeof v?.lat === "number" && typeof v?.lng === "number";
 // The address found for a pin ("lat,lng" -> address, "" for none), so a place is
 // looked up once however many times it is shown.
 const ADDRESS_AT = new Map();
+const PARTS_AT = new Map(); // the same places, "lat,lng" -> the address in parts
 const pinKey = (lat, lng) => `${lat},${lng}`;
 
 // The pin: a drop in the theme's gold, drawn as SVG so no image files are needed.
@@ -126,9 +126,11 @@ export default function MapField({ value, onChange, readOnly = false }) {
     let stale = false;
     const timer = setTimeout(async () => {
       try {
-        const address = await reverseGeocode(lat, lng);
+        const found = await reverseGeocode(lat, lng);
+        const address = found?.address;
         if (stale) return;
         ADDRESS_AT.set(key, address ?? "");
+        if (found) PARTS_AT.set(key, found.parts);
         setPinAddress(address ? { status: "ok", text: address } : { status: "none", text: "" });
       } catch {
         if (!stale) setPinAddress({ status: "error", text: "" });
@@ -167,7 +169,8 @@ export default function MapField({ value, onChange, readOnly = false }) {
     setActive(-1);
     setText(hit.address);
     ADDRESS_AT.set(pinKey(round(hit.lat), round(hit.lng)), hit.address);
-    latest.current.onChange({ address: hit.address, lat: round(hit.lat), lng: round(hit.lng) });
+    PARTS_AT.set(pinKey(round(hit.lat), round(hit.lng)), hit.parts);
+    latest.current.onChange({ address: hit.address, lat: round(hit.lat), lng: round(hit.lng) }, hit.parts);
     map.current?.setView([hit.lat, hit.lng], Math.max(map.current.getZoom(), 16));
   }
 
@@ -194,7 +197,8 @@ export default function MapField({ value, onChange, readOnly = false }) {
       const hit = await geocode(query);
       if (!hit) { setNote(t("Address not found")); return; }
       ADDRESS_AT.set(pinKey(round(hit.lat), round(hit.lng)), hit.address);
-      latest.current.onChange({ address: hit.address, lat: round(hit.lat), lng: round(hit.lng) });
+    PARTS_AT.set(pinKey(round(hit.lat), round(hit.lng)), hit.parts);
+      latest.current.onChange({ address: hit.address, lat: round(hit.lat), lng: round(hit.lng) }, hit.parts);
       map.current?.setView([hit.lat, hit.lng], Math.max(map.current.getZoom(), 16));
     } catch {
       setNote(t("The map search is unavailable"));
@@ -206,13 +210,13 @@ export default function MapField({ value, onChange, readOnly = false }) {
   // The nearest address to the pin, for when the pin was moved by hand.
   async function addressAtPin() {
     if (!hasPin(value) || busy) return;
-    if (pinAddress.status === "ok") { latest.current.onChange({ ...latest.current.value, address: pinAddress.text }); return; }
+    if (pinAddress.status === "ok") { latest.current.onChange({ ...latest.current.value, address: pinAddress.text }, PARTS_AT.get(pinKey(value.lat, value.lng))); return; }
     setBusy(true);
     setNote("");
     try {
-      const address = await reverseGeocode(value.lat, value.lng);
-      if (!address) setNote(t("No address at the pin"));
-      else latest.current.onChange({ ...latest.current.value, address });
+      const found = await reverseGeocode(value.lat, value.lng);
+      if (!found) setNote(t("No address at the pin"));
+      else latest.current.onChange({ ...latest.current.value, address: found.address }, found.parts);
     } catch {
       setNote(t("The map search is unavailable"));
     } finally {
@@ -276,19 +280,8 @@ export default function MapField({ value, onChange, readOnly = false }) {
 
         {/* The coordinates of the pin, with what can be done with the pin, under the address. */}
         <div className="flex shrink-0 items-center justify-between gap-2 border-b border-gray-300 px-3 py-2">
-          <p className="min-w-0 truncate text-xs text-gray-900" title={pinned ? [`${value.lat}, ${value.lng}`, pinAddress.text].filter(Boolean).join(" ") : undefined}>
-            {pinned ? (
-              <>
-                <span className="font-mono">{`${value.lat.toFixed(6)}, ${value.lng.toFixed(6)}`}</span>
-                {!readOnly && (
-                  <span className="ml-1.5" data-pin-address>
-                    {pinAddress.status === "ok" && `(${pinAddress.text})`}
-                    {pinAddress.status === "loading" && <span className="text-gray-500">(…)</span>}
-                    {pinAddress.status === "none" && <span className="text-gray-500">({t("No address at the pin")})</span>}
-                  </span>
-                )}
-              </>
-            ) : t("No pin yet")}
+          <p className="min-w-0 truncate font-mono text-xs text-gray-900">
+            {pinned ? `${value.lat.toFixed(6)}, ${value.lng.toFixed(6)}` : <span className="font-sans">{t("No pin yet")}</span>}
           </p>
           {!readOnly && pinned && (
             <div className="flex shrink-0 items-center gap-0.5">

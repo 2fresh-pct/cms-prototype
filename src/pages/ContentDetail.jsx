@@ -251,20 +251,44 @@ function ContentDetailPage({ id }) {
   // lib/sharedFields.js): it is written to the other versions of this item that
   // can still be edited too. A published version is left as it is.
   function setFieldValue(fieldName, value) {
-    const nextValues = { ...(entry.fieldValues ?? {}), [fieldName]: value };
-    const sharedField = sharedFields(contentTypes.find((c) => c.id === entry.contentTypeId)).find((f) => f.name === fieldName);
-    if (!sharedField) { update({ fieldValues: nextValues }); return; }
+    setFieldValues({ [fieldName]: value });
+  }
+
+  // Several elements at once (a place chosen on the map fills the address elements too).
+  function setFieldValues(values) {
+    const type = contentTypes.find((c) => c.id === entry.contentTypeId);
+    const nextValues = { ...(entry.fieldValues ?? {}), ...values };
+    const shared = sharedFields(type).filter((f) => f.name in values);
+    if (shared.length === 0) { update({ fieldValues: nextValues }); return; }
     if (isPublished) return;
     const group = normalizeEntryGroupId(entry);
     setEntries(entries.map((e) => {
       if (e.id === id) return applyPatch(e, { fieldValues: nextValues });
       const sibling = e.contentTypeId === entry.contentTypeId && normalizeEntryGroupId(e) === group;
       if (!sibling || normalizeEntryStatus(e.status, workflowSteps) === publishStepId) return e;
-      // Opening hours, admission and the like share their structure, not their names and notes.
-      const siblingValue = hasLocalizedTexts(sharedField.type) ? mergeLocalizedTexts(sharedField.type, value, e.fieldValues?.[fieldName]) : value;
-      return applyPatch(e, { fieldValues: { ...(e.fieldValues ?? {}), [fieldName]: siblingValue } });
+      const next = { ...(e.fieldValues ?? {}) };
+      for (const f of shared) {
+        // Opening hours, admission and the like share their structure, not their names and notes.
+        next[f.name] = hasLocalizedTexts(f.type) ? mergeLocalizedTexts(f.type, values[f.name], e.fieldValues?.[f.name]) : values[f.name];
+      }
+      return applyPatch(e, { fieldValues: next });
     }));
     flashSaved();
+  }
+
+  // A place chosen on the map: the map element gets it, and the address elements of the
+  // item (street, postal code, quarter, city, region, country) are filled from it.
+  const ADDRESS_ELEMENTS = {
+    ulice: "street", psc: "postalCode", mestskacast: "district", lokalita: "quarter", mesto: "city", region: "region", zeme: "country",
+  };
+  function placeChosen(mapField, mapValue, parts) {
+    const type = contentTypes.find((c) => c.id === entry.contentTypeId);
+    const values = { [mapField]: mapValue };
+    for (const f of type?.fields ?? []) {
+      const part = ADDRESS_ELEMENTS[String(f.name).toLowerCase()];
+      if (part && f.type === "Text" && parts[part]) values[f.name] = parts[part];
+    }
+    setFieldValues(values);
   }
 
   // Publishing is where channels get chosen: the dialog opens from the header
@@ -447,7 +471,7 @@ function ContentDetailPage({ id }) {
     const follow = !next || next === slugify(entry.title);
     if (follow ? Boolean(entry.slug) : next !== entry.slug) update({ slug: follow ? null : next });
   }
-  const fieldCtx = { taxonomies, media, entries, contentTypes, workflowSteps, publishStepId, entryId: entry.id, locale: entry.locale, uploadMedia: mediaUpload.upload };
+  const fieldCtx = { taxonomies, media, entries, contentTypes, workflowSteps, publishStepId, entryId: entry.id, locale: entry.locale, uploadMedia: mediaUpload.upload, placeChosen };
   const viewBody = () => (
     <DetailField key="body" label={bodyField?.label ?? "Body"} required={bodyField?.required} localized={bodyField?.localized}>
       <RichTextView key={selectedVersionId ?? "current"} value={viewEntry.body} media={media} content={fieldCtx} tiles />
