@@ -412,7 +412,7 @@ export const CS = {
   "Use Monday for every day": "Použít pondělí všude",
   "Set each day separately": "Nastavit každý den zvlášť",
   "Simple range": "Jednoduchý rozsah",
-  "Add time period": "Přidat časovou dobu",
+  "Add time period": "Přidat další dobu",
   "A range of dates with a note.": "Rozsah dat s poznámkou.",
   "From day": "Od dne",
   "To day": "Do dne",
