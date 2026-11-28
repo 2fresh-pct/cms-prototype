@@ -129,25 +129,7 @@ function MediaEditor({ id }) {
         <div className="max-h-full w-96 shrink-0 space-y-5 self-start overflow-y-auto rounded-lg border border-gray-300 bg-white p-5">
           {item.src && <CropPreview item={item} focus={liveFocus ?? focusOf(item)} />}
 
-          <div className={`space-y-4 ${item.src ? "border-t border-gray-200 pt-5" : ""}`}>
-            <DetailField label="File name"><span className="break-all text-sm text-gray-700">{item.name}</span></DetailField>
-            <DetailField label="Type"><span className="text-sm text-gray-700">{item.kind}</span></DetailField>
-            <DetailField label="Size"><span className="text-sm text-gray-700">{formatSize(item.sizeKb)}</span></DetailField>
-            {item.duration > 0 && (
-              <DetailField label="Duration"><span className="text-sm text-gray-700">{formatDuration(item.duration)}</span></DetailField>
-            )}
-            {item.width && (
-              <DetailField label="Dimensions"><span className="text-sm text-gray-700">{item.width} × {item.height} px</span></DetailField>
-            )}
-            <DetailField label="Uploaded"><span className="text-sm text-gray-700">{date}</span></DetailField>
-            {uploader && (
-              <DetailField label="Uploaded by">
-                <span className="inline-flex items-center gap-2 text-sm text-gray-700"><Avatar user={uploader} size={20} />{uploader.name}</span>
-              </DetailField>
-            )}
-          </div>
-
-          <div className="border-t border-gray-200 pt-5">
+          <div className={item.src ? "border-t border-gray-200 pt-5" : ""}>
             <DetailField label="Used in">
               {usedIn.length === 0 ? (
                 <p className="text-sm text-gray-400">{t("Not used anywhere yet.")}</p>
@@ -164,6 +146,24 @@ function MediaEditor({ id }) {
               )}
             </DetailField>
           </div>
+          <div className="space-y-4 border-t border-gray-200 pt-5">
+            <DetailField label="File name"><span className="break-all text-sm text-gray-700">{item.name}</span></DetailField>
+            {item.width && (
+              <DetailField label="Dimensions"><span className="text-sm text-gray-700">{item.width} × {item.height} px</span></DetailField>
+            )}
+            <DetailField label="Type"><span className="text-sm text-gray-700">{item.kind}</span></DetailField>
+            <DetailField label="Size"><span className="text-sm text-gray-700">{formatSize(item.sizeKb)}</span></DetailField>
+            {item.duration > 0 && (
+              <DetailField label="Duration"><span className="text-sm text-gray-700">{formatDuration(item.duration)}</span></DetailField>
+            )}
+            <DetailField label="Uploaded"><span className="text-sm text-gray-700">{date}</span></DetailField>
+            {uploader && (
+              <DetailField label="Uploaded by">
+                <span className="inline-flex items-center gap-2 text-sm text-gray-700"><Avatar user={uploader} size={20} />{uploader.name}</span>
+              </DetailField>
+            )}
+          </div>
+
         </div>
       </div>
     </div>
