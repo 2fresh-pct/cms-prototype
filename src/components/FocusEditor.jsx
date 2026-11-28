@@ -10,7 +10,7 @@ import { CROP_FORMATS, focusOf, isDefaultFocus, objectPosition, toFocus, DEFAULT
 // Click or drag on the picture to move the point; the arrow keys nudge it. It is
 // saved when the pointer is released. The previews use the same CSS the website
 // would: `object-fit: cover` with `object-position` at the focus point.
-export default function FocusEditor({ item, alt, onChange, onLive }) {
+export default function FocusEditor({ item, alt, onChange, onLive, note }) {
   const { t } = useI18n();
   const saved = focusOf(item);
   const [dragging, setDragState] = useState(null); // the point while it is being dragged
@@ -87,6 +87,7 @@ export default function FocusEditor({ item, alt, onChange, onLive }) {
         <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2">
           <h2 className="text-sm font-semibold text-gray-900">{t("Focus point")}</h2>
           <span className="text-xs text-gray-500">{t("Click or drag on the image to choose what must stay visible when it is cropped.")}</span>
+          {note && <span className="ml-auto text-xs text-gray-400">{note}</span>}
         </div>
         <div className="flex justify-center">
           <div
@@ -138,11 +139,9 @@ export default function FocusEditor({ item, alt, onChange, onLive }) {
             </button>
           )}
         </div>
-        {scan && scan !== "busy" && (
+        {(scan === "none" || scan === "error") && (
           <p role="status" className="mt-2 text-center text-xs text-gray-500">
-            {scan === "none" ? t("No face found. The focus point stays where it is.")
-              : scan === "error" ? t("Face detection could not run. Set the focus point by hand.")
-              : t("{n} found. The focus point is set to their centre.", { n: scan })}
+            {scan === "none" ? t("No face found. The focus point stays where it is.") : t("Face detection could not run. Set the focus point by hand.")}
           </p>
         )}
       </section>

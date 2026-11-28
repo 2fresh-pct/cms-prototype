@@ -289,7 +289,6 @@ export const CS = {
   "{done} of {total} translated": "Přeloženo {done} z {total}",
   "No face found. The focus point stays where it is.": "Nenalezen žádný obličej. Ohnisko zůstává, kde je.",
   "Face detection could not run. Set the focus point by hand.": "Rozpoznání obličejů se nepodařilo spustit. Nastavte ohnisko ručně.",
-  "{n} found. The focus point is set to their centre.": "Nalezeno obličejů: {n}. Ohnisko je nastavené na jejich střed.",
   "The formats used most on the website and in the app. The same crop is used wherever the image is shown.": "Nejčastější formáty na webu a v aplikaci. Stejný ořez se použije všude, kde se obrázek zobrazí.",
   "Sample file: no picture to show.": "Ukázkový soubor: není co zobrazit.",
   "Describes the image for screen readers. Used when the image is inserted into rich text, in the language of the entry.": "Popisuje obrázek pro čtečky obrazovky. Použije se při vložení obrázku do rich textu, v jazyce položky.",

@@ -84,19 +84,15 @@ function MediaEditor({ id }) {
               alt={saved[defaultLocale] || item.name}
               onChange={(focus) => { setMedia(media.map((m) => (m.id === id ? { ...m, focus } : m))); setJustSaved(true); }}
               onLive={setLiveFocus}
+              note={item.width
+                ? t("Preview copy of the original ({w} × {h} px)", { w: item.width, h: item.height })
+                : t("Preview copy of the original")}
             />
           ) : (
             <div className="flex flex-1 flex-col items-center justify-center gap-3">
               <MediaThumb item={item} className="aspect-video w-full max-w-2xl rounded-md border border-gray-300" />
               <p className="text-xs text-gray-400">{t("Sample file: no picture to show.")}</p>
             </div>
-          )}
-          {item.src && (
-            <p className="text-center text-xs text-gray-400">
-              {item.width
-                ? t("Preview copy of the original ({w} × {h} px)", { w: item.width, h: item.height })
-                : t("Preview copy of the original")}
-            </p>
           )}
           <div className="border-t border-gray-200 pt-5">
             <h2 className="mb-1 text-sm font-semibold text-gray-900">{t("Alt text")}</h2>
