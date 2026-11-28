@@ -523,6 +523,8 @@ export const CS = {
   "Remove": "Odebrat",
   "Filter terms…": "Filtrovat položky…",
   "No terms match.": "Žádná položka neodpovídá.",
+  "This taxonomy has no terms yet.": "Tato taxonomie zatím nemá žádné výrazy.",
+  "No taxonomy selected for this element.": "Pro tento element není vybraná žádná taxonomie.",
   "Closed": "Zavřeno",
   "Every day": "Každý den",
   "varies": "liší se",
