@@ -93,7 +93,7 @@ const PANE_PAD = "2rem";
 // The field-group tabs stay at the top of the scrolling card while the fields
 // scroll under them. Sticky offsets count from inside the card's padding, so the
 // strip sticks at -pane-pad (the card's edge), reaches over the side padding
-// (-mx-5 / px-5) and has the card's background; padding rather than margin,
+// (-mx-5 / px-5; wide screens leave 5rem on the right, -mr-20 / pr-20) and has the card's background; padding rather than margin,
 // because the card spaces its children with `space-y-*` margins. It reports its
 // height so a rich text toolbar can stick right below it.
 function StickyTabs({ onHeight, children }) {
@@ -128,7 +128,7 @@ function StickyTabs({ onHeight, children }) {
     setTimeout(() => { card.scrollTop = natural; }, 0);
   };
   return (
-    <div ref={ref} onClickCapture={toTabTop} className="sticky top-[calc(var(--pane-pad)*-1)] z-20 -mx-5 bg-white px-5 pt-2">
+    <div ref={ref} onClickCapture={toTabTop} className="sticky top-[calc(var(--pane-pad)*-1)] z-20 -ml-5 -mr-5 xl:-mr-20 bg-white pl-5 pr-5 xl:pr-20 pt-2">
       {children}
     </div>
   );
@@ -625,7 +625,7 @@ function ContentDetailPage({ id }) {
             </div>
           )}
         {readOnly ? (
-          <div style={{ "--pane-pad": PANE_PAD }} className="min-h-0 flex-1 space-y-8 overflow-y-auto rounded-lg border border-gray-300 bg-white px-5 py-[var(--pane-pad)]">
+          <div style={{ "--pane-pad": PANE_PAD }} className="min-h-0 flex-1 space-y-8 overflow-y-auto rounded-lg border border-gray-300 bg-white pl-5 pr-5 xl:pr-20 py-[var(--pane-pad)]">
             <DetailField label="Title" required={titleField?.required} localized={titleField?.localized}>
               <p className="text-sm text-gray-900">{viewEntry.title}</p>
             </DetailField>
@@ -670,7 +670,7 @@ function ContentDetailPage({ id }) {
             )}
           </div>
         ) : (
-          <div style={{ "--pane-pad": PANE_PAD, "--sticky-tabs": `${tabsHeight}px` }} className="min-h-0 flex-1 space-y-8 overflow-y-auto rounded-lg border border-gray-300 bg-white px-5 py-[var(--pane-pad)]">
+          <div style={{ "--pane-pad": PANE_PAD, "--sticky-tabs": `${tabsHeight}px` }} className="min-h-0 flex-1 space-y-8 overflow-y-auto rounded-lg border border-gray-300 bg-white pl-5 pr-5 xl:pr-20 py-[var(--pane-pad)]">
             <DetailField label="Title" required={titleField?.required} localized={titleField?.localized}>
               <input
                 value={title}
