@@ -276,7 +276,7 @@ export default function MediaPicker({ media, value, onChange, onUpload, multiple
           {ids.length > 0 && (
             <div className="flex items-center gap-3">
               {chooseButton("Add or remove files")}
-              {ids.length > 1 && <span className="text-xs text-gray-400">{t("Drag to reorder")}</span>}
+              {ids.length > 1 && <span className="text-xs text-gray-400">{t("The first item is the main photo. Drag to reorder.")}</span>}
             </div>
           )}
         </div>

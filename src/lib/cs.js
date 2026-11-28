@@ -603,6 +603,7 @@ export const CS = {
   "Link URL": "Adresa odkazu",
   "Link text": "Text odkazu",
   "Drag to reorder": "Pořadí změníte přetažením",
+  "The first item is the main photo. Drag to reorder.": "První položka se zobrazuje jako hlavní fotka. Pořadí změníte přetažením.",
   "Unsaved changes": "Neuložené změny",
   "Save": "Uložit",
   "Discard changes": "Zahodit změny",
