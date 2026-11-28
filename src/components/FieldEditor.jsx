@@ -16,6 +16,7 @@ import { WEEKDAYS, summarizeHours } from "../lib/openingHours";
 import { summarizeAdmission } from "../lib/admission";
 import { holdsSeveral, mediaIds } from "../lib/media";
 import DatePicker from "./DatePicker";
+import { newItemId } from "../lib/sharedFields";
 
 const INPUT = "w-full rounded-md border border-gray-300 bg-[#fff] h-9 px-3 text-sm focus:border-violet-400 focus:outline-none";
 const INPUT_SM = "rounded-md border border-gray-300 bg-[#fff] h-9 px-3 text-sm focus:border-violet-400 focus:outline-none";
@@ -91,6 +92,7 @@ export { WEEKDAYS };
 
 function RepeatingList({ value, onCommit, blank, addLabel, renderItem, emptyHint, card = false }) {
   const { t } = useI18n();
+  const make = () => (typeof blank === "function" ? blank() : blank); // a new part, with its own id when `blank` is a function
   return (
     <Draft value={value ?? []} onCommit={onCommit}>
       {(items, setItems, commit) => items.length === 0 && emptyHint ? (
@@ -98,7 +100,7 @@ function RepeatingList({ value, onCommit, blank, addLabel, renderItem, emptyHint
         <div className="flex items-center gap-4 rounded-md border border-dashed border-gray-300 px-3 py-3">
           <button
             type="button"
-            onClick={() => { const next = [blank]; setItems(next); commit(next); }}
+            onClick={() => { const next = [make()]; setItems(next); commit(next); }}
             className="flex items-center gap-1.5 rounded-md border border-gray-300 bg-white h-9 px-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
             <Plus size={14} /> {t(addLabel)}
@@ -124,7 +126,7 @@ function RepeatingList({ value, onCommit, blank, addLabel, renderItem, emptyHint
           ))}
           <button
             type="button"
-            onClick={() => { const next = [...items, blank]; setItems(next); commit(next); }}
+            onClick={() => { const next = [...items, make()]; setItems(next); commit(next); }}
             className={ADD_BUTTON}
           >
             <Plus size={13} /> {t(addLabel)}
@@ -318,7 +320,7 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
 
     case "Date ranges":
       return (
-        <RepeatingList value={value} onCommit={onChange} blank={{ label: "", from: "", to: "", note: "" }} addLabel="Add period" emptyHint="A range of dates with a note." card
+        <RepeatingList value={value} onCommit={onChange} blank={() => ({ id: newItemId(), label: "", from: "", to: "", note: "" })} addLabel="Add period" emptyHint="A range of dates with a note." card
           renderItem={(item, set) => (
             <div className="space-y-2">
               <div className="flex flex-wrap items-center gap-2">

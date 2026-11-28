@@ -3,13 +3,14 @@ import { useI18n } from "../lib/i18n";
 import Draft from "./Draft";
 import TimeIntervals from "./TimeIntervals";
 import { DEFAULT_INTERVAL } from "../lib/openingHours";
+import { newItemId } from "../lib/sharedFields";
 import DatePicker from "./DatePicker";
 
 const FIELD = "h-9 rounded-md border border-gray-300 bg-[#fff] px-3 text-sm focus:border-violet-400 focus:outline-none";
 const ADD = "flex items-center gap-1 text-xs font-medium text-violet-600 hover:text-violet-700";
 
-const blank = () => ({ label: "", from: "", to: "", mode: "closed", intervals: [] });
-const normalize = (d) => ({ ...blank(), ...d, intervals: Array.isArray(d?.intervals) ? d.intervals : [] });
+const blank = () => ({ id: newItemId(), label: "", from: "", to: "", mode: "closed", intervals: [] });
+const normalize = (d) => ({ label: "", from: "", to: "", mode: "closed", ...d, intervals: Array.isArray(d?.intervals) ? d.intervals : [] });
 
 // The same date a year later ("2026-12-24" -> "2027-12-24"; 29 February -> 28 February).
 function nextYear(date) {
@@ -84,7 +85,7 @@ export default function SpecialDaysField({ value, onChange }) {
                   <span className="ml-auto flex items-center gap-1">
                     <button
                       type="button"
-                      onClick={() => save([...days.slice(0, i + 1), { ...d, intervals: d.intervals.map((iv) => ({ ...iv })), from: nextYear(d.from), to: nextYear(d.to) }, ...days.slice(i + 1)], true)}
+                      onClick={() => save([...days.slice(0, i + 1), { ...d, id: newItemId(), intervals: d.intervals.map((iv) => ({ ...iv })), from: nextYear(d.from), to: nextYear(d.to) }, ...days.slice(i + 1)], true)}
                       title={t("Copy a year ahead")}
                       className="button-ghost"
                     >

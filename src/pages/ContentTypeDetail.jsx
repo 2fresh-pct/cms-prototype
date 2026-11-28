@@ -4,6 +4,7 @@ import { GripVertical, Plus, Trash2 } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
 import { sortTypes } from "../lib/typeOrder";
+import { hasLocalizedTexts } from "../lib/sharedFields";
 import { seedContentTypes, seedEntries, seedTaxonomies, FIELD_TYPE_LIST, fieldTypeLabel } from "../lib/seed";
 import { TYPE_ICON_KEYS, typeIcon } from "../lib/typeIcons";
 import { TYPE_COLORS } from "../lib/typeColors";
@@ -413,6 +414,8 @@ function ContentTypeEditor({ id }) {
                       />
                       {f.required === "conditional" ? t("Required in some cases") : t("Required")}
                     </label>
+                    {/* Opening hours, admission and the like are always shared; their names and notes are always translated. */}
+                    {!hasLocalizedTexts(f.type) && (
                     <label className="flex items-center gap-1.5">
                       <input
                         type="checkbox"
@@ -422,6 +425,7 @@ function ContentTypeEditor({ id }) {
                       />
                       {f.localized === "partly" ? t("Partly localized") : t("Localized")}
                     </label>
+                    )}
                     {f.type === "Media" && (
                       <label className="flex items-center gap-1.5">
                         <input

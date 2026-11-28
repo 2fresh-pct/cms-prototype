@@ -10,7 +10,7 @@ import {
   DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus,
   DEFAULT_CHANNELS, normalizeChannels, ALL_CHANNELS, isAllChannels, resolvePublishedChannelIds,
 } from "../lib/seed";
-import { sharedFields, isEmptyValue, latestValue } from "../lib/sharedFields";
+import { sharedFields, isEmptyValue, latestValue, hasLocalizedTexts, mergeLocalizedTexts, localizationOf } from "../lib/sharedFields";
 import { usedIn, usedEntryIds, inLocale } from "../lib/usage";
 import PageHeader from "../components/PageHeader";
 import DetailField from "../components/DetailField";
@@ -252,15 +252,17 @@ function ContentDetailPage({ id }) {
   // can still be edited too. A published version is left as it is.
   function setFieldValue(fieldName, value) {
     const nextValues = { ...(entry.fieldValues ?? {}), [fieldName]: value };
-    const shared = sharedFields(contentTypes.find((c) => c.id === entry.contentTypeId)).some((f) => f.name === fieldName);
-    if (!shared) { update({ fieldValues: nextValues }); return; }
+    const sharedField = sharedFields(contentTypes.find((c) => c.id === entry.contentTypeId)).find((f) => f.name === fieldName);
+    if (!sharedField) { update({ fieldValues: nextValues }); return; }
     if (isPublished) return;
     const group = normalizeEntryGroupId(entry);
     setEntries(entries.map((e) => {
       if (e.id === id) return applyPatch(e, { fieldValues: nextValues });
       const sibling = e.contentTypeId === entry.contentTypeId && normalizeEntryGroupId(e) === group;
       if (!sibling || normalizeEntryStatus(e.status, workflowSteps) === publishStepId) return e;
-      return applyPatch(e, { fieldValues: { ...(e.fieldValues ?? {}), [fieldName]: value } });
+      // Opening hours, admission and the like share their structure, not their names and notes.
+      const siblingValue = hasLocalizedTexts(sharedField.type) ? mergeLocalizedTexts(sharedField.type, value, e.fieldValues?.[fieldName]) : value;
+      return applyPatch(e, { fieldValues: { ...(e.fieldValues ?? {}), [fieldName]: siblingValue } });
     }));
     flashSaved();
   }
@@ -293,7 +295,8 @@ function ContentDetailPage({ id }) {
     const others = entries.filter((e) => e.id !== id && e.contentTypeId === entry.contentTypeId && normalizeEntryGroupId(e) === normalizeEntryGroupId(entry));
     const fresh = {};
     for (const f of sharedFields(contentTypes.find((c) => c.id === entry.contentTypeId))) {
-      const value = latestValue(others, f.name);
+      const latest = latestValue(others, f.name);
+      const value = hasLocalizedTexts(f.type) ? mergeLocalizedTexts(f.type, latest, entry.fieldValues?.[f.name]) : latest;
       if (value !== undefined && JSON.stringify(value) !== JSON.stringify(entry.fieldValues?.[f.name])) fresh[f.name] = value;
     }
     const patch = {
@@ -468,7 +471,7 @@ function ContentDetailPage({ id }) {
   );
   const viewField = (f) => f.type === "Separator" ? <FieldSeparator key={f.name} /> : (
     <Fragment key={f.name}>
-      <DetailField label={f.label ?? f.name} required={f.required} localized={f.localized}>
+      <DetailField label={f.label ?? f.name} required={f.required} localized={localizationOf(f)}>
         {isEmpty(viewEntry.fieldValues?.[f.name])
           ? <p className="text-sm text-gray-400">—</p>
           : <FieldView field={f} value={viewEntry.fieldValues?.[f.name]} ctx={fieldCtx} compact thumbnails />}
@@ -477,7 +480,7 @@ function ContentDetailPage({ id }) {
   );
   const editField = (f) => f.type === "Separator" ? <FieldSeparator key={f.name} /> : (
     <Fragment key={f.name}>
-      <DetailField label={f.label ?? f.name} required={f.required} localized={f.localized}>
+      <DetailField label={f.label ?? f.name} required={f.required} localized={localizationOf(f)}>
         <FieldEditor
           key={`${entry.id}-${f.name}`}
           field={f}

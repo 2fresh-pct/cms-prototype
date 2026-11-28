@@ -11,7 +11,9 @@ export const ADMISSION_TYPES = ["paid", "free", "link", "note", "unknown"];
 // Ticket types to choose from; any other text can be typed.
 export const TICKET_TYPES = ["Adult", "Reduced fare", "Student", "Child", "Senior", "Family", "Group ticket", "Disabled (ZTP)"];
 
-export const blankPrice = () => ({ ticket: "", price: "", note: "" });
+import { newItemId } from "./sharedFields";
+
+export const blankPrice = () => ({ id: newItemId(), ticket: "", price: "", note: "" });
 
 // Paid admission starts with these two prices to fill in (ticket types, translated by `tr`).
 export const defaultPrices = (tr) => [{ ...blankPrice(), ticket: tr("Adult") }, { ...blankPrice(), ticket: tr("Reduced fare") }];
@@ -19,7 +21,7 @@ export const defaultPrices = (tr) => [{ ...blankPrice(), ticket: tr("Adult") }, 
 export function normalizeAdmission(v) {
   return {
     type: ADMISSION_TYPES.includes(v?.type) ? v.type : "unknown",
-    prices: Array.isArray(v?.prices) ? v.prices.map((p) => ({ ticket: p.ticket ?? "", price: p.price ?? "", note: p.note ?? "" })) : [],
+    prices: Array.isArray(v?.prices) ? v.prices.map((p) => ({ ...(p.id ? { id: p.id } : {}), ticket: p.ticket ?? "", price: p.price ?? "", note: p.note ?? "" })) : [],
     url: v?.url ?? "",
     note: v?.note ?? "",
   };

@@ -14,6 +14,8 @@
 // regular hours (a temporary closure still wins). The older shape, one { open, close } or null per weekday, is read as
 // a single whole-year period.
 
+import { newItemId } from "./sharedFields";
+
 export const WEEKDAYS = [
   ["mon", "Monday"], ["tue", "Tuesday"], ["wed", "Wednesday"], ["thu", "Thursday"],
   ["fri", "Friday"], ["sat", "Saturday"], ["sun", "Sunday"],
@@ -41,7 +43,7 @@ export function normalizeHours(value) {
   if (Array.isArray(value?.seasons)) {
     return {
       seasons: value.seasons.map((s) => ({
-        name: s.name ?? "", from: s.from ?? "", to: s.to ?? "", days: normalizeDays(s.days),
+        ...(s.id ? { id: s.id } : {}), name: s.name ?? "", from: s.from ?? "", to: s.to ?? "", days: normalizeDays(s.days),
         date: s.date ?? null, intervals: Array.isArray(s.intervals) ? s.intervals : [],
       })),
     };
@@ -56,7 +58,7 @@ export function normalizeHours(value) {
 // for the given "MM-DD" range.
 export function newSeason(from = "", to = "") {
   const days = Object.fromEntries(KEYS.map((k) => [k, { mode: "open", intervals: [{ ...DEFAULT_INTERVAL }] }]));
-  return { name: "", from, to, days, date: null, intervals: [] };
+  return { id: newItemId(), name: "", from, to, days, date: null, intervals: [] };
 }
 
 // The days of a period as one range with one set of times ("Monday to Friday

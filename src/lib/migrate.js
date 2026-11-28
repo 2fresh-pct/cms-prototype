@@ -4,7 +4,7 @@ import { POI_TYPE, POI_TAXONOMIES, POI_MEDIA, POI_ENTRIES, POI_KEYWORD_TERMS, OL
 import { DISCOVERY_CATEGORIES_ID, DISCOVERY_CATEGORIES_TAXONOMY } from "./discoveryCategories";
 import { EVENT_CATEGORY_TERMS } from "./eventCategories";
 import { fieldKeyFor, keyBase } from "./fieldKey";
-import { sharedFields, isEmptyValue, latestValue } from "./sharedFields";
+import { sharedFields, isEmptyValue, latestValue, hasLocalizedTexts } from "./sharedFields";
 import { DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus } from "./seed";
 
 // Seed data only reaches localStorage on first load, so people who already
@@ -274,6 +274,49 @@ const MIGRATIONS = {
       }),
     }));
     if (changed) localStorage.setItem("cms.contentTypes", JSON.stringify(next));
+  },
+  // Opening hours, special days, admission and date ranges are shared between language
+  // versions, with translated names and notes. Their parts get ids (the same in every
+  // version, by position) so a part can be found again in the other versions.
+  "shared-with-texts": () => {
+    const typesRaw = localStorage.getItem("cms.contentTypes");
+    if (!typesRaw) return;
+    const types = JSON.parse(typesRaw);
+    if (!Array.isArray(types)) return;
+    const names = {}; // content type id -> [{ name, type }]
+    const nextTypes = types.map((ct) => {
+      names[ct.id] = [];
+      return {
+        ...ct,
+        fields: (ct.fields ?? []).map((f) => {
+          if (!hasLocalizedTexts(f.type)) return f;
+          names[ct.id].push({ name: f.name, type: f.type });
+          return f.localized ? { ...f, localized: false } : f;
+        }),
+      };
+    });
+    localStorage.setItem("cms.contentTypes", JSON.stringify(nextTypes));
+
+    const entriesRaw = localStorage.getItem("cms.entries");
+    if (!entriesRaw) return;
+    const entries = JSON.parse(entriesRaw);
+    if (!Array.isArray(entries)) return;
+    const withIds = (list) => (Array.isArray(list) ? list.map((x, i) => (x && !x.id ? { ...x, id: `m${i}` } : x)) : list);
+    const next = entries.map((e) => {
+      const fields = names[e.contentTypeId] ?? [];
+      let values = e.fieldValues;
+      for (const { name, type } of fields) {
+        const v = values?.[name];
+        if (v == null) continue;
+        const fixed =
+          type === "Opening hours" ? (Array.isArray(v.seasons) ? { ...v, seasons: withIds(v.seasons) } : v)
+          : type === "Admission" ? (Array.isArray(v.prices) ? { ...v, prices: withIds(v.prices) } : v)
+          : withIds(v);
+        values = { ...values, [name]: fixed };
+      }
+      return values === e.fieldValues ? e : { ...e, fieldValues: values };
+    });
+    localStorage.setItem("cms.entries", JSON.stringify(next));
   },
 };
 
