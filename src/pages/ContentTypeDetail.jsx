@@ -240,7 +240,7 @@ function ContentTypeEditor({ id }) {
                     </div>
                     {f.type === "Taxonomy" && (
                       <div>
-                        <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Taxonomy")}</label>
+                        <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Tag group")}</label>
                         <select
                           value={f.taxonomyId ?? ""}
                           onChange={(e) => updateField(i, { taxonomyId: e.target.value })}

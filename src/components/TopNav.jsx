@@ -12,7 +12,7 @@ const TABS = [
   // { to: "/catalogue", label: "Catalogue", icon: LayoutGrid },
   { to: "/content-types", label: "Content types", icon: Layers, modeling: true },
   { to: "/taxonomies", label: "Taxonomies", icon: ListTree, modeling: true },
-  { to: "/media", label: "Media", icon: Image },
+  { to: "/media", label: "Media library", icon: Image },
   { to: "/settings", label: "Settings", icon: SettingsIcon },
 ];
 
@@ -30,7 +30,7 @@ export default function TopNav() {
         <span className="logotype whitespace-nowrap text-xl text-gray-900">PCT Admin</span>
       </div>
 
-      <nav className="flex items-center gap-1">
+      <nav className="flex items-center gap-2">
         {tabs.map((tab) => (
           <NavLink
             key={tab.to}
