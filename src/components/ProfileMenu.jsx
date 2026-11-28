@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Moon } from "lucide-react";
 import Avatar from "./Avatar";
+import { TYPE_COLORS } from "../lib/typeColors";
 import Toggle from "./Toggle";
 import { useI18n } from "../lib/i18n";
 import { useAccess } from "../lib/access";
 import { getMode, setMode, subscribeMode } from "../lib/theme";
+
+// The profile avatar wears one of the soft colours the content types use.
+const AVATAR_COLOR = TYPE_COLORS[3]; // teal
 
 // The avatar in the top bar opens the profile menu: who is signed in, and the
 // preferences that belong to the person rather than to the workspace (dark mode).
@@ -36,13 +40,13 @@ export default function ProfileMenu({ user }) {
         title={t("Profile")}
         className="flex rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-800 focus-visible:ring-offset-2"
       >
-        <Avatar user={user} size={28} />
+        <Avatar user={user} size={36} color={AVATAR_COLOR} />
       </button>
 
       {open && (
         <div role="menu" className="wf-pop absolute right-0 top-full z-50 mt-2 w-72 rounded-lg border border-gray-300 bg-white p-3">
           <div className="flex items-center gap-3 pb-3">
-            <Avatar user={user} size={36} />
+            <Avatar user={user} size={44} color={AVATAR_COLOR} />
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-gray-900">{user.name}</p>
               <p className="truncate text-xs text-gray-500">{user.email}</p>
