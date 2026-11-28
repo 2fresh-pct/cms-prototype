@@ -104,7 +104,7 @@ export default function ContentTypes() {
     {
       key: "name",
       header: "Name",
-      sortValue: (r) => r.name,
+      sortValue: (r) => t(r.name),
       render: (r) => {
         const Icon = typeIcon(r.icon);
         return (
@@ -150,6 +150,7 @@ export default function ContentTypes() {
         <DataTable
           columns={columns}
           rows={filtered}
+          defaultSort={{ key: "name", dir: "asc" }}
           selected={selected}
           onSelectedChange={setSelected}
           onRowClick={(row) => navigate(`/content-types/${row.id}`)}

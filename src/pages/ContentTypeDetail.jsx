@@ -3,6 +3,7 @@ import { useParams, useNavigate, useBlocker } from "react-router-dom";
 import { GripVertical, Plus, Trash2 } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
+import { sortTypes } from "../lib/typeOrder";
 import { seedContentTypes, seedEntries, seedTaxonomies, FIELD_TYPE_LIST, fieldTypeLabel } from "../lib/seed";
 import { TYPE_ICON_KEYS, typeIcon } from "../lib/typeIcons";
 import { TYPE_COLORS } from "../lib/typeColors";
@@ -25,7 +26,7 @@ export default function ContentTypeDetail() {
 // and only applied by Save, never autosaved.
 function ContentTypeEditor({ id }) {
   const navigate = useNavigate();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [contentTypes, setContentTypes] = useLocalStorage("cms.contentTypes", seedContentTypes);
   const [taxonomies] = useLocalStorage("cms.taxonomies", seedTaxonomies);
   const [entries] = useLocalStorage("cms.entries", seedEntries);
@@ -278,7 +279,7 @@ function ContentTypeEditor({ id }) {
                   {f.type === "Reference" && (
                     <div className="flex flex-wrap items-center gap-1.5 pl-7 text-xs text-gray-500">
                       <span className="mr-1">{t("Can link to")}</span>
-                      {contentTypes.map((ct) => {
+                      {sortTypes(contentTypes, t, lang).map((ct) => {
                         const on = f.targetTypeIds?.includes(ct.id);
                         return (
                           <button
@@ -325,7 +326,7 @@ function ContentTypeEditor({ id }) {
                       {!richTextOff(f.richText).has("component") && (
                         <div className="flex flex-wrap items-center gap-1.5">
                           <span className="mr-1">{t("Allowed content types")}</span>
-                          {contentTypes.map((ct) => {
+                          {sortTypes(contentTypes, t, lang).map((ct) => {
                             const chosen = f.richText?.componentTypes ?? [];
                             const on = chosen.includes(ct.id);
                             return (

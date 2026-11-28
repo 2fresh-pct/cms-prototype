@@ -22,6 +22,7 @@ export default function DataTable({
     const copy = [...rows].sort((a, b) => {
       const av = col.sortValue(a);
       const bv = col.sortValue(b);
+      if (typeof av === "string" && typeof bv === "string") return av.localeCompare(bv, "cs", { sensitivity: "base", numeric: true });
       if (av < bv) return -1;
       if (av > bv) return 1;
       return 0;

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Plus, Copy, Trash2, Send } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
+import { sortTypes } from "../lib/typeOrder";
 import { typeIcon } from "../lib/typeIcons";
 import { seedEntries, seedContentTypes, seedUsers, LOCALE_LIST, LOCALE_LABELS, LOCALE_NAMES, normalizeEntryGroupId, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus, DEFAULT_CHANNELS, normalizeChannels, ALL_CHANNELS, isAllChannels, resolvePublishedChannelIds } from "../lib/seed";
 import Sidebar from "../components/Sidebar";
@@ -25,7 +26,7 @@ function timeAgo(iso, t, dateLocale) {
 
 export default function Content() {
   const navigate = useNavigate();
-  const { t, dateLocale } = useI18n();
+  const { t, lang, dateLocale } = useI18n();
   const [entries, setEntries] = useLocalStorage("cms.entries", seedEntries);
   const [defaultLocale] = useLocalStorage("cms.settings.defaultLocale", "en");
   const [contentTypes] = useLocalStorage("cms.contentTypes", seedContentTypes);
@@ -37,6 +38,7 @@ export default function Content() {
   const users = useMemo(() => seedUsers(), []);
   const usersById = useMemo(() => Object.fromEntries(users.map((u) => [u.id, u])), [users]);
   const publishStepId = workflowSteps[workflowSteps.length - 1]?.id;
+  const sortedTypes = useMemo(() => sortTypes(contentTypes, t, lang), [contentTypes, t, lang]);
   const typesById = useMemo(() => Object.fromEntries(contentTypes.map((t) => [t.id, t])), [contentTypes]);
 
   // Self-heal entries whose status predates the Workflow feature (or names a
@@ -107,7 +109,7 @@ export default function Content() {
 
   const filterFields = [
     { key: "status", label: "Content status", options: workflowSteps.map((s) => ({ value: s.id, label: s.name })) },
-    { key: "contentTypeId", label: "Content type", options: contentTypes.map((t) => ({ value: t.id, label: t.name })) },
+    { key: "contentTypeId", label: "Content type", options: sortedTypes.map((ct) => ({ value: ct.id, label: ct.name })) },
     { key: "channel", label: "Channel", options: channels.map((c) => ({ value: c.id, label: c.name })) },
     { key: "updatedBy", label: "Updated by", options: users.map((u) => ({ value: u.id, label: u.name })) },
   ];
@@ -352,7 +354,7 @@ export default function Content() {
         statusGroupLabel="Content by status"
         statuses={statuses}
         typeGroupLabel="Content type"
-        typeItems={contentTypes.map((t) => ({ id: t.id, name: t.name, count: entries.filter((e) => e.contentTypeId === t.id).length, icon: t.icon }))}
+        typeItems={sortedTypes.map((ct) => ({ id: ct.id, name: ct.name, count: entries.filter((e) => e.contentTypeId === ct.id).length, icon: ct.icon }))}
         channelGroupLabel="Channel"
         channelItems={channels.map((c) => ({
           id: c.id,
@@ -397,7 +399,7 @@ export default function Content() {
           <FilterBar
             typeFacetLabel="Content type"
             typeLabel={typesById[filter.typeId]?.name ?? "Any"}
-            typeOptions={contentTypes.map((ct) => ({ value: ct.id, label: ct.name, icon: ct.icon, color: ct.color }))}
+            typeOptions={sortedTypes.map((ct) => ({ value: ct.id, label: ct.name, icon: ct.icon, color: ct.color }))}
             typeValue={filter.typeId}
             onTypeChange={(value) => handleFilterChange("contentTypeId", value)}
             search={search}
@@ -457,7 +459,7 @@ export default function Content() {
             <div>
               <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Content type")}</label>
               <div className="grid max-h-60 grid-cols-2 gap-1.5 overflow-y-auto">
-                {contentTypes.map((ct) => {
+                {sortedTypes.map((ct) => {
                   const Icon = typeIcon(ct.icon);
                   const active = draftType === ct.id;
                   return (

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowUpRight, GripVertical, Link2, X } from "lucide-react";
 import { useI18n } from "../lib/i18n";
+import { sortTypes } from "../lib/typeOrder";
 import { normalizeEntryStatus } from "../lib/seed";
 import { typeIcon } from "../lib/typeIcons";
 import Modal from "./Modal";
@@ -151,7 +152,7 @@ export function Picker({ open, onClose, candidates, types, selected, onConfirm, 
 // Links content items to an entry (value: ordered list of entry ids), e.g.
 // "related articles". Items are chosen in a dialog and dragged into order.
 export default function EntryReferenceField({ field, value, onChange, ctx }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [open, setOpen] = useState(false);
   const [dragId, setDragId] = useState(null);
   const [overId, setOverId] = useState(null);
@@ -159,7 +160,7 @@ export default function EntryReferenceField({ field, value, onChange, ctx }) {
   const byId = Object.fromEntries(ctx.entries.map((e) => [e.id, e]));
 
   const typeIds = allowedTypeIds(field, ctx.contentTypes);
-  const types = ctx.contentTypes.filter((ct) => typeIds.includes(ct.id));
+  const types = sortTypes(ctx.contentTypes.filter((ct) => typeIds.includes(ct.id)), t, lang);
   const candidates = ctx.entries
     .filter((e) => typeIds.includes(e.contentTypeId) && e.id !== ctx.entryId)
     .sort((a, b) => a.title.localeCompare(b.title));

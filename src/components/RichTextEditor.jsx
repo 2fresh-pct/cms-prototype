@@ -7,6 +7,7 @@ import {
   Type, Heading2, Heading3, Bold, Italic, List, ListOrdered, Quote, Link2, Table2, Image as ImageIcon, LayoutTemplate, Undo2, Redo2,
 } from "lucide-react";
 import { useI18n } from "../lib/i18n";
+import { sortTypes } from "../lib/typeOrder";
 import { toEditorHtml } from "../lib/richtext";
 import { MediaImage } from "../lib/mediaImage";
 import { Library } from "./MediaPicker";
@@ -81,7 +82,7 @@ const Divider = () => <span className="mx-1 h-4 w-px bg-gray-300" />;
 // Stays in view while the content pane scrolls; -top-5 cancels the pane's p-5
 // so the bar sits flush with the top of the scroll area.
 function Toolbar({ editor, onCommit, media, onUpload, locale, content, off, componentTypeIds }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [linkOpen, setLinkOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
   const [linkText, setLinkText] = useState("");
@@ -160,7 +161,7 @@ function Toolbar({ editor, onCommit, media, onUpload, locale, content, off, comp
 
   // Items that can be embedded: any other item, once per item (not once per language
   // version), shown in the language of this text when it has a version in it.
-  const allowedTypes = content ? content.contentTypes.filter((ct) => !componentTypeIds?.length || componentTypeIds.includes(ct.id)) : [];
+  const allowedTypes = content ? sortTypes(content.contentTypes.filter((ct) => !componentTypeIds?.length || componentTypeIds.includes(ct.id)), t, lang) : [];
   const itemCandidates = (() => {
     if (!content) return [];
     const seen = new Set();
