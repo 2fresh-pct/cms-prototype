@@ -99,11 +99,11 @@ export const CS = {
   "Saved": "Uloženo",
   "This item is scheduled for {when}, so it can't be edited. Cancel the schedule to make changes.": "Naplánované k publikaci na {when}. Položku nelze upravovat, pro změny zrušte naplánování.",
   "Scheduled for {when}": "Naplánováno na {when}",
-  "Comments": "Komentáře",
-  "Comment": "Komentovat",
-  "Leave a comment…": "Napište komentář…",
-  "No comments yet.": "Zatím žádné komentáře.",
-  "Delete comment": "Smazat komentář",
+  "Comments": "Interní poznámky",
+  "Comment": "Přidat poznámku",
+  "Leave a comment…": "Napište interní poznámku…",
+  "No comments yet.": "Zatím žádné interní poznámky.",
+  "Delete comment": "Smazat poznámku",
 
   // Publish dialog
   "Publish \"{title}\"?": "Publikovat „{title}“?",
