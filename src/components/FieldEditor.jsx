@@ -287,9 +287,10 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
 
     case "Date ranges":
       return (
-        <RepeatingList value={value} onCommit={onChange} blank={{ from: "", to: "", note: "" }} addLabel="Add period" emptyHint="A range of dates with a note."
+        <RepeatingList value={value} onCommit={onChange} blank={{ label: "", from: "", to: "", note: "" }} addLabel="Add period" emptyHint="A range of dates with a note."
           renderItem={(item, set) => (
             <div className="flex flex-wrap items-center gap-2">
+              <input placeholder={t("Name (optional)")} aria-label={t("Name (optional)")} value={item.label ?? ""} onChange={(e) => set((it) => ({ ...it, label: e.target.value }))} className={`${INPUT_SM} w-60`} />
               <DatePicker value={item.from} onChange={(v) => set((it) => ({ ...it, from: v }))} className={`${INPUT_SM} w-40`} />
               <span className="text-gray-400">–</span>
               <DatePicker value={item.to} onChange={(v) => set((it) => ({ ...it, to: v }))} className={`${INPUT_SM} w-40`} />
@@ -370,7 +371,7 @@ export function fieldValueText(f, value, ctx, tr) {
     case "Link": return value.url ? (value.label ? `${value.label} (${value.url})` : value.url) : empty;
     case "Text list": return value.filter(Boolean).join(" · ") || empty;
     case "Key-value": return value.map((p) => `${p.key}: ${p.value}`).join(" · ");
-    case "Date ranges": return value.map((r) => `${r.from}–${r.to}${r.note ? ` (${r.note})` : ""}`).join(" · ");
+    case "Date ranges": return value.map((r) => `${r.label ? `${r.label} ` : ""}${r.from}–${r.to}${r.note ? ` (${r.note})` : ""}`).join(" · ");
     case "Sections": return value.map((s) => s.heading).filter(Boolean).join(" · ") || empty;
     case "Address": return [value.street, [value.postalCode, value.city].filter(Boolean).join(" "), value.country].filter(Boolean).join(", ") || empty;
     case "Coordinates": return value.lat || value.lng ? `${value.lat}, ${value.lng}` : empty;

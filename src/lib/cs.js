@@ -424,6 +424,7 @@ export const CS = {
   "No hours apply on this date, so the app shows no open or closed status.": "Na tento den neplatí žádná doba, aplikace proto neukáže, jestli je otevřeno.",
   "Add special day": "Přidat speciální den",
   "Holidays and other days with different hours. They replace the regular hours on that day.": "Svátky a další dny s jinými hodinami. V ten den nahradí pravidelnou dobu.",
+  "Name (optional)": "Název (volitelný)",
   "Name, for example Christmas Eve": "Název, např. Štědrý den",
   "Until (optional)": "Do (volitelné)",
   "On this day": "V tento den",

@@ -153,6 +153,7 @@ export default function FieldView({ field: f, value, ctx, compact, thumbnails = 
         <ul className={`space-y-1 ${text} text-gray-700`}>
           {value.map((r, i) => (
             <li key={i}>
+              {r.label && <span className="font-medium text-gray-900">{r.label} · </span>}
               {r.from === r.to ? r.from : `${r.from} – ${r.to}`}
               {r.note && <span className="text-gray-500"> · {r.note}</span>}
             </li>
