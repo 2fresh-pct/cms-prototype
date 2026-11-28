@@ -106,7 +106,7 @@ export default function Content() {
   }
 
   const filterFields = [
-    { key: "status", label: "Status", options: workflowSteps.map((s) => ({ value: s.id, label: s.name })) },
+    { key: "status", label: "Content status", options: workflowSteps.map((s) => ({ value: s.id, label: s.name })) },
     { key: "contentTypeId", label: "Content type", options: contentTypes.map((t) => ({ value: t.id, label: t.name })) },
     { key: "channel", label: "Channel", options: channels.map((c) => ({ value: c.id, label: c.name })) },
     { key: "updatedBy", label: "Updated by", options: users.map((u) => ({ value: u.id, label: u.name })) },
@@ -262,7 +262,7 @@ export default function Content() {
     },
     {
       key: "updatedBy",
-      header: "Last updated by",
+      header: "Updated by",
       sortValue: (r) => usersById[r.updatedBy]?.name ?? "",
       render: (r) => {
         const u = usersById[r.updatedBy];
@@ -276,7 +276,7 @@ export default function Content() {
     },
     {
       key: "status",
-      header: "Status",
+      header: "Content status",
       sortValue: (r) => r.status,
       render: (r) => {
         const step = workflowSteps.find((s) => s.id === r.status);

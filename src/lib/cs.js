@@ -55,6 +55,7 @@ export const CS = {
   "Last updated by": "Naposledy upraveno uživatelem",
   "Updated by": "Upraveno uživatelem",
   "Status": "Stav",
+  "Content status": "Stav obsahu",
   "Channels": "Místa zveřejnění",
   "All channels": "Všechna místa",
   "No channels selected": "Nejsou vybrána žádná místa",
