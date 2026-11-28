@@ -66,11 +66,23 @@ const ICON_BUTTON = "flex h-8 w-8 shrink-0 items-center justify-center rounded t
 
 export { WEEKDAYS };
 
-function RepeatingList({ value, onCommit, blank, addLabel, renderItem }) {
+function RepeatingList({ value, onCommit, blank, addLabel, renderItem, emptyHint }) {
   const { t } = useI18n();
   return (
     <Draft value={value ?? []} onCommit={onCommit}>
-      {(items, setItems, commit) => (
+      {(items, setItems, commit) => items.length === 0 && emptyHint ? (
+        // The same empty state as special days: the button first, then what it is for.
+        <div className="flex items-center gap-4 rounded-md border border-dashed border-gray-300 px-3 py-3">
+          <button
+            type="button"
+            onClick={() => { const next = [blank]; setItems(next); commit(next); }}
+            className="flex items-center gap-1.5 rounded-md border border-gray-300 bg-white h-9 px-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            <Plus size={14} /> {t(addLabel)}
+          </button>
+          <span className="text-sm text-gray-500">{t(emptyHint)}</span>
+        </div>
+      ) : (
         <div className="space-y-2">
           {items.map((item, i) => (
             <div key={i} className="flex items-start gap-2">
@@ -275,7 +287,7 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
 
     case "Date ranges":
       return (
-        <RepeatingList value={value} onCommit={onChange} blank={{ from: "", to: "", note: "" }} addLabel="Add period"
+        <RepeatingList value={value} onCommit={onChange} blank={{ from: "", to: "", note: "" }} addLabel="Add period" emptyHint="A range of dates with a note."
           renderItem={(item, set) => (
             <div className="flex flex-wrap items-center gap-2">
               <DatePicker value={item.from} onChange={(v) => set((it) => ({ ...it, from: v }))} className={`${INPUT_SM} w-40`} />

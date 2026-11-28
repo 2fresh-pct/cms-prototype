@@ -21,7 +21,7 @@ export const WEEKDAYS = [
 const KEYS = WEEKDAYS.map(([k]) => k);
 const JS_DAY = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
-export const DEFAULT_INTERVAL = { open: "09:00", close: "17:00" };
+export const DEFAULT_INTERVAL = { open: "08:00", close: "16:00" };
 
 const CLOSED = () => ({ mode: "closed", intervals: [] });
 
@@ -52,12 +52,32 @@ export function normalizeHours(value) {
   return { seasons: [] };
 }
 
-// A new period: Monday to Friday 9-17 and closed at the weekend (to be adjusted),
-// for the whole year or for the given "MM-DD" range.
+// A new period: every day of the week 8-16 (to be adjusted), for the whole year or
+// for the given "MM-DD" range.
 export function newSeason(from = "", to = "") {
-  const open = () => ({ mode: "open", intervals: [{ ...DEFAULT_INTERVAL }] });
-  const days = Object.fromEntries(KEYS.map((k) => [k, k === "sat" || k === "sun" ? CLOSED() : open()]));
+  const days = Object.fromEntries(KEYS.map((k) => [k, { mode: "open", intervals: [{ ...DEFAULT_INTERVAL }] }]));
   return { name: "", from, to, days, date: null, intervals: [] };
+}
+
+// The days of a period as one range with one set of times ("Monday to Friday
+// 8-16"), when they are that simple: the open days follow each other, all have the
+// same times and the others are closed. Otherwise null (each day has to be set).
+export function weekRange(days) {
+  const states = KEYS.map((k) => days[k]);
+  if (states.some((d) => d.mode === "all-day")) return null;
+  const open = states.map((d, i) => (d.mode === "open" ? i : -1)).filter((i) => i >= 0);
+  if (open.length === 0) return null;
+  const from = open[0];
+  const to = open[open.length - 1];
+  if (to - from + 1 !== open.length) return null;
+  const times = JSON.stringify(states[from].intervals);
+  if (open.some((i) => JSON.stringify(states[i].intervals) !== times)) return null;
+  return { from, to, intervals: states[from].intervals };
+}
+
+// The days of a week for a range of days (indexes into WEEKDAYS) open at `intervals`.
+export function daysForRange(from, to, intervals) {
+  return Object.fromEntries(KEYS.map((k, i) => [k, i >= from && i <= to ? { mode: "open", intervals: intervals.map((iv) => ({ ...iv })) } : CLOSED()]));
 }
 
 // A specific date with a start time (and, optionally, an end time).
