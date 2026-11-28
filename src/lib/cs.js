@@ -97,6 +97,7 @@ export const CS = {
   "Viewing a read-only snapshot of the current version. Use Back to resume editing.": "Zobrazujete aktuální verzi pouze pro čtení. Pro návrat k úpravám použijte Zpět.",
   "Saving…": "Ukládání…",
   "Saved": "Uloženo",
+  "Publishing is scheduled for {when}. Changes made until then are published with it.": "Publikace je naplánovaná na {when}. Změny provedené do té doby se zveřejní s ní.",
   "Scheduled for {when}": "Naplánováno na {when}",
   "Comments": "Komentáře",
   "Comment": "Komentovat",

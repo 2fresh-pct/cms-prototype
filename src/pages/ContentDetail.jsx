@@ -380,6 +380,11 @@ function ContentDetailPage({ id }) {
     clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current = setTimeout(() => setSaveStatus("saved"), 600);
     setPendingPublish(false);
+    // The page changes (a notice, a different panel): show it from the top.
+    setTimeout(() => {
+      document.querySelectorAll("[data-scroll-pane]").forEach((el) => { el.scrollTop = 0; });
+      window.scrollTo(0, 0);
+    }, 0);
   }
 
   function addComment() {
@@ -636,23 +641,25 @@ function ContentDetailPage({ id }) {
       <div className="flex min-h-0 flex-1 gap-6">
         {/* Left column: why the content is read-only (as wide as the content card), then the card. The side panel stays in the same place either way. */}
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-          {readOnly && (
+          {(readOnly || entry.scheduledPublishAt) && (
             <div
               role="status"
               className="mb-4 flex shrink-0 items-start gap-3 rounded-md border border-l-4 border-amber-300 border-l-amber-500 bg-amber-100 px-4 py-3 text-sm font-medium text-amber-950"
             >
-              {historyMode ? <History size={18} className="mt-px shrink-0 text-amber-700" /> : <Lock size={18} className="mt-px shrink-0 text-amber-700" />}
+              {historyMode ? <History size={18} className="mt-px shrink-0 text-amber-700" /> : readOnly ? <Lock size={18} className="mt-px shrink-0 text-amber-700" /> : <Clock size={18} className="mt-px shrink-0 text-amber-700" />}
               <span>
-                {!historyMode
-                  ? t("This item is published, so it can't be edited. Create a new draft to make changes; the published version stays live meanwhile.")
-                  : selectedVersion
+                {historyMode
+                  ? (selectedVersion
                     ? t("Viewing a read-only past version. Use Back to resume editing.")
-                    : t("Viewing a read-only snapshot of the current version. Use Back to resume editing.")}
+                    : t("Viewing a read-only snapshot of the current version. Use Back to resume editing."))
+                  : readOnly
+                    ? t("This item is published, so it can't be edited. Create a new draft to make changes; the published version stays live meanwhile.")
+                    : t("Publishing is scheduled for {when}. Changes made until then are published with it.", { when: fmtDate(entry.scheduledPublishAt) })}
               </span>
             </div>
           )}
         {readOnly ? (
-          <div style={{ "--pane-pad": PANE_PAD }} className="min-h-0 flex-1 space-y-8 overflow-y-auto rounded-lg border border-gray-300 bg-white pl-5 pr-5 xl:pr-20 py-[var(--pane-pad)]">
+          <div data-scroll-pane style={{ "--pane-pad": PANE_PAD }} className="min-h-0 flex-1 space-y-8 overflow-y-auto rounded-lg border border-gray-300 bg-white pl-5 pr-5 xl:pr-20 py-[var(--pane-pad)]">
             <DetailField label="Title" required={titleField?.required} localized={titleField?.localized}>
               <p className="text-sm text-gray-900">{viewEntry.title}</p>
             </DetailField>
@@ -697,7 +704,7 @@ function ContentDetailPage({ id }) {
             )}
           </div>
         ) : (
-          <div style={{ "--pane-pad": PANE_PAD, "--sticky-tabs": `${tabsHeight}px` }} className="min-h-0 flex-1 space-y-8 overflow-y-auto rounded-lg border border-gray-300 bg-white pl-5 pr-5 xl:pr-20 py-[var(--pane-pad)]">
+          <div data-scroll-pane style={{ "--pane-pad": PANE_PAD, "--sticky-tabs": `${tabsHeight}px` }} className="min-h-0 flex-1 space-y-8 overflow-y-auto rounded-lg border border-gray-300 bg-white pl-5 pr-5 xl:pr-20 py-[var(--pane-pad)]">
             <DetailField label="Title" required={titleField?.required} localized={titleField?.localized}>
               <input
                 value={title}
@@ -737,7 +744,7 @@ function ContentDetailPage({ id }) {
         </div>
 
         {historyMode ? (
-          <div className="max-h-full w-80 shrink-0 space-y-3 self-start overflow-y-auto rounded-lg border border-gray-300 bg-white p-5">
+          <div data-scroll-pane className="max-h-full w-80 shrink-0 space-y-3 self-start overflow-y-auto rounded-lg border border-gray-300 bg-white p-5">
             <button
               onClick={exitHistory}
               className="flex w-full items-center justify-center gap-1.5 h-9 rounded-md bg-gray-700 px-3 text-sm font-medium text-white hover:bg-gray-800"
@@ -788,7 +795,7 @@ function ContentDetailPage({ id }) {
             </div>
           </div>
         ) : (
-          <div className="max-h-full w-80 shrink-0 space-y-8 self-start overflow-y-auto rounded-lg border border-gray-300 bg-white p-5">
+          <div data-scroll-pane className="max-h-full w-80 shrink-0 space-y-8 self-start overflow-y-auto rounded-lg border border-gray-300 bg-white p-5">
             <DetailField label="Status">
               {isPublished ? (
                 <>
