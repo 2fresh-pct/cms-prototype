@@ -75,14 +75,15 @@ function Period({ s, i, patch, remove }) {
           <option value="period">{t("Only in a period")}</option>
           <option value="date">{t("Specific date")}</option>
         </select>
+        {/* The switch is always the first button, so the order never changes. */}
         {!isDate && !perDay && (
           <button type="button" onClick={() => setEachDay(true)} className={SECONDARY}>{t("Set each day separately")}</button>
         )}
+        {perDay && range && (
+          <button type="button" onClick={() => setEachDay(false)} className={SECONDARY}>{t("Simple range")}</button>
+        )}
         {perDay && (
-          <>
-            <button type="button" onClick={useMonday} className={SECONDARY}>{t("Use Monday for every day")}</button>
-            {range && <button type="button" onClick={() => setEachDay(false)} className={SECONDARY}>{t("Simplify")}</button>}
-          </>
+          <button type="button" onClick={useMonday} className={SECONDARY}>{t("Use Monday for every day")}</button>
         )}
         {isDate && (
           <span className="flex flex-wrap items-center gap-2">

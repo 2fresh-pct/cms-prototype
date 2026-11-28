@@ -411,7 +411,7 @@ export const CS = {
   "Remove interval": "Odebrat úsek",
   "Use Monday for every day": "Použít pondělí pro všechny dny",
   "Set each day separately": "Nastavit každý den zvlášť",
-  "Simplify": "Zjednodušit",
+  "Simple range": "Jednoduchý rozsah",
   "Add time period": "Přidat časovou dobu",
   "A range of dates with a note.": "Rozsah dat s poznámkou.",
   "From day": "Od dne",
