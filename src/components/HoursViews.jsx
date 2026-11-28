@@ -73,9 +73,6 @@ export function AdmissionView({ value, text = "text-sm" }) {
           {a.prices.filter((p) => p.price !== "" || p.ticket).map((p, i) => (
             <li key={i}>
               <span className="font-medium text-gray-900">{p.ticket ? `${t(p.ticket)}: ` : ""}{p.price !== "" ? `${p.price} ${t("CZK")}` : ""}</span>
-              {(p.from || p.to) && (
-                <span className="text-gray-500"> · {p.from ? formatDate(p.from, dateLocale) : ""} – {p.to ? formatDate(p.to, dateLocale) : ""}</span>
-              )}
               {p.note && <span className="text-gray-500"> · {p.note}</span>}
             </li>
           ))}

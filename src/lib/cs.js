@@ -443,8 +443,6 @@ export const CS = {
   "Ticket type": "Typ vstupenky",
   "Price": "Cena",
   "CZK": "Kč",
-  "Valid from": "Platí od",
-  "Valid until": "Platí do",
   "Remove price": "Odebrat cenu",
   "Add price": "Přidat cenu",
   "Seller": "Prodejce",

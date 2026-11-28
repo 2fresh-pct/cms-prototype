@@ -2,7 +2,7 @@
 //   { type, prices, seller, url, note }
 // where `type` says which of these it is, so the rest cannot contradict it:
 //   "free"    admission is free (said outright, never assumed from an empty field)
-//   "paid"    a list of prices (ticket type, price in CZK, optional validity, note)
+//   "paid"    a list of prices (ticket type, price in CZK, note)
 //   "link"    tickets are sold elsewhere: the seller and a link, no price
 //   "note"    a sentence instead of a price ("Part of the Prague Castle circuit")
 //   "unknown" nothing is shown about admission
@@ -11,12 +11,12 @@ export const ADMISSION_TYPES = ["free", "paid", "link", "note", "unknown"];
 // Ticket types to choose from; any other text can be typed.
 export const TICKET_TYPES = ["Adult", "Reduced fare", "Student", "Child", "Senior", "Family", "Group ticket", "Basic", "Disabled (ZTP)"];
 
-export const blankPrice = () => ({ ticket: "", price: "", from: "", to: "", note: "" });
+export const blankPrice = () => ({ ticket: "", price: "", note: "" });
 
 export function normalizeAdmission(v) {
   return {
     type: ADMISSION_TYPES.includes(v?.type) ? v.type : "unknown",
-    prices: Array.isArray(v?.prices) ? v.prices.map((p) => ({ ...blankPrice(), ...p })) : [],
+    prices: Array.isArray(v?.prices) ? v.prices.map((p) => ({ ticket: p.ticket ?? "", price: p.price ?? "", note: p.note ?? "" })) : [],
     seller: v?.seller ?? "",
     url: v?.url ?? "",
     note: v?.note ?? "",

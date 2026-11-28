@@ -1,9 +1,8 @@
-import { useId } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { useI18n } from "../lib/i18n";
 import Draft from "./Draft";
 import { ADMISSION_TYPES, TICKET_TYPES, blankPrice, normalizeAdmission } from "../lib/admission";
-import DatePicker from "./DatePicker";
+import ComboInput from "./ComboInput";
 
 const FIELD = "h-9 w-full rounded-md border border-gray-300 bg-[#fff] px-3 text-sm focus:border-violet-400 focus:outline-none";
 const LABEL = "mb-1.5 block text-xs font-medium text-gray-900";
@@ -26,7 +25,6 @@ const TYPE_HINTS = {
 // Admission: first say what kind it is, then fill in only what that kind needs.
 export default function AdmissionField({ value, onChange }) {
   const { t } = useI18n();
-  const listId = useId();
   return (
     <Draft value={normalizeAdmission(value)} onCommit={onChange}>
       {(a, setA, commit) => {
@@ -59,25 +57,16 @@ export default function AdmissionField({ value, onChange }) {
 
             {a.type === "paid" && (
               <div className="space-y-3">
-                <datalist id={listId}>{TICKET_TYPES.map((ticket) => <option key={ticket} value={t(ticket)} />)}</datalist>
                 {a.prices.map((p, i) => (
                   <div key={i} className="rounded-md border border-gray-300 bg-[#fff] p-3">
                     <div className="grid grid-cols-2 gap-x-3 gap-y-3">
                       <div>
                         <label className={LABEL}>{t("Ticket type")}</label>
-                        <input list={listId} value={p.ticket} onChange={(e) => setPrice(i, { ticket: e.target.value })} className={FIELD} />
+                        <ComboInput value={p.ticket} onChange={(v, picked) => setPrice(i, { ticket: v }, Boolean(picked))} options={TICKET_TYPES.map((ticket) => t(ticket))} ariaLabel={t("Ticket type")} className={FIELD} />
                       </div>
                       <div>
                         <label className={LABEL}>{t("Price")} ({t("CZK")})</label>
                         <input type="number" min={0} step={1} value={p.price} onChange={(e) => setPrice(i, { price: e.target.value })} className={FIELD} />
-                      </div>
-                      <div>
-                        <label className={LABEL}>{t("Valid from")}</label>
-                        <DatePicker value={p.from} onChange={(v) => setPrice(i, { from: v })} ariaLabel={t("Valid from")} className={`${FIELD} w-full`} />
-                      </div>
-                      <div>
-                        <label className={LABEL}>{t("Valid until")}</label>
-                        <DatePicker value={p.to} onChange={(v) => setPrice(i, { to: v })} ariaLabel={t("Valid until")} className={`${FIELD} w-full`} />
                       </div>
                       <div className="col-span-2 flex items-end gap-2">
                         <div className="min-w-0 flex-1">
