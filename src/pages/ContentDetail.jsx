@@ -225,10 +225,14 @@ function ContentDetailPage({ id }) {
           .map((key) => describeChange(key, patch[key], target, { workflowSteps, channels, fields: contentTypes.find((c) => c.id === target.contentTypeId)?.fields ?? [] }))
           .filter(Boolean);
 
-    const merged = { ...target, ...patch };
+    // A change that is recorded in the history also makes the item "updated": the
+    // list sorts by that and the side panel shows who and when.
+    const changed = changeSummaries.length > 0;
+    const now = new Date().toISOString();
+    const merged = { ...target, ...patch, ...(changed ? { updatedAt: now, updatedBy: users[0]?.id } : {}) };
     const { history: _omit, live: _live, ...snapshot } = merged;
-    const newHistoryEntry = changeSummaries.length > 0
-      ? [{ id: `h${Date.now()}-${target.id}`, timestamp: new Date().toISOString(), userId: users[0]?.id, summary: changeSummaries.join(", "), snapshot }]
+    const newHistoryEntry = changed
+      ? [{ id: `h${Date.now()}-${target.id}`, timestamp: now, userId: users[0]?.id, summary: changeSummaries.join(", "), snapshot }]
       : [];
     return { ...merged, history: capHistory([...(target.history ?? []), ...newHistoryEntry]) };
   }
