@@ -256,6 +256,25 @@ const MIGRATIONS = {
   "default-locale-czech": () => {
     if (localStorage.getItem("cms.settings.defaultLocale") !== '"cs"') localStorage.setItem("cms.settings.defaultLocale", '"cs"');
   },
+  // Subtitles and intro texts can run over several lines: where they are still one-line
+  // text they become multi-line text. Matched by the name the element has.
+  "multiline-subtitle-intro": () => {
+    const raw = localStorage.getItem("cms.contentTypes");
+    if (!raw) return; // not seeded yet
+    const types = JSON.parse(raw);
+    if (!Array.isArray(types)) return;
+    const wanted = /podtitul|podnadpis|úvodní text|subtitle|intro text/i;
+    let changed = false;
+    const next = types.map((ct) => ({
+      ...ct,
+      fields: (ct.fields ?? []).map((f) => {
+        if (f.type !== "Text" || f.core || !wanted.test(f.label ?? f.name ?? "")) return f;
+        changed = true;
+        return { ...f, type: "Short text" };
+      }),
+    }));
+    if (changed) localStorage.setItem("cms.contentTypes", JSON.stringify(next));
+  },
 };
 
 // Renames field keys. `labelFor(type, field)` returns the name the new key is built
