@@ -361,7 +361,7 @@ export default function Content() {
           count: scopedEntries.filter((e) => resolvePublishedChannelIds(e.channels, channels).includes(c.id)).length,
         }))}
         filter={filter}
-        onFilter={(f) => { setFilter(f); setSearch(""); }}
+        onFilter={(f) => { setFilter(f); setSearch(""); if (f.view === "all") setExtraFilters({ updatedBy: null }); }}
       />
 
       <div className="flex-1 overflow-y-auto p-6">
