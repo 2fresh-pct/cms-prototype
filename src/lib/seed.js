@@ -401,11 +401,14 @@ export function normalizeEntryGroupId(entry) {
 export const FIELD_TYPE_LABELS = { Reference: "Linked content items", Text: "Single-line text", "Short text": "Multi-line text" };
 export const fieldTypeLabel = (type) => FIELD_TYPE_LABELS[type] ?? type;
 
+// In the order of the "Add element" dialog, so related types stand together everywhere.
 export const FIELD_TYPE_LIST = [
-  "Text", "Short text", "Rich text", "Number", "Boolean", "Select", "Date",
-  "Media", "Media list", "Reference", "Taxonomy",
-  "Link", "Text list", "Key-value", "Date ranges", "Sections", "Separator",
-  "Address", "Coordinates", "Map", "Opening hours", "Special days", "Admission", "ID",
+  "Text", "Short text", "Rich text", "Text list",
+  "Number", "Boolean", "Select", "Taxonomy",
+  "Date", "Date ranges", "Opening hours", "Special days", "Admission",
+  "Map", "Address", "Coordinates",
+  "Media", "Media list", "Link", "Reference",
+  "Sections", "Key-value", "Separator", "ID",
 ];
 export const DEFAULT_WORKFLOW_STEPS = WORKFLOW_STEPS;
 export const WORKFLOW_COLOR_PALETTE = WORKFLOW_COLORS;

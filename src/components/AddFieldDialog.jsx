@@ -44,26 +44,28 @@ const TYPE_GROUPS = [
     ["Rich text", "Formatted text with links and images"],
     ["Text list", "A list of text items"],
   ] },
-  { title: "Numbers, choices and dates", types: [
+  { title: "Choices and numbers", types: [
     ["Number", "A number, with an optional unit"],
     ["Boolean", "Yes or no"],
     ["Select", "One choice from a list"],
-    ["Date", "A single date"],
-    ["Date ranges", "From–to dates, such as closures"],
-  ] },
-  { title: "Media and relations", types: [
-    ["Media", "Images and files from the library"],
-    ["Link", "A web address with a label"],
-    ["Reference", "Other content items in the CMS"],
     ["Taxonomy", "Terms from a taxonomy"],
   ] },
-  { title: "Place and visits", types: [
-    ["Map", "A pin on a map, found by address and adjustable by hand"],
-    ["Address", "Street, postal code, city and country"],
-    ["Coordinates", "Latitude and longitude"],
+  { title: "Dates and visits", types: [
+    ["Date", "A single date"],
+    ["Date ranges", "From–to dates, such as closures"],
     ["Opening hours", "Opening times by period, with breaks and closed days"],
     ["Special days", "Holidays and other days with different hours"],
     ["Admission", "Free, prices by ticket type, a ticket link or a note"],
+  ] },
+  { title: "Location", types: [
+    ["Map", "A pin on a map, found by address and adjustable by hand"],
+    ["Address", "Street, postal code, city and country"],
+    ["Coordinates", "Latitude and longitude"],
+  ] },
+  { title: "Media and links", types: [
+    ["Media", "Images and files from the library"],
+    ["Link", "A web address with a label"],
+    ["Reference", "Other content items in the CMS"],
   ] },
   { title: "Structure and layout", types: [
     ["Sections", "Repeating headings with text"],
