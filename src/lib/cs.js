@@ -409,7 +409,7 @@ export const CS = {
   "Closes": "Zavírá",
   "Add interval": "Přidat úsek",
   "Remove interval": "Odebrat úsek",
-  "Use Monday for every day": "Použít pondělí pro všechny dny",
+  "Use Monday for every day": "Použít pondělí všude",
   "Set each day separately": "Nastavit každý den zvlášť",
   "Simple range": "Jednoduchý rozsah",
   "Add time period": "Přidat časovou dobu",
