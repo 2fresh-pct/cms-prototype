@@ -644,9 +644,14 @@ function ContentDetailPage({ id }) {
           {(readOnly || entry.scheduledPublishAt) && (
             <div
               role="status"
-              className="mb-4 flex shrink-0 items-start gap-3 rounded-md border border-l-4 border-amber-300 border-l-amber-500 bg-amber-100 px-4 py-3 text-sm font-medium text-amber-950"
+              // Publishing (published, scheduled) is blue; a past version is a warning, amber.
+              className={`mb-4 flex shrink-0 items-start gap-3 rounded-md border border-l-4 px-4 py-3 text-sm font-medium ${
+                historyMode
+                  ? "border-amber-300 border-l-amber-500 bg-amber-100 text-amber-950"
+                  : "border-blue-300 border-l-blue-500 bg-blue-100 text-blue-950"
+              }`}
             >
-              {historyMode ? <History size={18} className="mt-px shrink-0 text-amber-700" /> : readOnly ? <Lock size={18} className="mt-px shrink-0 text-amber-700" /> : <Clock size={18} className="mt-px shrink-0 text-amber-700" />}
+              {historyMode ? <History size={18} className="mt-px shrink-0 text-amber-700" /> : readOnly ? <Lock size={18} className="mt-px shrink-0 text-blue-700" /> : <Clock size={18} className="mt-px shrink-0 text-blue-700" />}
               <span>
                 {historyMode
                   ? (selectedVersion
