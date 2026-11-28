@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
 import { seedContentTypes, seedEntries, seedMedia, seedUsers, LOCALE_LIST, LOCALE_LABELS, LOCALE_NAMES } from "../lib/seed";
@@ -7,7 +7,8 @@ import PageHeader from "../components/PageHeader";
 import DetailField from "../components/DetailField";
 import MediaThumb from "../components/MediaThumb";
 import Avatar from "../components/Avatar";
-import FocusEditor from "../components/FocusEditor";
+import FocusEditor, { CropPreview } from "../components/FocusEditor";
+import { focusOf } from "../lib/focus";
 import VideoPlayer from "../components/VideoPlayer";
 import { isVideo, formatDuration } from "../lib/media";
 
@@ -21,6 +22,10 @@ export default function MediaDetail() {
 
 function MediaEditor({ id }) {
   const navigate = useNavigate();
+  const location = useLocation();
+  // Opened from a content item: back returns to it; otherwise to the library.
+  const goBack = () => navigate(location.state?.from ?? "/media");
+  const [liveFocus, setLiveFocus] = useState(null); // the focus point while it is dragged
   const { t, dateLocale } = useI18n();
   const [media, setMedia] = useLocalStorage("cms.media", seedMedia);
   const [entries] = useLocalStorage("cms.entries", seedEntries);
@@ -35,7 +40,7 @@ function MediaEditor({ id }) {
   if (!item) {
     return (
       <div className="flex-1 p-6">
-        <PageHeader crumbs={["Media library", "File not found"]} onBack={() => navigate("/media")} />
+        <PageHeader crumbs={["Media library", "File not found"]} onBack={goBack} />
         <p className="text-sm text-gray-500">{t("This file doesn't exist any more.")}</p>
       </div>
     );
@@ -65,7 +70,7 @@ function MediaEditor({ id }) {
     <div className="flex min-h-0 flex-1 flex-col p-6">
       <PageHeader
         crumbs={["Media library", item.name]}
-        onBack={() => navigate("/media")}
+        onBack={goBack}
         saveStatus={dirty ? "unsaved" : justSaved ? "saved" : null}
       />
 
@@ -78,6 +83,7 @@ function MediaEditor({ id }) {
               item={item}
               alt={saved[defaultLocale] || item.name}
               onChange={(focus) => { setMedia(media.map((m) => (m.id === id ? { ...m, focus } : m))); setJustSaved(true); }}
+              onLive={setLiveFocus}
             />
           ) : (
             <div className="flex flex-1 flex-col items-center justify-center gap-3">
@@ -92,10 +98,7 @@ function MediaEditor({ id }) {
                 : t("Preview copy of the original")}
             </p>
           )}
-        </div>
-
-        <div className="max-h-full w-96 shrink-0 space-y-5 self-start overflow-y-auto rounded-lg border border-gray-300 bg-white p-5">
-          <div>
+          <div className="border-t border-gray-200 pt-5">
             <h2 className="mb-1 text-sm font-semibold text-gray-900">{t("Alt text")}</h2>
             <p className="mb-3 text-xs text-gray-500">
               {t("Describes the image for screen readers. Used when the image is inserted into rich text, in the language of the entry.")}
@@ -121,7 +124,12 @@ function MediaEditor({ id }) {
             </div>
           </div>
 
-          <div className="space-y-4 border-t border-gray-200 pt-5">
+        </div>
+
+        <div className="max-h-full w-96 shrink-0 space-y-5 self-start overflow-y-auto rounded-lg border border-gray-300 bg-white p-5">
+          {item.src && <CropPreview item={item} focus={liveFocus ?? focusOf(item)} />}
+
+          <div className={`space-y-4 ${item.src ? "border-t border-gray-200 pt-5" : ""}`}>
             <DetailField label="File name"><span className="break-all text-sm text-gray-700">{item.name}</span></DetailField>
             <DetailField label="Type"><span className="text-sm text-gray-700">{item.kind}</span></DetailField>
             <DetailField label="Size"><span className="text-sm text-gray-700">{formatSize(item.sizeKb)}</span></DetailField>

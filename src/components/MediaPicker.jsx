@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Check, GripVertical, ImagePlus, Upload, X } from "lucide-react";
 import { useI18n } from "../lib/i18n";
 import Modal from "./Modal";
@@ -20,9 +20,10 @@ function Thumb({ item, size = 48 }) {
 // reordering still works. A missing file has nothing to open.
 function OpenFile({ item, className, children }) {
   const { t } = useI18n();
+  const location = useLocation();
   if (!item) return <div className={className}>{children}</div>;
   return (
-    <Link to={`/media/${item.id}`} draggable={false} title={t("Open in media library")} className={`group ${className}`}>
+    <Link to={`/media/${item.id}`} state={{ from: location.pathname + location.search }} draggable={false} title={t("Open in media library")} className={`group ${className}`}>
       {children}
     </Link>
   );

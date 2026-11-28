@@ -10,13 +10,15 @@ import { CROP_FORMATS, focusOf, isDefaultFocus, objectPosition, toFocus, DEFAULT
 // Click or drag on the picture to move the point; the arrow keys nudge it. It is
 // saved when the pointer is released. The previews use the same CSS the website
 // would: `object-fit: cover` with `object-position` at the focus point.
-export default function FocusEditor({ item, alt, onChange }) {
+export default function FocusEditor({ item, alt, onChange, onLive }) {
   const { t } = useI18n();
   const saved = focusOf(item);
   const [dragging, setDragging] = useState(null); // the point while it is being dragged
   const [copied, setCopied] = useState(false);
   const imgRef = useRef(null);
   const focus = dragging ?? saved;
+  // The point while it is dragged, for previews elsewhere on the page.
+  useEffect(() => { onLive?.(dragging); }, [dragging]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Face detection: boxes of the faces found, and what happened ("busy", "none", "error",
   // or the number found).
@@ -144,25 +146,31 @@ export default function FocusEditor({ item, alt, onChange }) {
           </p>
         )}
       </section>
-
-      <section>
-        <h2 className="mb-3 text-sm font-semibold text-gray-900">{t("Crop preview")}</h2>
-        <div className="flex items-start gap-4">
-          {CROP_FORMATS.map((f) => (
-            <figure key={f.id} style={{ flex: `${f.w} 1 0` }} className="min-w-0">
-              <img
-                src={item.src}
-                alt=""
-                draggable={false}
-                style={{ aspectRatio: `${f.w} / ${f.h}`, objectPosition: objectPosition(focus) }}
-                className="block w-full rounded-md border border-gray-300 object-cover"
-              />
-              <figcaption className="mt-1.5 text-xs font-medium text-gray-700">{f.label}</figcaption>
-            </figure>
-          ))}
-        </div>
-        <p className="mt-2 text-xs text-gray-400">{t("The formats used most on the website and in the app. The same crop is used wherever the image is shown.")}</p>
-      </section>
     </div>
+  );
+}
+
+// The picture cropped to the formats used most, at the given focus point.
+export function CropPreview({ item, focus }) {
+  const { t } = useI18n();
+  return (
+    <section>
+      <h2 className="mb-3 text-sm font-semibold text-gray-900">{t("Crop preview")}</h2>
+      <div className="flex items-start gap-3">
+        {CROP_FORMATS.map((f) => (
+          <figure key={f.id} style={{ flex: `${f.w} 1 0` }} className="min-w-0">
+            <img
+              src={item.src}
+              alt=""
+              draggable={false}
+              style={{ aspectRatio: `${f.w} / ${f.h}`, objectPosition: objectPosition(focus) }}
+              className="block w-full rounded-md border border-gray-300 object-cover"
+            />
+            <figcaption className="mt-1.5 text-xs font-medium text-gray-700">{f.label}</figcaption>
+          </figure>
+        ))}
+      </div>
+      <p className="mt-2 text-xs text-gray-400">{t("The formats used most on the website and in the app. The same crop is used wherever the image is shown.")}</p>
+    </section>
   );
 }

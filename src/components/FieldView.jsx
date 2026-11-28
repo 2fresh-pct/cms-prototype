@@ -1,5 +1,5 @@
 import { Fragment } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useI18n } from "../lib/i18n";
 import { flattenTerms } from "../lib/seed";
 import { RichTextView } from "./RichTextEditor";
@@ -27,10 +27,12 @@ const formatSize = (kb) => (kb > 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${kb} 
 // Media in the read-only entry view: the same compact tiles as the editor (192 px
 // squares for several files, a 112 px card for one), linking to the file's page.
 function MediaTiles({ items, several }) {
+  const location = useLocation();
+  const state = { from: location.pathname + location.search }; // the file's back button returns here
   if (!several) {
     const m = items[0];
     return (
-      <Link to={`/media/${m.id}`} className="flex items-center gap-3 rounded-md border border-gray-300 p-2 hover:border-gray-400">
+      <Link to={`/media/${m.id}`} state={state} className="flex items-center gap-3 rounded-md border border-gray-300 p-2 hover:border-gray-400">
         <MediaThumb item={m} className="shrink-0 rounded border border-gray-300" style={{ width: 112, height: 112 }} />
         <div className="min-w-0">
           <p className="truncate text-sm font-medium text-gray-900">{m.name}</p>
@@ -42,7 +44,7 @@ function MediaTiles({ items, several }) {
   return (
     <div className="flex flex-wrap gap-2">
       {items.map((m) => (
-        <Link key={m.id} to={`/media/${m.id}`} className="block w-48 overflow-hidden rounded-md border border-gray-300 bg-white hover:border-gray-400">
+        <Link key={m.id} to={`/media/${m.id}`} state={state} className="block w-48 overflow-hidden rounded-md border border-gray-300 bg-white hover:border-gray-400">
           <MediaThumb item={m} className="aspect-square w-full border-b border-gray-300" />
           <p className="truncate px-1.5 py-1 text-xs text-gray-700" title={m.name}>{m.name}</p>
         </Link>
