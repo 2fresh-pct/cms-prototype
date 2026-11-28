@@ -13,7 +13,9 @@ import { CROP_FORMATS, focusOf, isDefaultFocus, objectPosition, toFocus, DEFAULT
 export default function FocusEditor({ item, alt, onChange, onLive }) {
   const { t } = useI18n();
   const saved = focusOf(item);
-  const [dragging, setDragging] = useState(null); // the point while it is being dragged
+  const [dragging, setDragState] = useState(null); // the point while it is being dragged
+  const dragRef = useRef(null); // the same, readable at once (events can arrive faster than a render)
+  const setDragging = (point) => { dragRef.current = point; setDragState(point); };
   const imgRef = useRef(null);
   const focus = dragging ?? saved;
   // The point while it is dragged, for previews elsewhere on the page.
@@ -45,20 +47,28 @@ export default function FocusEditor({ item, alt, onChange, onLive }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Grabbing the point itself moves it from where it is (it does not jump under the
+  // pointer); clicking elsewhere on the picture puts it there.
+  const grab = useRef({ x: 0, y: 0 });
   const pointFrom = (e) => {
     const r = imgRef.current.getBoundingClientRect();
-    return toFocus(((e.clientX - r.left) / r.width) * 100, ((e.clientY - r.top) / r.height) * 100);
+    return toFocus(((e.clientX - r.left) / r.width) * 100 + grab.current.x, ((e.clientY - r.top) / r.height) * 100 + grab.current.y);
   };
 
   function down(e) {
     e.currentTarget.setPointerCapture(e.pointerId);
+    grab.current = { x: 0, y: 0 };
+    if (e.target.closest?.("[data-focus-point]")) {
+      const at = pointFrom(e);
+      grab.current = { x: saved.x - at.x, y: saved.y - at.y };
+    }
     setDragging(pointFrom(e));
   }
   function move(e) {
-    if (dragging) setDragging(pointFrom(e));
+    if (dragRef.current) setDragging(pointFrom(e));
   }
   function up(e) {
-    if (!dragging) return;
+    if (!dragRef.current) return;
     const next = pointFrom(e);
     setDragging(null);
     if (next.x !== saved.x || next.y !== saved.y) onChange(next);
@@ -104,10 +114,10 @@ export default function FocusEditor({ item, alt, onChange, onLive }) {
             <button
               type="button"
               onKeyDown={key}
-              onPointerDown={(e) => e.stopPropagation()}
+              data-focus-point
               aria-label={`${t("Focus point")} ${focus.x}% ${focus.y}%`}
               style={{ left: `${focus.x}%`, top: `${focus.y}%` }}
-              className="absolute flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-[#fff] bg-black/35 text-[#fff] shadow-[0_0_0_1.5px_rgba(0,0,0,0.55)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#fff]"
+              className="absolute flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 cursor-grab items-center justify-center rounded-full active:cursor-grabbing border-2 border-[#fff] bg-black/35 text-[#fff] shadow-[0_0_0_1.5px_rgba(0,0,0,0.55)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#fff]"
             >
               <Crosshair size={16} />
             </button>
