@@ -161,8 +161,8 @@ function TaxonomyField({ field, value, onChange, ctx }) {
         aria-label={t("Filter terms…")}
         className={INPUT}
       />
-      {/* No height limit: the list is as tall as its terms (the filter narrows it). */}
-      <div className="space-y-0.5 rounded-md border border-gray-300 bg-[#fff] p-2">
+      {/* Eight terms are visible (8 rows of 28px + gaps + padding + border); the rest scrolls. */}
+      <div className="max-h-[256px] space-y-0.5 overflow-y-auto rounded-md border border-gray-300 bg-[#fff] p-2">
         {shown.length === 0 && <p className="px-1.5 py-1 text-sm text-gray-400">{t("No terms match.")}</p>}
         {shown.map((term) => (
           <label
