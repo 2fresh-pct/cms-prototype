@@ -81,7 +81,7 @@ export default function TaxonomyDetail() {
   const navigate = useNavigate();
   const { t } = useI18n();
   const [taxonomies, setTaxonomies] = useLocalStorage("cms.taxonomies", seedTaxonomies);
-  const [baseLocale] = useLocalStorage("cms.settings.defaultLocale", "en");
+  const [baseLocale] = useLocalStorage("cms.settings.defaultLocale", "cs");
   // The language whose names are shown and edited. Structure (adding, moving, deleting)
   // is the same in every language.
   const [locale, setLocale] = useState(baseLocale);

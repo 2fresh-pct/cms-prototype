@@ -17,7 +17,7 @@ const CONTENT_TYPES = [
 ];
 
 const STATUSES = ["Published", "Draft", "Changed", "Archived"];
-const LOCALES = ["en", "cs", "de"];
+const LOCALES = ["cs", "en", "de"];
 
 const WORKFLOW_COLORS = [
   "#9ca3af", // gray
@@ -387,7 +387,7 @@ export function getUser(id) {
 
 export const STATUS_LIST = STATUSES;
 export const LOCALE_LIST = LOCALES;
-export const LOCALE_LABELS = { en: "EN", cs: "CZ", de: "DE" };
+export const LOCALE_LABELS = { cs: "CZ", en: "EN", de: "DE" };
 export const LOCALE_NAMES = { en: "English", cs: "Czech", de: "German" };
 
 // Every entry belongs to a group of linked language versions (siblings),

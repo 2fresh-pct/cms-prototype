@@ -156,7 +156,7 @@ function ThemeChooser({ value, onChange }) {
 function GeneralPanel({ guardRef }) {
   const { t, lang, setLang } = useI18n();
   const [savedName, setSavedName] = useLocalStorage("cms.settings.workspaceName", "Cargo Workspace");
-  const [savedLocale, setSavedLocale] = useLocalStorage("cms.settings.defaultLocale", "en");
+  const [savedLocale, setSavedLocale] = useLocalStorage("cms.settings.defaultLocale", "cs");
   const savedTheme = getTheme();
   const saved = { name: savedName, locale: savedLocale, lang, theme: savedTheme };
   const [draft, setDraftState] = useState(saved);
@@ -199,8 +199,8 @@ function GeneralPanel({ guardRef }) {
             onChange={(e) => set({ locale: e.target.value })}
             className="w-full rounded-md border border-gray-300 bg-white h-9 px-3 text-sm focus:border-violet-400 focus:outline-none"
           >
-            <option value="en">{t("English")} (en)</option>
             <option value="cs">{t("Czech")} (cs)</option>
+            <option value="en">{t("English")} (en)</option>
             <option value="de">{t("German")} (de)</option>
           </select>
         </div>

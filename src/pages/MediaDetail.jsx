@@ -25,7 +25,7 @@ function MediaEditor({ id }) {
   const [media, setMedia] = useLocalStorage("cms.media", seedMedia);
   const [entries] = useLocalStorage("cms.entries", seedEntries);
   const [contentTypes] = useLocalStorage("cms.contentTypes", seedContentTypes);
-  const [defaultLocale] = useLocalStorage("cms.settings.defaultLocale", "en");
+  const [defaultLocale] = useLocalStorage("cms.settings.defaultLocale", "cs");
   const item = media.find((m) => m.id === id);
 
   // Alt text per language, edited as a draft and saved when a field loses focus.

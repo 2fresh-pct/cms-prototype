@@ -152,7 +152,7 @@ function ContentDetailPage({ id }) {
     e.updatedAt;
   const navigate = useNavigate();
   const [entries, setEntries] = useLocalStorage("cms.entries", seedEntries);
-  const [defaultLocale] = useLocalStorage("cms.settings.defaultLocale", "en");
+  const [defaultLocale] = useLocalStorage("cms.settings.defaultLocale", "cs");
   const [contentTypes] = useLocalStorage("cms.contentTypes", seedContentTypes);
   const [rawWorkflowSteps] = useLocalStorage("cms.settings.workflowSteps", DEFAULT_WORKFLOW_STEPS);
   const workflowSteps = useMemo(() => normalizeWorkflowSteps(rawWorkflowSteps), [rawWorkflowSteps]);

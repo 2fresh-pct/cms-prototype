@@ -252,6 +252,10 @@ const MIGRATIONS = {
     const next = JSON.stringify(capped);
     if (next.length < raw.length) localStorage.setItem("cms.entries", next);
   },
+  // Czech is the default language of the content; a stored English default is replaced once.
+  "default-locale-czech": () => {
+    if (localStorage.getItem("cms.settings.defaultLocale") !== '"cs"') localStorage.setItem("cms.settings.defaultLocale", '"cs"');
+  },
 };
 
 // Renames field keys. `labelFor(type, field)` returns the name the new key is built

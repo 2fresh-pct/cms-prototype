@@ -41,7 +41,7 @@ export default function PublishDialog({
   open, onClose, title, channels, initialChannelIds, languageRows, initialVersionIds, texts, emptyLabel, usedFor, onConfirm,
 }) {
   const { t } = useI18n();
-  const [defaultLocale] = useLocalStorage("cms.settings.defaultLocale", "en");
+  const [defaultLocale] = useLocalStorage("cms.settings.defaultLocale", "cs");
   const [mode, setMode] = useState("now");
   const [scheduledAt, setScheduledAt] = useState("");
   const [channelIds, setChannelIds] = useState([]);

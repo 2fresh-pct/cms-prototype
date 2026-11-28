@@ -18,7 +18,7 @@ function formatDate(iso) {
 
 export default function Catalogue() {
   const navigate = useNavigate();
-  const [defaultLocale] = useLocalStorage("cms.settings.defaultLocale", "en");
+  const [defaultLocale] = useLocalStorage("cms.settings.defaultLocale", "cs");
   const [categories, setCategories] = useLocalStorage("cms.catalogueCategories", seedCatalogueCategories);
   const [items, setItems] = useLocalStorage("cms.catalogueItems", seedCatalogueItems);
   const users = useMemo(() => seedUsers(), []);
