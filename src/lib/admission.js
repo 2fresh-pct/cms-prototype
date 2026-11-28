@@ -6,12 +6,15 @@
 //   "link"    tickets are sold elsewhere: the seller and a link, no price
 //   "note"    a sentence instead of a price ("Part of the Prague Castle circuit")
 //   "unknown" nothing is shown about admission
-export const ADMISSION_TYPES = ["free", "paid", "link", "note", "unknown"];
+export const ADMISSION_TYPES = ["paid", "free", "link", "note", "unknown"];
 
 // Ticket types to choose from; any other text can be typed.
 export const TICKET_TYPES = ["Adult", "Reduced fare", "Student", "Child", "Senior", "Family", "Group ticket", "Basic", "Disabled (ZTP)"];
 
 export const blankPrice = () => ({ ticket: "", price: "", note: "" });
+
+// Paid admission starts with these two prices to fill in (ticket types, translated by `tr`).
+export const defaultPrices = (tr) => [{ ...blankPrice(), ticket: tr("Adult") }, { ...blankPrice(), ticket: tr("Reduced fare") }];
 
 export function normalizeAdmission(v) {
   return {

@@ -1,7 +1,7 @@
 import { Plus, Trash2 } from "lucide-react";
 import { useI18n } from "../lib/i18n";
 import Draft from "./Draft";
-import { ADMISSION_TYPES, TICKET_TYPES, blankPrice, normalizeAdmission } from "../lib/admission";
+import { ADMISSION_TYPES, TICKET_TYPES, blankPrice, defaultPrices, normalizeAdmission } from "../lib/admission";
 import ComboInput from "./ComboInput";
 
 const FIELD = "h-9 w-full rounded-md border border-gray-300 bg-[#fff] px-3 text-sm focus:border-violet-400 focus:outline-none";
@@ -26,7 +26,8 @@ const TYPE_HINTS = {
 export default function AdmissionField({ value, onChange }) {
   const { t } = useI18n();
   return (
-    <Draft value={normalizeAdmission(value)} onCommit={onChange}>
+    // An element nobody has filled in starts as paid, with the two usual prices to fill in.
+    <Draft value={value?.type ? normalizeAdmission(value) : { ...normalizeAdmission(value), type: "paid", prices: defaultPrices(t) }} onCommit={onChange}>
       {(a, setA, commit) => {
         const save = (next, now) => {
           setA(next);
@@ -45,7 +46,7 @@ export default function AdmissionField({ value, onChange }) {
                     key={type}
                     type="button"
                     aria-pressed={on}
-                    onClick={() => patch({ type }, true)}
+                    onClick={() => patch({ type, ...(type === "paid" && a.prices.length === 0 ? { prices: defaultPrices(t) } : {}) }, true)}
                     className={`h-8 rounded-full border px-3.5 text-sm ${on ? "border-gray-800 bg-gray-800 text-white" : "border-gray-300 bg-white text-gray-800 hover:bg-gray-50"}`}
                   >
                     {t(TYPE_LABELS[type])}
