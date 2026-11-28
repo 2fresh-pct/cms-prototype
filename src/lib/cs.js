@@ -252,8 +252,6 @@ export const CS = {
   "Preview copy of the original": "Náhledová kopie originálu",
   "Focus point": "Ohnisko obrázku",
   "Click or drag on the image to choose what must stay visible when it is cropped.": "Kliknutím nebo tažením na obrázku vyberte, co musí zůstat vidět při ořezu.",
-  "Copy CSS": "Kopírovat CSS",
-  "Copied": "Zkopírováno",
   "Reset to centre": "Vrátit na střed",
   "Crop preview": "Náhled ořezu",
   "Find faces": "Najít obličeje",

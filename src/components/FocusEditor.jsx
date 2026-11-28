@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Crosshair, Copy, Check, RotateCcw, ScanFace, Loader2 } from "lucide-react";
+import { Crosshair, RotateCcw, ScanFace, Loader2 } from "lucide-react";
 import { useI18n } from "../lib/i18n";
 import { detectFaces, focusFromFaces } from "../lib/faces";
 import { CROP_FORMATS, focusOf, isDefaultFocus, objectPosition, toFocus, DEFAULT_FOCUS } from "../lib/focus";
@@ -14,7 +14,6 @@ export default function FocusEditor({ item, alt, onChange, onLive }) {
   const { t } = useI18n();
   const saved = focusOf(item);
   const [dragging, setDragging] = useState(null); // the point while it is being dragged
-  const [copied, setCopied] = useState(false);
   const imgRef = useRef(null);
   const focus = dragging ?? saved;
   // The point while it is dragged, for previews elsewhere on the page.
@@ -72,11 +71,6 @@ export default function FocusEditor({ item, alt, onChange, onLive }) {
     onChange(toFocus(saved.x + d[0], saved.y + d[1]));
   }
 
-  const css = `object-position: ${objectPosition(focus)};`;
-  async function copy() {
-    try { await navigator.clipboard.writeText(css); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch { /* clipboard unavailable */ }
-  }
-
   return (
     <div className="space-y-6">
       <section>
@@ -120,10 +114,6 @@ export default function FocusEditor({ item, alt, onChange, onLive }) {
           </div>
         </div>
         <div className="mt-3 flex flex-wrap items-center justify-center gap-2 text-xs text-gray-600">
-          <code className="rounded bg-gray-100 px-2 py-1">{css}</code>
-          <button type="button" onClick={copy} className="flex h-7 items-center gap-1 rounded-md px-2 font-medium text-gray-600 hover:bg-gray-100">
-            {copied ? <Check size={13} /> : <Copy size={13} />} {copied ? t("Copied") : t("Copy CSS")}
-          </button>
           <button
             type="button"
             onClick={() => findFaces()}
