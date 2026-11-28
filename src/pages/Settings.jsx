@@ -228,6 +228,21 @@ function WorkflowPanel({ guardRef }) {
   const form = useSettingsDraft("cms.settings.workflowSteps", DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps);
   const steps = form.draft;
   const setSteps = form.setDraft;
+  // Who can be written to when content moves into a status: the users of the workspace.
+  const [storedUsers] = useLocalStorage("cms.settings.users", null);
+  const people = Array.isArray(storedUsers) ? storedUsers : seedUsers();
+  const notifySelect = (s, i) => (
+    <select
+      value={s.notify ?? ""}
+      onChange={(e) => updateStep(i, { notify: e.target.value })}
+      aria-label={t("Notify by email")}
+      title={t("Notify by email")}
+      className="h-8 w-48 shrink-0 rounded-md border border-gray-300 bg-white px-2.5 text-sm text-gray-800"
+    >
+      <option value="">{t("Email")}: {t("Nobody")}</option>
+      {people.map((u) => <option key={u.id} value={u.id}>{t("Email")}: {u.name}</option>)}
+    </select>
+  );
 
   function updateStep(i, patch) {
     setSteps(steps.map((s, idx) => (idx === i ? { ...s, ...patch } : s)));
@@ -289,6 +304,7 @@ function WorkflowPanel({ guardRef }) {
             <span className="flex items-center gap-1 text-xs text-gray-400">
               <Lock size={12} /> {i === 0 ? t("Always the first status") : t("Always the last status")}
             </span>
+            {notifySelect(s, i)}
           </div>
         ) : (
           <div key={s.id} className="space-y-3 rounded-md border border-gray-300 bg-white p-3">
@@ -301,6 +317,7 @@ function WorkflowPanel({ guardRef }) {
                 onChange={(e) => updateStep(i, { name: e.target.value })}
                 className="flex-1 rounded-md border border-gray-300 bg-white h-8 px-2.5 text-sm focus:border-violet-400 focus:outline-none"
               />
+              {notifySelect(s, i)}
               <button
                 onClick={() => moveStep(i, -1)}
                 disabled={i <= 1}

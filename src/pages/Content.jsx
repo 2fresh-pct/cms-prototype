@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Plus, Copy, Trash2, Send } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
+import { emailNote } from "../lib/notify";
 import { orderLocales } from "../lib/locales";
 import { sortTypes } from "../lib/typeOrder";
 import { typeIcon } from "../lib/typeIcons";
@@ -173,7 +174,7 @@ export default function Content() {
   function changeStatusOfSelected(step) {
     setEntries(entries.map((e) =>
       selected.has(e.id) && e.status !== step.id && e.status !== publishStepId && e.status !== SCHEDULED_STATUS_ID
-        ? withHistory(e, { status: step.id }, `Status changed to "${step.name}"`)
+        ? withHistory(e, { status: step.id }, `Status changed to "${step.name}"${emailNote(step)}`)
         : e
     ));
     clearSelection();
@@ -196,7 +197,7 @@ export default function Content() {
       : { status: publishStepId, scheduledPublishAt: null, channels: channelsValue, live: null, publishedAt: new Date().toISOString() };
     const summary = scheduling
       ? `Scheduled to publish on ${new Date(scheduledAt).toLocaleString(dateLocale, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}`
-      : `Status changed to "${publishStep?.name}"`;
+      : `Status changed to "${publishStep?.name}"${emailNote(publishStep)}`;
     setEntries(entries.map((e) => (versionIds.includes(e.id) ? withHistory(e, patch, summary) : e)));
     setPublishing(false);
     clearSelection();

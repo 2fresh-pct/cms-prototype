@@ -55,7 +55,7 @@ export function normalizeWorkflowSteps(steps) {
   let list = source.map((s, i) =>
     typeof s === "string"
       ? { id: `step-${i}`, name: s, color: WORKFLOW_COLORS[i % WORKFLOW_COLORS.length] }
-      : { id: s.id ?? `step-${i}`, name: s.name, color: s.color ?? WORKFLOW_COLORS[i % WORKFLOW_COLORS.length] }
+      : { id: s.id ?? `step-${i}`, name: s.name, color: s.color ?? WORKFLOW_COLORS[i % WORKFLOW_COLORS.length], ...(s.notify ? { notify: s.notify } : {}) }
   );
   if (list.length < 2) list = [...list, WORKFLOW_STEPS[WORKFLOW_STEPS.length - 1]];
   const last = list.length - 1;

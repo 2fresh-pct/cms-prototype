@@ -5,6 +5,7 @@ import { Smartphone, Globe, Radio, Tv, Mail, MessageSquare, Clock, History, Arro
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
 import { orderLocales } from "../lib/locales";
+import { emailNote, notifiedUser } from "../lib/notify";
 import {
   seedEntries, seedContentTypes, seedUsers, seedTaxonomies, seedMedia, LOCALE_LIST, LOCALE_LABELS, LOCALE_NAMES, normalizeEntryGroupId,
   DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus, SCHEDULED_STATUS_ID, withScheduledStep,
@@ -54,7 +55,7 @@ function describeChange(key, value, prevEntry, { workflowSteps, channels, fields
     case "status": {
       if (value === prevEntry.status || value === SCHEDULED_STATUS_ID) return null; // scheduling is described by its own line
       const step = workflowSteps.find((s) => s.id === value);
-      return `Status changed to "${step?.name ?? value}"`;
+      return `Status changed to "${step?.name ?? value}"${emailNote(step)}`;
     }
     case "channels": {
       const before = resolvePublishedChannelIds(prevEntry.channels, channels);
@@ -302,6 +303,16 @@ function ContentDetailPage({ id }) {
   // only through the Publish dialog.
   function handleStatusChange(value) {
     update({ status: value });
+    announceEmail(workflowSteps.find((s) => s.id === value));
+  }
+
+  // The prototype sends no mail; the status panel says who would get it.
+  const [mailNotice, setMailNotice] = useState("");
+  function announceEmail(step) {
+    const who = notifiedUser(step);
+    if (!who) return;
+    setMailNotice(t("E-mail sent to {name}", { name: who.name }));
+    setTimeout(() => setMailNotice(""), 6000);
   }
 
   function flashSaved() {
@@ -387,6 +398,7 @@ function ContentDetailPage({ id }) {
     clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current = setTimeout(() => setSaveStatus("saved"), 600);
     setPendingPublish(false);
+    if (!(mode === "schedule" && scheduledAt)) announceEmail(workflowSteps[workflowSteps.length - 1]);
     // The page changes (a notice, a different panel): show it from the top.
     setTimeout(() => {
       document.querySelectorAll("[data-scroll-pane]").forEach((el) => { el.scrollTop = 0; });
@@ -836,6 +848,11 @@ function ContentDetailPage({ id }) {
         ) : (
           <div data-scroll-pane className="max-h-full w-80 shrink-0 space-y-8 self-start overflow-y-auto rounded-lg border border-gray-300 bg-white p-5">
             <DetailField label="Status">
+              {mailNotice && (
+                <p role="status" className="mb-2 flex items-center gap-1.5 text-xs text-gray-600">
+                  <Mail size={12} /> {mailNotice}
+                </p>
+              )}
               {isPublished ? (
                 <>
                   <div className="flex flex-wrap items-center gap-2">
