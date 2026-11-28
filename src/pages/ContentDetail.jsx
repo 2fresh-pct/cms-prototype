@@ -668,14 +668,14 @@ function ContentDetailPage({ id }) {
           {readOnly && (
             <div
               role="status"
-              // Publishing (published, scheduled) is blue; a past version is a warning, amber.
+              // Scheduled is blue; published and past versions are amber.
               className={`mb-4 flex shrink-0 items-start gap-3 rounded-md border border-l-4 px-4 py-3 text-sm font-medium ${
-                historyMode
-                  ? "border-amber-300 border-l-amber-500 bg-amber-100 text-amber-950"
-                  : "border-blue-300 border-l-blue-500 bg-blue-100 text-blue-950"
+                isScheduled && !historyMode
+                  ? "border-blue-300 border-l-blue-500 bg-blue-100 text-blue-950"
+                  : "border-amber-300 border-l-amber-500 bg-amber-100 text-amber-950"
               }`}
             >
-              {historyMode ? <History size={18} className="mt-px shrink-0 text-amber-700" /> : isScheduled ? <Clock size={18} className="mt-px shrink-0 text-blue-700" /> : <Lock size={18} className="mt-px shrink-0 text-blue-700" />}
+              {historyMode ? <History size={18} className="mt-px shrink-0 text-amber-700" /> : isScheduled ? <Clock size={18} className="mt-px shrink-0 text-blue-700" /> : <Lock size={18} className="mt-px shrink-0 text-amber-700" />}
               <span>
                 {historyMode
                   ? (selectedVersion
@@ -689,7 +689,7 @@ function ContentDetailPage({ id }) {
                   <button
                     type="button"
                     onClick={isScheduled ? cancelSchedule : createDraft}
-                    className="ml-2.5 inline-flex h-7 items-center gap-1.5 whitespace-nowrap rounded-md border border-blue-300 bg-white px-2.5 align-middle text-xs font-medium text-blue-950 hover:bg-gray-50"
+                    className={`ml-2.5 inline-flex h-7 items-center gap-1.5 whitespace-nowrap rounded-md border bg-white px-2.5 align-middle text-xs font-medium hover:bg-gray-50 ${isScheduled ? "border-blue-300 text-blue-950" : "border-amber-300 text-amber-950"}`}
                   >
                     {isScheduled ? <X size={13} /> : <FilePlus size={13} />} {isScheduled ? t("Cancel schedule") : t("Create new draft")}
                   </button>
