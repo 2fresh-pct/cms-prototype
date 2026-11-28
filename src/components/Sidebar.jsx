@@ -1,4 +1,4 @@
-import { List, CalendarClock, Folder } from "lucide-react";
+import { List, Folder } from "lucide-react";
 import { useI18n } from "../lib/i18n";
 import { typeIcon } from "../lib/typeIcons";
 
@@ -40,7 +40,6 @@ export default function Sidebar({
     <aside className="w-60 shrink-0 space-y-5 overflow-y-auto border-r border-gray-300 bg-white p-3">
       <div className="space-y-0.5">
         <Item icon={List} label={t(allLabel)} active={isAll} onClick={() => onFilter({ view: "all", ...reset })} />
-        <Item icon={CalendarClock} label={t("Scheduled")} active={filter.view === "scheduled"} onClick={() => onFilter({ view: "scheduled", ...reset })} />
       </div>
 
       <div>

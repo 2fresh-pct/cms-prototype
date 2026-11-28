@@ -70,7 +70,15 @@ export function normalizeWorkflowSteps(steps) {
 // feature existed, or from before steps were keyed by id) may still hold a
 // step's display name, or a stale value that matches no current step at all —
 // fall back to the first step in that case rather than showing garbage.
+// "Scheduled" is a content status that belongs to no workflow step: an item gets it
+// when its publication is scheduled, and it is not set in Settings or picked by hand.
+// Like a published item, a scheduled one is read-only.
+export const SCHEDULED_STATUS_ID = "scheduled";
+export const SCHEDULED_STEP = { id: SCHEDULED_STATUS_ID, name: "Scheduled", color: "#3b82f6", virtual: true };
+export const withScheduledStep = (steps) => [...steps, SCHEDULED_STEP];
+
 export function normalizeEntryStatus(status, workflowSteps) {
+  if (status === SCHEDULED_STATUS_ID) return status;
   if (workflowSteps.some((s) => s.id === status)) return status;
   const byName = workflowSteps.find((s) => s.name === status);
   if (byName) return byName.id;

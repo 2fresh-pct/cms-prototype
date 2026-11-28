@@ -7,7 +7,7 @@ import { useI18n } from "../lib/i18n";
 import { orderLocales } from "../lib/locales";
 import {
   seedEntries, seedContentTypes, seedUsers, seedTaxonomies, seedMedia, LOCALE_LIST, LOCALE_LABELS, LOCALE_NAMES, normalizeEntryGroupId,
-  DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus,
+  DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus, SCHEDULED_STATUS_ID, withScheduledStep,
   DEFAULT_CHANNELS, normalizeChannels, ALL_CHANNELS, isAllChannels, resolvePublishedChannelIds,
 } from "../lib/seed";
 import { sharedFields, isEmptyValue, latestValue, hasLocalizedTexts, mergeLocalizedTexts, localizationOf } from "../lib/sharedFields";
@@ -52,7 +52,7 @@ function describeChange(key, value, prevEntry, { workflowSteps, channels, fields
       if ((value || null) === (prevEntry.slug || null)) return null;
       return value ? `Slug changed to "/${value}"` : "Slug reset to follow the title";
     case "status": {
-      if (value === prevEntry.status) return null;
+      if (value === prevEntry.status || value === SCHEDULED_STATUS_ID) return null; // scheduling is described by its own line
       const step = workflowSteps.find((s) => s.id === value);
       return `Status changed to "${step?.name ?? value}"`;
     }
@@ -156,6 +156,7 @@ function ContentDetailPage({ id }) {
   const [contentTypes] = useLocalStorage("cms.contentTypes", seedContentTypes);
   const [rawWorkflowSteps] = useLocalStorage("cms.settings.workflowSteps", DEFAULT_WORKFLOW_STEPS);
   const workflowSteps = useMemo(() => normalizeWorkflowSteps(rawWorkflowSteps), [rawWorkflowSteps]);
+  const allSteps = useMemo(() => withScheduledStep(workflowSteps), [workflowSteps]); // the steps and the status of scheduled items
   const [rawChannels] = useLocalStorage("cms.settings.channels", DEFAULT_CHANNELS);
   const channels = useMemo(() => normalizeChannels(rawChannels), [rawChannels]);
   const [taxonomies] = useLocalStorage("cms.taxonomies", seedTaxonomies);
@@ -240,7 +241,7 @@ function ContentDetailPage({ id }) {
 
   function update(patch) {
     // A published item has no editable instance: only comments can still change.
-    if (isPublished && Object.keys(patch).some((k) => k !== "comments")) return;
+    if ((isPublished || isScheduled) && Object.keys(patch).some((k) => k !== "comments")) return;
     setEntries(entries.map((e) => (e.id === id ? applyPatch(e, patch) : e)));
     setSaveStatus("saving");
     clearTimeout(saveTimeoutRef.current);
@@ -343,6 +344,12 @@ function ContentDetailPage({ id }) {
     setPendingUnpublish(false);
   }
 
+  // A scheduled item is read-only; cancelling the schedule makes it an editable draft again.
+  function cancelSchedule() {
+    setEntries(entries.map((e) => (e.id === id ? applyPatch(e, { status: workflowSteps[0]?.id, scheduledPublishAt: null }) : e)));
+    flashSaved();
+  }
+
   // Each language version stays its own entry (own status, history, comments):
   // the dialog just applies the same publish action to every ticked version.
   // The items that publishing these versions would leave unpublished although the
@@ -372,7 +379,7 @@ function ContentDetailPage({ id }) {
     if (channelIds.length === 0 || versionIds.length === 0) return;
     const channelsValue = channels.every((c) => channelIds.includes(c.id)) ? ALL_CHANNELS : channelIds;
     const patch = mode === "schedule" && scheduledAt
-      ? { scheduledPublishAt: new Date(scheduledAt).toISOString(), channels: channelsValue }
+      ? { status: SCHEDULED_STATUS_ID, scheduledPublishAt: new Date(scheduledAt).toISOString(), channels: channelsValue }
       : { status: publishStepId, scheduledPublishAt: null, channels: channelsValue, live: null, publishedAt: new Date().toISOString() };
     const alsoIds = new Set(includeUsed ? unpublishedUsedBy(versionIds).map((u) => u.entry.id) : []);
     setEntries(entries.map((e) => (versionIds.includes(e.id) || alsoIds.has(e.id) ? applyPatch(e, patch) : e)));
@@ -522,12 +529,29 @@ function ContentDetailPage({ id }) {
   );
   const author = users.find((u) => u.id === entry.updatedBy);
   const displayStatus = normalizeEntryStatus(entry.status, workflowSteps);
-  const currentStep = workflowSteps.find((s) => s.id === displayStatus);
+  const currentStep = allSteps.find((s) => s.id === displayStatus);
   const publishedStep = workflowSteps[workflowSteps.length - 1];
   const isPublished = displayStatus === publishStepId;
-  // Published content is shown read-only; so is any past version in history.
-  const readOnly = historyMode || isPublished;
+  const isScheduled = displayStatus === SCHEDULED_STATUS_ID;
+  // Published and scheduled content is shown read-only; so is any past version in history.
+  const readOnly = historyMode || isPublished || isScheduled;
   const publishedChannelIds = resolvePublishedChannelIds(entry.channels, channels);
+  // The live version that a newer draft or a scheduled item sits over.
+  const liveVersionBlock = entry.live && (
+    <div className="mt-3 flex flex-wrap items-center gap-2 rounded-md bg-gray-50 px-2.5 py-2 ring-1 ring-inset ring-gray-200">
+      <span className="text-xs text-gray-500">{t("Live version")}</span>
+      <StatusPill status={publishedStep?.name ?? "Published"} color={publishedStep?.color} />
+      <span className="flex w-full items-center gap-1.5 text-xs text-gray-500">
+        <Clock size={12} /> {t("Live since {when}", { when: formatWhen(entry.live.publishedAt ?? entry.live.updatedAt, dateLocale) })}
+      </span>
+      <button
+        onClick={() => setPendingUnpublish(true)}
+        className="rounded-md border border-gray-300 bg-white h-7 px-2.5 text-xs font-medium text-red-600 hover:bg-red-50"
+      >
+        {t("Unpublish")}
+      </button>
+    </div>
+  );
   const entryIsAllChannels = isAllChannels(entry.channels);
 
 
@@ -539,7 +563,7 @@ function ContentDetailPage({ id }) {
   const comments = entry.comments ?? [];
   const selectedVersion = selectedVersionId ? history.find((h) => h.id === selectedVersionId) : null;
   const viewEntry = selectedVersion ? selectedVersion.snapshot : entry;
-  const viewStep = workflowSteps.find((s) => s.id === normalizeEntryStatus(viewEntry.status, workflowSteps));
+  const viewStep = allSteps.find((s) => s.id === normalizeEntryStatus(viewEntry.status, workflowSteps));
   const viewChannelIds = resolvePublishedChannelIds(viewEntry.channels, channels);
   const viewIsAllChannels = isAllChannels(viewEntry.channels);
   const viewAuthor = users.find((u) => u.id === viewEntry.updatedBy);
@@ -570,7 +594,7 @@ function ContentDetailPage({ id }) {
                   {orderLocales(defaultLocale).map((l) => {
                     const isCurrent = l === entry.locale;
                     const sibling = isCurrent ? entry : siblings.find((s) => s.locale === l);
-                    const step = sibling ? workflowSteps.find((s) => s.id === normalizeEntryStatus(sibling.status, workflowSteps)) : null;
+                    const step = sibling ? allSteps.find((s) => s.id === normalizeEntryStatus(sibling.status, workflowSteps)) : null;
                     return (
                       <div
                         key={l}
@@ -641,7 +665,7 @@ function ContentDetailPage({ id }) {
       <div className="flex min-h-0 flex-1 gap-6">
         {/* Left column: why the content is read-only (as wide as the content card), then the card. The side panel stays in the same place either way. */}
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-          {(readOnly || entry.scheduledPublishAt) && (
+          {readOnly && (
             <div
               role="status"
               // Publishing (published, scheduled) is blue; a past version is a warning, amber.
@@ -651,15 +675,15 @@ function ContentDetailPage({ id }) {
                   : "border-blue-300 border-l-blue-500 bg-blue-100 text-blue-950"
               }`}
             >
-              {historyMode ? <History size={18} className="mt-px shrink-0 text-amber-700" /> : readOnly ? <Lock size={18} className="mt-px shrink-0 text-blue-700" /> : <Clock size={18} className="mt-px shrink-0 text-blue-700" />}
+              {historyMode ? <History size={18} className="mt-px shrink-0 text-amber-700" /> : isScheduled ? <Clock size={18} className="mt-px shrink-0 text-blue-700" /> : <Lock size={18} className="mt-px shrink-0 text-blue-700" />}
               <span>
                 {historyMode
                   ? (selectedVersion
                     ? t("Viewing a read-only past version. Use Back to resume editing.")
                     : t("Viewing a read-only snapshot of the current version. Use Back to resume editing."))
-                  : readOnly
-                    ? t("This item is published, so it can't be edited. Create a new draft to make changes; the published version stays live meanwhile.")
-                    : t("Publishing is scheduled for {when}. Changes made until then are published with it.", { when: fmtDate(entry.scheduledPublishAt) })}
+                  : isScheduled
+                    ? t("This item is scheduled for {when}, so it can't be edited. Cancel the schedule to make changes.", { when: fmtDate(entry.scheduledPublishAt) })
+                    : t("This item is published, so it can't be edited. Create a new draft to make changes; the published version stays live meanwhile.")}
               </span>
             </div>
           )}
@@ -824,6 +848,22 @@ function ContentDetailPage({ id }) {
                   </button>
                   <p className="mt-2 text-xs text-gray-400">{t("Published content can't be changed. A new draft leaves this version live until you publish the draft.")}</p>
                 </>
+              ) : isScheduled ? (
+                <>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <StatusPill status={currentStep?.name ?? entry.status} color={currentStep?.color} />
+                    <button
+                      onClick={cancelSchedule}
+                      className="rounded-md border border-gray-300 bg-white h-7 px-2.5 text-xs font-medium text-red-600 hover:bg-red-50"
+                    >
+                      {t("Cancel schedule")}
+                    </button>
+                  </div>
+                  <p className="mt-2 flex items-center gap-1.5 text-xs text-gray-500">
+                    <Clock size={12} /> {t("Scheduled for {when}", { when: fmtDate(entry.scheduledPublishAt) })}
+                  </p>
+                  {liveVersionBlock}
+                </>
               ) : (
                 <>
                   <StatusSelect
@@ -832,36 +872,8 @@ function ContentDetailPage({ id }) {
                     onChange={handleStatusChange}
                     fallbackLabel={entry.status}
                   />
-                  {entry.live && (
-                    <div className="mt-3 flex flex-wrap items-center gap-2 rounded-md bg-gray-50 px-2.5 py-2 ring-1 ring-inset ring-gray-200">
-                      <span className="text-xs text-gray-500">{t("Live version")}</span>
-                      <StatusPill status={publishedStep?.name ?? "Published"} color={publishedStep?.color} />
-                      <span className="flex w-full items-center gap-1.5 text-xs text-gray-500">
-                        <Clock size={12} /> {t("Live since {when}", { when: formatWhen(entry.live.publishedAt ?? entry.live.updatedAt, dateLocale) })}
-                      </span>
-                      <button
-                        onClick={() => setPendingUnpublish(true)}
-                        className="rounded-md border border-gray-300 bg-white h-7 px-2.5 text-xs font-medium text-red-600 hover:bg-red-50"
-                      >
-                        {t("Unpublish")}
-                      </button>
-                    </div>
-                  )}
+                  {liveVersionBlock}
                 </>
-              )}
-              {entry.scheduledPublishAt && (
-                <div className="mt-3 flex flex-wrap items-center gap-2 rounded-md bg-gray-50 px-2.5 py-2 ring-1 ring-inset ring-gray-200">
-                  <span className="flex items-center gap-1.5 text-xs text-gray-500">
-                    <Clock size={12} />
-                    {t("Scheduled for {when}", { when: fmtDate(entry.scheduledPublishAt) })}
-                  </span>
-                  <button
-                    onClick={() => update({ scheduledPublishAt: null })}
-                    className="rounded-md border border-gray-300 bg-white h-7 px-2.5 text-xs font-medium text-red-600 hover:bg-red-50"
-                  >
-                    {t("Cancel schedule")}
-                  </button>
-                </div>
               )}
             </DetailField>
             <DetailField label="Content type">
@@ -1033,7 +1045,7 @@ function ContentDetailPage({ id }) {
         initialVersionIds={[entry.id]}
         languageRows={orderLocales(defaultLocale).map((l) => {
           const version = l === entry.locale ? entry : siblings.find((sb) => sb.locale === l);
-          const step = version && workflowSteps.find((st) => st.id === normalizeEntryStatus(version.status, workflowSteps));
+          const step = version && allSteps.find((st) => st.id === normalizeEntryStatus(version.status, workflowSteps));
           return { locale: l, versionIds: version ? [version.id] : [], pill: version ? { name: step?.name ?? version.status, color: step?.color } : null };
         })}
         texts={{ now: "This entry will go live now on:", schedule: "At the scheduled time, this entry will go live on:" }}

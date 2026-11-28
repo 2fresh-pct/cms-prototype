@@ -7,7 +7,7 @@ import { useI18n } from "../lib/i18n";
 import { orderLocales } from "../lib/locales";
 import { sortTypes } from "../lib/typeOrder";
 import { typeIcon } from "../lib/typeIcons";
-import { seedEntries, seedContentTypes, seedUsers, LOCALE_LABELS, LOCALE_NAMES, normalizeEntryGroupId, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus, DEFAULT_CHANNELS, normalizeChannels, ALL_CHANNELS, isAllChannels, resolvePublishedChannelIds } from "../lib/seed";
+import { seedEntries, seedContentTypes, seedUsers, LOCALE_LABELS, LOCALE_NAMES, normalizeEntryGroupId, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus, SCHEDULED_STATUS_ID, withScheduledStep, DEFAULT_CHANNELS, normalizeChannels, ALL_CHANNELS, isAllChannels, resolvePublishedChannelIds } from "../lib/seed";
 import Sidebar from "../components/Sidebar";
 import DataTable from "../components/DataTable";
 import BulkActionsMenu from "../components/BulkActionsMenu";
@@ -38,6 +38,7 @@ export default function Content() {
   const channelsById = useMemo(() => Object.fromEntries(channels.map((c) => [c.id, c])), [channels]);
   const users = useMemo(() => seedUsers(), []);
   const usersById = useMemo(() => Object.fromEntries(users.map((u) => [u.id, u])), [users]);
+  const allSteps = useMemo(() => withScheduledStep(workflowSteps), [workflowSteps]); // the steps and the status of scheduled items
   const publishStepId = workflowSteps[workflowSteps.length - 1]?.id;
   const sortedTypes = useMemo(() => sortTypes(contentTypes, t, lang), [contentTypes, t, lang]);
   const typesById = useMemo(() => Object.fromEntries(contentTypes.map((t) => [t.id, t])), [contentTypes]);
@@ -87,7 +88,7 @@ export default function Content() {
 
   const scopedEntries = useMemo(() => displayEntries.filter((e) => e.locale === activeLocale), [displayEntries, activeLocale]);
 
-  const statuses = workflowSteps.map((step) => ({
+  const statuses = allSteps.map((step) => ({
     id: step.id,
     name: step.name,
     color: step.color,
@@ -109,14 +110,13 @@ export default function Content() {
   }
 
   const filterFields = [
-    { key: "status", label: "Content status", options: workflowSteps.map((s) => ({ value: s.id, label: s.name })) },
+    { key: "status", label: "Content status", options: allSteps.map((s) => ({ value: s.id, label: s.name })) },
     { key: "contentTypeId", label: "Content type", options: sortedTypes.map((ct) => ({ value: ct.id, label: ct.name })) },
     { key: "channel", label: "Channel", options: channels.map((c) => ({ value: c.id, label: c.name })) },
     { key: "updatedBy", label: "Updated by", options: users.map((u) => ({ value: u.id, label: u.name })) },
   ];
 
   const filtered = scopedEntries.filter((e) => {
-    if (filter.view === "scheduled" && !e.scheduledPublishAt) return false;
     if (filter.status && e.status !== filter.status) return false;
     if (filter.typeId && e.contentTypeId !== filter.typeId) return false;
     if (extraFilters.updatedBy && e.updatedBy !== extraFilters.updatedBy) return false;
@@ -172,7 +172,7 @@ export default function Content() {
 
   function changeStatusOfSelected(step) {
     setEntries(entries.map((e) =>
-      selected.has(e.id) && e.status !== step.id && e.status !== publishStepId
+      selected.has(e.id) && e.status !== step.id && e.status !== publishStepId && e.status !== SCHEDULED_STATUS_ID
         ? withHistory(e, { status: step.id }, `Status changed to "${step.name}"`)
         : e
     ));
@@ -192,7 +192,7 @@ export default function Content() {
     const channelsValue = channels.every((c) => channelIds.includes(c.id)) ? ALL_CHANNELS : channelIds;
     const scheduling = mode === "schedule" && scheduledAt;
     const patch = scheduling
-      ? { scheduledPublishAt: new Date(scheduledAt).toISOString(), channels: channelsValue }
+      ? { status: SCHEDULED_STATUS_ID, scheduledPublishAt: new Date(scheduledAt).toISOString(), channels: channelsValue }
       : { status: publishStepId, scheduledPublishAt: null, channels: channelsValue, live: null, publishedAt: new Date().toISOString() };
     const summary = scheduling
       ? `Scheduled to publish on ${new Date(scheduledAt).toLocaleString(dateLocale, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}`
@@ -282,7 +282,7 @@ export default function Content() {
       header: "Content status",
       sortValue: (r) => r.status,
       render: (r) => {
-        const step = workflowSteps.find((s) => s.id === r.status);
+        const step = allSteps.find((s) => s.id === r.status);
         // An item with a newer draft over a live version shows both.
         const liveStep = r.live && r.status !== publishStepId ? workflowSteps[workflowSteps.length - 1] : null;
         return (

@@ -13,7 +13,7 @@ export const CS = {
 
   // Sidebar / views
   "All content": "Všechen obsah",
-  "Scheduled": "Naplánované",
+  "Scheduled": "Naplánováno",
   "Content by status": "Obsah podle stavu",
   "Content type": "Druh obsahu",
   "Channel": "Místo zveřejnění",
@@ -97,7 +97,7 @@ export const CS = {
   "Viewing a read-only snapshot of the current version. Use Back to resume editing.": "Zobrazujete aktuální verzi pouze pro čtení. Pro návrat k úpravám použijte Zpět.",
   "Saving…": "Ukládání…",
   "Saved": "Uloženo",
-  "Publishing is scheduled for {when}. Changes made until then are published with it.": "Publikace je naplánovaná na {when}. Změny provedené do té doby se zveřejní s ní.",
+  "This item is scheduled for {when}, so it can't be edited. Cancel the schedule to make changes.": "Tato položka je naplánovaná na {when}, proto ji nelze upravovat. Pro změny zrušte naplánování.",
   "Scheduled for {when}": "Naplánováno na {when}",
   "Comments": "Komentáře",
   "Comment": "Komentovat",

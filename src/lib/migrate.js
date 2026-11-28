@@ -318,6 +318,24 @@ const MIGRATIONS = {
     });
     localStorage.setItem("cms.entries", JSON.stringify(next));
   },
+  // A scheduled item has the status "scheduled" (and is read-only), where it used to
+  // keep its workflow step and a publication date.
+  "scheduled-status": () => {
+    const raw = localStorage.getItem("cms.entries");
+    if (!raw) return;
+    const entries = JSON.parse(raw);
+    if (!Array.isArray(entries)) return;
+    let steps = DEFAULT_WORKFLOW_STEPS;
+    try { const stored = JSON.parse(localStorage.getItem("cms.settings.workflowSteps")); if (Array.isArray(stored)) steps = normalizeWorkflowSteps(stored); } catch { /* defaults */ }
+    const publishId = steps[steps.length - 1]?.id;
+    let changed = false;
+    const next = entries.map((e) => {
+      if (!e.scheduledPublishAt || e.status === "scheduled" || normalizeEntryStatus(e.status, steps) === publishId) return e;
+      changed = true;
+      return { ...e, status: "scheduled" };
+    });
+    if (changed) localStorage.setItem("cms.entries", JSON.stringify(next));
+  },
 };
 
 // Renames field keys. `labelFor(type, field)` returns the name the new key is built
