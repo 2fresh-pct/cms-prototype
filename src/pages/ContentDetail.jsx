@@ -676,7 +676,7 @@ function ContentDetailPage({ id }) {
               }`}
             >
               {historyMode ? <History size={18} className="mt-px shrink-0 text-amber-700" /> : isScheduled ? <Clock size={18} className="mt-px shrink-0 text-blue-700" /> : <Lock size={18} className="mt-px shrink-0 text-blue-700" />}
-              <span>
+              <span className="min-w-0 flex-1">
                 {historyMode
                   ? (selectedVersion
                     ? t("Viewing a read-only past version. Use Back to resume editing.")
@@ -685,6 +685,12 @@ function ContentDetailPage({ id }) {
                     ? t("This item is scheduled for {when}, so it can't be edited. Cancel the schedule to make changes.", { when: fmtDate(entry.scheduledPublishAt) })
                     : t("This item is published, so it can't be edited. Create a new draft to make changes; the published version stays live meanwhile.")}
               </span>
+              {/* The way out of the read-only state, right in the notice. */}
+              {!historyMode && (isScheduled ? (
+                <button type="button" onClick={cancelSchedule} className="button-ghost shrink-0 self-center whitespace-nowrap"><X size={13} /> {t("Cancel schedule")}</button>
+              ) : (
+                <button type="button" onClick={createDraft} className="button-ghost shrink-0 self-center whitespace-nowrap"><FilePlus size={13} /> {t("Create new draft")}</button>
+              ))}
             </div>
           )}
         {readOnly ? (
