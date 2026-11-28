@@ -1,17 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Search, X, MapPinned } from "lucide-react";
+import { X, MapPinned } from "lucide-react";
 import { useI18n } from "../lib/i18n";
-import { geocode, reverseGeocode } from "../lib/geocode";
+import { geocode, reverseGeocode, suggest } from "../lib/geocode";
 
 // The value of a Map field: { address, lat, lng } (lat and lng are null while no
 // pin is placed). Shown as a card: the address on top, the pin's coordinates under
 // it, followed in brackets by the address those coordinates stand for (looked up
 // again whenever the pin moves; it is not saved, and does not replace the address
 // above), with "use the address at the pin" and "remove pin", then the map with its
-// pin. Type an address and press Enter and the pin goes there; click the map or
-// drag the pin to adjust it by hand. With `readOnly` it is a still picture.
+// pin. The address is typed as "Staroměstské náměstí 1/3, 110 00, Staré Město,
+// Praha 1"; while typing, matching places are offered, and choosing one sets the
+// address and puts the pin there (Enter with nothing chosen looks up the best match).
+// Click the map or drag the pin to adjust it by hand. With `readOnly` it is a still picture.
 
 const PRAGUE = [50.0755, 14.4378];
 const round = (n) => Math.round(n * 1e6) / 1e6;
@@ -43,6 +45,11 @@ export default function MapField({ value, onChange, readOnly = false }) {
   const [text, setText] = useState(value?.address ?? "");
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
+  // Places that match what is typed in the address, shown under it: { address, lat, lng }.
+  const [options, setOptions] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(-1);
+  const typing = useRef({ timer: null, ctrl: null });
   // The address the pin stands for: { status: "loading" | "ok" | "none" | "error", text }.
   const [pinAddress, setPinAddress] = useState({ status: "loading", text: "" });
 
@@ -130,9 +137,57 @@ export default function MapField({ value, onChange, readOnly = false }) {
     return () => { stale = true; clearTimeout(timer); };
   }, [lat, lng, readOnly]);
 
+  // Typing in the address: after a pause, the places that match it are offered.
+  function type(v) {
+    setText(v);
+    setActive(-1);
+    setNote("");
+    clearTimeout(typing.current.timer);
+    typing.current.ctrl?.abort();
+    if (v.trim().length < 3) { setOptions([]); setOpen(false); return; }
+    typing.current.timer = setTimeout(async () => {
+      const ctrl = new AbortController();
+      typing.current.ctrl = ctrl;
+      try {
+        const list = await suggest(v.trim(), ctrl.signal);
+        setOptions(list);
+        setOpen(list.length > 0);
+      } catch (e) {
+        if (e.name !== "AbortError") { setOptions([]); setOpen(false); }
+      }
+    }, 450);
+  }
+
+  // Choosing a place: its address is the address, the pin goes there, the map follows.
+  function choose(hit) {
+    clearTimeout(typing.current.timer);
+    typing.current.ctrl?.abort();
+    setOptions([]);
+    setOpen(false);
+    setActive(-1);
+    setText(hit.address);
+    ADDRESS_AT.set(pinKey(round(hit.lat), round(hit.lng)), hit.address);
+    latest.current.onChange({ address: hit.address, lat: round(hit.lat), lng: round(hit.lng) });
+    map.current?.setView([hit.lat, hit.lng], Math.max(map.current.getZoom(), 16));
+  }
+
+  function keys(e) {
+    if (e.key === "ArrowDown" && options.length) { e.preventDefault(); setOpen(true); setActive((a) => (a + 1) % options.length); }
+    else if (e.key === "ArrowUp" && options.length) { e.preventDefault(); setActive((a) => (a <= 0 ? options.length - 1 : a - 1)); }
+    else if (e.key === "Escape") setOpen(false);
+    else if (e.key === "Enter") {
+      e.preventDefault();
+      if (open && active >= 0 && options[active]) choose(options[active]);
+      else search();
+    }
+  }
+
   async function search() {
     const query = text.trim();
     if (!query || busy) return;
+    clearTimeout(typing.current.timer);
+    typing.current.ctrl?.abort();
+    setOpen(false);
     setBusy(true);
     setNote("");
     try {
@@ -171,23 +226,49 @@ export default function MapField({ value, onChange, readOnly = false }) {
   return (
     <div className="w-full max-w-[40.6rem]">
       <div className="flex h-[33.8rem] flex-col overflow-hidden rounded-md border border-gray-300 bg-[#fff]">
-        <div className="shrink-0 border-b border-gray-300 p-2">
+        <div className="relative z-10 shrink-0 border-b border-gray-300 p-2">
           {readOnly ? (
             <p className="min-h-9 px-1 py-2 text-sm text-gray-900">{value?.address || <span className="text-gray-400">—</span>}</p>
           ) : (
-            <div className="flex items-center gap-1">
+            <div className="relative">
               <input
                 value={text}
-                onChange={(e) => setText(e.target.value)}
-                onBlur={() => { if (text !== (value?.address ?? "")) latest.current.onChange({ ...(latest.current.value ?? {}), address: text, lat: value?.lat ?? null, lng: value?.lng ?? null }); }}
-                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); search(); } }}
-                placeholder={t("Type an address and press Enter")}
+                onChange={(e) => type(e.target.value)}
+                onFocus={() => { if (options.length) setOpen(true); }}
+                onBlur={() => {
+                  setOpen(false);
+                  if (text !== (value?.address ?? "")) latest.current.onChange({ ...(latest.current.value ?? {}), address: text, lat: value?.lat ?? null, lng: value?.lng ?? null });
+                }}
+                onKeyDown={keys}
+                placeholder={t("Staroměstské náměstí 1/3, 110 00, Staré Město, Praha 1")}
                 aria-label={t("Address")}
-                className="h-9 min-w-0 flex-1 rounded-md border border-gray-300 bg-[#fff] px-3 text-sm focus:border-violet-400 focus:outline-none"
+                role="combobox"
+                aria-expanded={open}
+                aria-autocomplete="list"
+                autoComplete="off"
+                className="h-9 w-full rounded-md border border-gray-300 bg-[#fff] px-3 text-sm focus:border-violet-400 focus:outline-none"
               />
-              <button type="button" onClick={search} disabled={busy || !text.trim()} aria-label={t("Find on the map")} title={t("Find on the map")} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-gray-700 hover:bg-gray-100 disabled:opacity-40">
-                <Search size={16} />
-              </button>
+              {open && (
+                <ul role="listbox" className="absolute left-0 right-0 top-full z-[600] mt-1 max-h-60 overflow-y-auto rounded-md border border-gray-300 bg-white py-1 shadow-lg">
+                  {options.map((o, i) => (
+                    <li key={`${o.name}|${o.address}`} role="option" aria-selected={i === active}>
+                      {/* mousedown, so the field keeps focus and the choice is made before it blurs */}
+                      <button
+                        type="button"
+                        onMouseDown={(e) => { e.preventDefault(); choose(o); }}
+                        onMouseEnter={() => setActive(i)}
+                        className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-gray-800 ${i === active ? "bg-gray-100" : ""}`}
+                      >
+                        <MapPinned size={13} className="shrink-0 text-gray-500" />
+                        <span className="min-w-0 truncate">
+                          {o.name && <span className="font-medium text-gray-900">{o.name} · </span>}
+                          {o.address}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           )}
           {note && <p className="px-1 pt-1 text-xs text-red-700">{note}</p>}

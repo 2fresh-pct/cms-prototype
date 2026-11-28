@@ -457,8 +457,6 @@ export const CS = {
   "Basic": "Základní",
   "Disabled (ZTP)": "ZTP",
   "A pin on a map, found by address and adjustable by hand": "Pin na mapě: najde se podle adresy a jde doladit ručně",
-  "Type an address and press Enter": "Napiš adresu a stiskni Enter",
-  "Find on the map": "Najít na mapě",
   "Click the map to place the pin": "Klikni do mapy a umísti pin",
   "No pin yet": "Pin zatím není umístěný",
   "Use the address at the pin": "Použít adresu z pinu",
