@@ -61,6 +61,29 @@ function AutoGrowText({ value, onCommit, singleLine = false }) {
   );
 }
 
+// The same box for a value held by the parent (a draft): Enter makes a new line and
+// the box grows with the text.
+function GrowTextarea({ value, onChange, placeholder }) {
+  const ref = useRef(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [value]);
+  return (
+    <textarea
+      ref={ref}
+      rows={1}
+      value={value}
+      placeholder={placeholder}
+      aria-label={placeholder}
+      onChange={(e) => onChange(e.target.value)}
+      className="min-h-9 w-full resize-none overflow-hidden rounded-md border border-gray-300 bg-[#fff] px-3 py-2 text-sm leading-5 focus:border-violet-400 focus:outline-none"
+    />
+  );
+}
+
 const ADD_BUTTON = "flex items-center gap-1 text-xs font-medium text-violet-600 hover:text-violet-700";
 const ICON_BUTTON = "flex h-8 w-8 shrink-0 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-red-600";
 
@@ -296,7 +319,7 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
                 <span className="text-gray-400">–</span>
                 <DatePicker value={item.to} onChange={(v) => set((it) => ({ ...it, to: v }))} className={INPUT_SM} />
               </div>
-              <input placeholder={t("Note")} aria-label={t("Note")} value={item.note} onChange={(e) => set((it) => ({ ...it, note: e.target.value }))} className={INPUT} />
+              <GrowTextarea placeholder={t("Note")} value={item.note ?? ""} onChange={(v) => set((it) => ({ ...it, note: v }))} />
             </div>
           )} />
       );
