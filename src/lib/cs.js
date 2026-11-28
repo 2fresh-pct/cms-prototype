@@ -479,7 +479,7 @@ export const CS = {
   "Telephone": "Telefon",
   "Email": "E-mail",
   "Notify by email": "Upozornit e-mailem",
-  "Nobody": "nikdo",
+  "Add recipient": "Přidat příjemce",
   "E-mail sent to {name}": "E-mail odeslán: {name}",
   "Website": "Web",
   "Primary category": "Hlavní kategorie",

@@ -50,12 +50,17 @@ const WORKFLOW_STEPS = [
 export const DRAFT_COLOR = WORKFLOW_COLORS[1]; // red
 export const PUBLISHED_COLOR = WORKFLOW_COLORS[4]; // green
 
+// The people written to when content moves into a status: a list of user ids (an older
+// value was a single id).
+const notifyList = (v) => (Array.isArray(v) ? v : v ? [v] : []);
+export { notifyList };
+
 export function normalizeWorkflowSteps(steps) {
   const source = !Array.isArray(steps) || steps.length === 0 ? WORKFLOW_STEPS : steps;
   let list = source.map((s, i) =>
     typeof s === "string"
       ? { id: `step-${i}`, name: s, color: WORKFLOW_COLORS[i % WORKFLOW_COLORS.length] }
-      : { id: s.id ?? `step-${i}`, name: s.name, color: s.color ?? WORKFLOW_COLORS[i % WORKFLOW_COLORS.length], ...(s.notify ? { notify: s.notify } : {}) }
+      : { id: s.id ?? `step-${i}`, name: s.name, color: s.color ?? WORKFLOW_COLORS[i % WORKFLOW_COLORS.length], ...(notifyList(s.notify).length ? { notify: notifyList(s.notify) } : {}) }
   );
   if (list.length < 2) list = [...list, WORKFLOW_STEPS[WORKFLOW_STEPS.length - 1]];
   const last = list.length - 1;

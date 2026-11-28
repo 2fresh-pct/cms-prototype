@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useBlocker } from "react-router-dom";
-import { ArrowRight, ArrowUp, ArrowDown, Trash2, Plus, Check, Lock, Smartphone, Globe, Radio, Tv, Mail, MessageSquare, Download, Upload } from "lucide-react";
+import { ArrowRight, ArrowUp, ArrowDown, Trash2, Plus, Check, Lock, Smartphone, Globe, Radio, Tv, Mail, MessageSquare, Download, Upload, X } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n, UI_LANGUAGES } from "../lib/i18n";
-import { seedUsers, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, WORKFLOW_COLOR_PALETTE, DEFAULT_CHANNELS, normalizeChannels } from "../lib/seed";
+import { seedUsers, notifyList, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, WORKFLOW_COLOR_PALETTE, DEFAULT_CHANNELS, normalizeChannels } from "../lib/seed";
 import DataTable from "../components/DataTable";
 import Avatar from "../components/Avatar";
 import Modal from "../components/Modal";
@@ -231,18 +231,39 @@ function WorkflowPanel({ guardRef }) {
   // Who can be written to when content moves into a status: the users of the workspace.
   const [storedUsers] = useLocalStorage("cms.settings.users", null);
   const people = Array.isArray(storedUsers) ? storedUsers : seedUsers();
-  const notifySelect = (s, i) => (
-    <select
-      value={s.notify ?? ""}
-      onChange={(e) => updateStep(i, { notify: e.target.value })}
-      aria-label={t("Notify by email")}
-      title={t("Notify by email")}
-      className="h-8 w-48 shrink-0 rounded-md border border-gray-300 bg-white px-2.5 text-sm text-gray-800"
-    >
-      <option value="">{t("Email")}: {t("Nobody")}</option>
-      {people.map((u) => <option key={u.id} value={u.id}>{t("Email")}: {u.name}</option>)}
-    </select>
-  );
+  // The recipients of a status: chosen people as chips, and a select to add another.
+  const recipients = (s, i) => {
+    const chosen = notifyList(s.notify);
+    const left = people.filter((u) => !chosen.includes(u.id));
+    const set = (ids) => updateStep(i, { notify: ids });
+    return (
+      <div className="flex flex-wrap items-center gap-1.5 pl-8">
+        <span className="flex items-center gap-1 text-xs text-gray-500" title={t("Notify by email")}><Mail size={12} /> {t("Email")}</span>
+        {chosen.map((id) => {
+          const u = people.find((x) => x.id === id);
+          return (
+            <span key={id} className="inline-flex items-center gap-1 rounded-full bg-white py-0.5 pl-2.5 pr-1 text-xs font-medium text-gray-800 ring-1 ring-inset ring-gray-300">
+              {u?.name ?? id}
+              <button type="button" onClick={() => set(chosen.filter((x) => x !== id))} aria-label={`${t("Remove")} ${u?.name ?? id}`} className="flex h-4 w-4 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-800">
+                <X size={11} />
+              </button>
+            </span>
+          );
+        })}
+        {left.length > 0 && (
+          <select
+            value=""
+            onChange={(e) => e.target.value && set([...chosen, e.target.value])}
+            aria-label={t("Add recipient")}
+            className="h-7 rounded-md border border-gray-300 bg-white px-2 text-xs text-gray-700"
+          >
+            <option value="">{t("Add recipient")}</option>
+            {left.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+          </select>
+        )}
+      </div>
+    );
+  };
 
   function updateStep(i, patch) {
     setSteps(steps.map((s, idx) => (idx === i ? { ...s, ...patch } : s)));
@@ -295,16 +316,18 @@ function WorkflowPanel({ guardRef }) {
 
       <div className="space-y-3">
         {steps.map((s, i) => isFixed(i) ? (
-          <div key={s.id} className="flex items-center gap-2 rounded-md border border-gray-300 bg-gray-50 p-3">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-500">
-              {i + 1}
-            </span>
-            <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: s.color }} />
-            <span className="flex-1 text-sm font-medium text-gray-800">{t(s.name)}</span>
-            <span className="flex items-center gap-1 text-xs text-gray-400">
-              <Lock size={12} /> {i === 0 ? t("Always the first status") : t("Always the last status")}
-            </span>
-            {notifySelect(s, i)}
+          <div key={s.id} className="space-y-3 rounded-md border border-gray-300 bg-gray-50 p-3">
+            <div className="flex items-center gap-2">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-500">
+                {i + 1}
+              </span>
+              <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: s.color }} />
+              <span className="flex-1 text-sm font-medium text-gray-800">{t(s.name)}</span>
+              <span className="flex items-center gap-1 text-xs text-gray-400">
+                <Lock size={12} /> {i === 0 ? t("Always the first status") : t("Always the last status")}
+              </span>
+            </div>
+            {recipients(s, i)}
           </div>
         ) : (
           <div key={s.id} className="space-y-3 rounded-md border border-gray-300 bg-white p-3">
@@ -317,7 +340,6 @@ function WorkflowPanel({ guardRef }) {
                 onChange={(e) => updateStep(i, { name: e.target.value })}
                 className="flex-1 rounded-md border border-gray-300 bg-white h-8 px-2.5 text-sm focus:border-violet-400 focus:outline-none"
               />
-              {notifySelect(s, i)}
               <button
                 onClick={() => moveStep(i, -1)}
                 disabled={i <= 1}
@@ -352,6 +374,7 @@ function WorkflowPanel({ guardRef }) {
                 </button>
               ))}
             </div>
+            {recipients(s, i)}
           </div>
         ))}
       </div>

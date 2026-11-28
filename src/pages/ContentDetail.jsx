@@ -5,7 +5,7 @@ import { Smartphone, Globe, Radio, Tv, Mail, MessageSquare, Clock, History, Arro
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
 import { orderLocales } from "../lib/locales";
-import { emailNote, notifiedUser } from "../lib/notify";
+import { emailNote, notifiedUsers } from "../lib/notify";
 import {
   seedEntries, seedContentTypes, seedUsers, seedTaxonomies, seedMedia, LOCALE_LIST, LOCALE_LABELS, LOCALE_NAMES, normalizeEntryGroupId,
   DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus, SCHEDULED_STATUS_ID, withScheduledStep,
@@ -309,9 +309,9 @@ function ContentDetailPage({ id }) {
   // The prototype sends no mail; the status panel says who would get it.
   const [mailNotice, setMailNotice] = useState("");
   function announceEmail(step) {
-    const who = notifiedUser(step);
-    if (!who) return;
-    setMailNotice(t("E-mail sent to {name}", { name: who.name }));
+    const who = notifiedUsers(step);
+    if (who.length === 0) return;
+    setMailNotice(t("E-mail sent to {name}", { name: who.map((u) => u.name).join(", ") }));
     setTimeout(() => setMailNotice(""), 6000);
   }
 
