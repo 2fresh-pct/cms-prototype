@@ -17,9 +17,9 @@ const TYPE_LABELS = {
 const TYPE_HINTS = {
   free: "The app shows “free”. Choose this only when you know that admission is free.",
   paid: "Prices by ticket type, in CZK.",
-  link: "Tickets are sold by someone else: give the seller and the link. No price is shown.",
+  link: "Tickets are sold by someone else: give the link. No price is shown.",
   note: "A sentence is shown instead of a price, for example “Part of the Prague Castle circuit admission”.",
-  unknown: "Nothing about admission is shown.",
+  unknown: "Nothing about admission is shown except the note.",
 };
 
 // Admission: first say what kind it is, then fill in only what that kind needs.
@@ -94,15 +94,9 @@ export default function AdmissionField({ value, onChange }) {
             )}
 
             {a.type === "link" && (
-              <div className="grid grid-cols-2 gap-x-3 gap-y-3">
-                <div>
-                  <label className={LABEL}>{t("Seller")}</label>
-                  <input value={a.seller} onChange={(e) => patch({ seller: e.target.value })} className={FIELD} />
-                </div>
-                <div>
-                  <label className={LABEL}>{t("Ticket link")}</label>
-                  <input type="url" value={a.url} onChange={(e) => patch({ url: e.target.value })} placeholder="https://" className={FIELD} />
-                </div>
+              <div>
+                <label className={LABEL}>{t("Ticket link")}</label>
+                <input type="url" value={a.url} onChange={(e) => patch({ url: e.target.value })} placeholder="https://" className={FIELD} />
               </div>
             )}
 
@@ -113,12 +107,10 @@ export default function AdmissionField({ value, onChange }) {
               </div>
             )}
 
-            {a.type !== "unknown" && (
-              <div>
-                <label className={LABEL}>{a.type === "note" ? t("Text shown instead of a price") : t("Note")}</label>
-                <input value={a.note} onChange={(e) => patch({ note: e.target.value })} className={FIELD} />
-              </div>
-            )}
+            <div>
+              <label className={LABEL}>{a.type === "note" ? t("Text shown instead of a price") : t("Note")}</label>
+              <input value={a.note} onChange={(e) => patch({ note: e.target.value })} className={FIELD} />
+            </div>
           </div>
         );
       }}

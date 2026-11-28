@@ -64,7 +64,7 @@ export function SpecialDaysView({ value, text = "text-sm" }) {
 export function AdmissionView({ value, text = "text-sm" }) {
   const { t, dateLocale } = useI18n();
   const a = normalizeAdmission(value);
-  if (a.type === "unknown") return <p className={`${text} text-gray-500`}>—</p>;
+  if (a.type === "unknown" && !a.note) return <p className={`${text} text-gray-500`}>—</p>;
   return (
     <div className={`space-y-1.5 ${text} text-gray-700`}>
       {a.type === "free" && <p className="font-medium text-gray-900">{t("Free")}</p>}
@@ -78,7 +78,7 @@ export function AdmissionView({ value, text = "text-sm" }) {
           ))}
         </ul>
       )}
-      {a.type === "link" && <p><span className="font-medium text-gray-900">{a.seller || t("Tickets")}</span>{a.url && <> · <span className="underline">{a.url}</span></>}</p>}
+      {a.type === "link" && <p><span className="font-medium text-gray-900">{t("Tickets")}</span>{a.url && <> · <span className="underline">{a.url}</span></>}</p>}
       {a.type === "free" && a.url && <p className="underline">{a.url}</p>}
       {a.note && <p>{a.note}</p>}
     </div>
