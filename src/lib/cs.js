@@ -498,6 +498,8 @@ export const CS = {
 
   // Field types and editors
   "Short text": "Krátký text",
+  "Single-line text": "Jednořádkový text",
+  "Multi-line text": "Víceřádkový text",
   "Select": "Výběr",
   "Date": "Datum",
   "Media list": "Seznam médií",

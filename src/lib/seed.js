@@ -398,7 +398,7 @@ export function normalizeEntryGroupId(entry) {
 }
 
 // Field types are stored under these keys; what editors read can differ.
-export const FIELD_TYPE_LABELS = { Reference: "Linked content items" };
+export const FIELD_TYPE_LABELS = { Reference: "Linked content items", Text: "Single-line text", "Short text": "Multi-line text" };
 export const fieldTypeLabel = (type) => FIELD_TYPE_LABELS[type] ?? type;
 
 export const FIELD_TYPE_LIST = [
