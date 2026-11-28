@@ -141,12 +141,12 @@ const fold = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 // The terms in tree order, each with the names of its parents.
 // Names are in the language of the entry (`locale`), with the default name as the
 // fallback; `all` holds every name of the term, so a search finds it in any language.
-function termsWithPath(terms, locale, path = [], depth = 0) {
+function termsWithPath(terms, locale, path = [], depth = 0, pathIds = []) {
   return terms.flatMap((term) => {
     const name = termName(term, locale);
     return [
-      { id: term.id, name, all: [term.name, ...Object.values(term.names ?? {})], depth, path },
-      ...termsWithPath(term.children, locale, [...path, name], depth + 1),
+      { id: term.id, name, all: [term.name, ...Object.values(term.names ?? {})], depth, path, pathIds },
+      ...termsWithPath(term.children, locale, [...path, name], depth + 1, [...pathIds, term.id]),
     ];
   });
 }
@@ -168,6 +168,17 @@ function TaxonomyField({ field, value, onChange, ctx }) {
   const shown = filtering ? terms.filter((term) => term.all.some((n) => fold(n).includes(needle))) : terms;
   const picked = selected.map((id) => terms.find((term) => term.id === id)).filter(Boolean);
 
+  // Picking a tag picks the tags above it too (a tag on the third level brings the
+  // second and the first); taking a tag away takes the ones below it away with it.
+  const toggle = (term) => {
+    if (single) return onChange([term.id]);
+    if (selected.includes(term.id)) {
+      const drop = new Set(terms.filter((x) => x.id === term.id || x.pathIds.includes(term.id)).map((x) => x.id));
+      return onChange(selected.filter((id) => !drop.has(id)));
+    }
+    return onChange([...new Set([...selected, ...term.pathIds, term.id])]);
+  };
+
   return (
     <div className="space-y-2">
       {picked.length > 0 && (
@@ -178,7 +189,7 @@ function TaxonomyField({ field, value, onChange, ctx }) {
               {term.name}
               <button
                 type="button"
-                onClick={() => onChange(selected.filter((x) => x !== term.id))}
+                onClick={() => toggle(term)}
                 className="flex h-5 w-5 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-800"
                 aria-label={`${t("Remove")} ${term.name}`}
               >
@@ -209,10 +220,7 @@ function TaxonomyField({ field, value, onChange, ctx }) {
               type={single ? "radio" : "checkbox"}
               name={single ? `${field.name}-${ctx.entryId}` : undefined}
               checked={selected.includes(term.id)}
-              onChange={() => {
-                if (single) onChange([term.id]);
-                else onChange(selected.includes(term.id) ? selected.filter((x) => x !== term.id) : [...selected, term.id]);
-              }}
+              onChange={() => toggle(term)}
               className="h-3.5 w-3.5 border-gray-300 accent-violet-600"
             />
             <span>

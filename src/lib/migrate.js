@@ -337,6 +337,29 @@ function mergeById(key, items) {
   if (missing.length > 0) localStorage.setItem(key, JSON.stringify([...stored, ...missing]));
 }
 
+// A tab of a content type that is called "Taxonomie" is called "Tagy" (checked on every
+// start, so a copy of the workspace that still has the old name is brought along).
+function renameTaxonomyTabs() {
+  const raw = localStorage.getItem("cms.contentTypes");
+  if (!raw) return;
+  const types = JSON.parse(raw);
+  if (!Array.isArray(types)) return;
+  const old = /^\s*(taxonomie|taxonomy|taxonomies)\s*$/i;
+  let changed = false;
+  const next = types.map((ct) => {
+    const groups = ct.groups ?? [];
+    const fields = ct.fields ?? [];
+    if (!groups.some((g) => old.test(g)) && !fields.some((f) => old.test(f.group ?? ""))) return ct;
+    changed = true;
+    return {
+      ...ct,
+      groups: [...new Set(groups.map((g) => (old.test(g) ? "Tagy" : g)))],
+      fields: fields.map((f) => (old.test(f.group ?? "") ? { ...f, group: "Tagy" } : f)),
+    };
+  });
+  if (changed) localStorage.setItem("cms.contentTypes", JSON.stringify(next));
+}
+
 export function runMigrations() {
   try {
     const done = new Set(JSON.parse(localStorage.getItem(MIGRATIONS_KEY) ?? "[]"));
@@ -346,6 +369,7 @@ export function runMigrations() {
       done.add(name);
     }
     localStorage.setItem(MIGRATIONS_KEY, JSON.stringify([...done]));
+    renameTaxonomyTabs();
   } catch {
     /* storage unavailable or corrupt: the app falls back to seed data */
   }
