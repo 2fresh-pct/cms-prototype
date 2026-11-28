@@ -86,7 +86,7 @@ export default function SpecialDaysField({ value, onChange }) {
                       type="button"
                       onClick={() => save([...days.slice(0, i + 1), { ...d, intervals: d.intervals.map((iv) => ({ ...iv })), from: nextYear(d.from), to: nextYear(d.to) }, ...days.slice(i + 1)], true)}
                       title={t("Copy a year ahead")}
-                      className="flex items-center gap-1 rounded px-1.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100"
+                      className="button-ghost"
                     >
                       <Copy size={13} /> {t("Copy a year ahead")}
                     </button>

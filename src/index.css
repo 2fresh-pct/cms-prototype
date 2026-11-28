@@ -77,6 +77,11 @@ select.no-chevron { background-image: none; }
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
 }
 
+/* A text button with an icon: no border, a grey fill only when hovered. */
+.button-ghost {
+  @apply flex items-center gap-1 rounded px-1.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100;
+}
+
 /* Image placeholder: the classic wireframe box with a cross through it. */
 .wf-image {
   background-color: #fff;

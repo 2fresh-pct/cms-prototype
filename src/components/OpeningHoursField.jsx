@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { ArrowLeftRight, CalendarDays, Copy, Plus, Trash2 } from "lucide-react";
 import { useI18n } from "../lib/i18n";
 import Draft from "./Draft";
 import TimeIntervals from "./TimeIntervals";
@@ -77,13 +77,13 @@ function Period({ s, i, patch, remove }) {
         </select>
         {/* The switch is always the first button, so the order never changes. */}
         {!isDate && !perDay && (
-          <button type="button" onClick={() => setEachDay(true)} className={SECONDARY}>{t("Set each day separately")}</button>
+          <button type="button" onClick={() => setEachDay(true)} className="button-ghost"><CalendarDays size={13} /> {t("Set each day separately")}</button>
         )}
         {perDay && range && (
-          <button type="button" onClick={() => setEachDay(false)} className={SECONDARY}>{t("Simple range")}</button>
+          <button type="button" onClick={() => setEachDay(false)} className="button-ghost"><ArrowLeftRight size={13} /> {t("Simple range")}</button>
         )}
         {perDay && (
-          <button type="button" onClick={useMonday} className={SECONDARY}>{t("Use Monday for every day")}</button>
+          <button type="button" onClick={useMonday} className="button-ghost"><Copy size={13} /> {t("Use Monday for every day")}</button>
         )}
         {isDate && (
           <span className="flex flex-wrap items-center gap-2">
