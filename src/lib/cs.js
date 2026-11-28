@@ -97,7 +97,7 @@ export const CS = {
   "Viewing a read-only snapshot of the current version. Use Back to resume editing.": "Zobrazujete aktuální verzi pouze pro čtení. Pro návrat k úpravám použijte Zpět.",
   "Saving…": "Ukládání…",
   "Saved": "Uloženo",
-  "This item is scheduled for {when}, so it can't be edited. Cancel the schedule to make changes.": "Tato položka je naplánovaná na {when}, proto ji nelze upravovat. Pro změny zrušte naplánování.",
+  "This item is scheduled for {when}, so it can't be edited. Cancel the schedule to make changes.": "Naplánované k publikaci na {when}. Položku nelze upravovat, pro změny zrušte naplánování.",
   "Scheduled for {when}": "Naplánováno na {when}",
   "Comments": "Komentáře",
   "Comment": "Komentovat",
