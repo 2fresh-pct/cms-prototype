@@ -349,7 +349,7 @@ export default function Content() {
     <div className="flex h-full min-h-0">
       <Sidebar
         allLabel="All content"
-        statusGroupLabel="Workflow step"
+        statusGroupLabel="Content by status"
         statuses={statuses}
         typeGroupLabel="Content type"
         typeItems={contentTypes.map((t) => ({ id: t.id, name: t.name, count: entries.filter((e) => e.contentTypeId === t.id).length, icon: t.icon }))}

@@ -15,7 +15,7 @@ import { getBackup, isSharedKey, isSyncEnabled, markDirty, overwriteShared, repl
 
 const TABS = [
   { id: "general", label: "General" },
-  { id: "workflow", label: "Workflow" },
+  { id: "workflow", label: "Content statuses" },
   { id: "channels", label: "Channels" },
   { id: "users", label: "Users & roles" },
   { id: "api", label: "API keys" },
@@ -253,15 +253,15 @@ function WorkflowPanel({ guardRef }) {
 
   // New steps go just before Published.
   function addStep() {
-    const step = { id: `step-${Date.now()}`, name: t("Step {n}", { n: steps.length }), color: WORKFLOW_COLOR_PALETTE[steps.length % WORKFLOW_COLOR_PALETTE.length] };
+    const step = { id: `step-${Date.now()}`, name: t("Status {n}", { n: steps.length }), color: WORKFLOW_COLOR_PALETTE[steps.length % WORKFLOW_COLOR_PALETTE.length] };
     setSteps([...steps.slice(0, lastIndex), step, steps[lastIndex]]);
   }
 
   return (
-    <SettingsForm title="Workflow" form={form} guardRef={guardRef}>
+    <SettingsForm title="Content statuses" form={form} guardRef={guardRef}>
     <div>
       <p className="mb-4 text-sm text-gray-500">
-        {t("Define the stages content moves through between Draft and Published, in order, with a color for each. Draft and Published are fixed; content reaches Published only through the Publish action.")}
+        {t("Define the statuses content moves through between Draft and Published, in order, with a color for each. Draft and Published are fixed; content reaches Published only through the Publish action.")}
       </p>
 
       <div className="mb-5 flex flex-wrap items-center gap-1.5">
@@ -271,7 +271,7 @@ function WorkflowPanel({ guardRef }) {
               className="flex items-center gap-1.5 rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-gray-800 ring-1 ring-inset ring-gray-300"
             >
               <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: s.color }} />
-              {s.name ? t(s.name) : t("Step {n}", { n: i + 1 })}
+              {s.name ? t(s.name) : t("Status {n}", { n: i + 1 })}
             </span>
             {i < steps.length - 1 && <ArrowRight size={12} className="text-gray-300" />}
           </span>
@@ -287,7 +287,7 @@ function WorkflowPanel({ guardRef }) {
             <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: s.color }} />
             <span className="flex-1 text-sm font-medium text-gray-800">{t(s.name)}</span>
             <span className="flex items-center gap-1 text-xs text-gray-400">
-              <Lock size={12} /> {i === 0 ? t("Always the first step") : t("Always the last step")}
+              <Lock size={12} /> {i === 0 ? t("Always the first status") : t("Always the last status")}
             </span>
           </div>
         ) : (
@@ -340,7 +340,7 @@ function WorkflowPanel({ guardRef }) {
       </div>
 
       <button onClick={addStep} className="mt-4 flex h-9 items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50">
-        <Plus size={14} /> {t("Add step")}
+        <Plus size={14} /> {t("Add status")}
       </button>
     </div>
     </SettingsForm>
