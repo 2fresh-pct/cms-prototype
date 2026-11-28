@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useLocalStorage } from "../lib/storage";
-import { seedCatalogueItems, seedCatalogueCategories, getUser, STATUS_LIST, LOCALE_LIST } from "../lib/seed";
+import { orderLocales } from "../lib/locales";
+import { seedCatalogueItems, seedCatalogueCategories, getUser, STATUS_LIST } from "../lib/seed";
 import PageHeader from "../components/PageHeader";
 import DetailField from "../components/DetailField";
 import StatusPill from "../components/StatusPill";
@@ -15,6 +16,7 @@ function formatDate(iso) {
 export default function CatalogueItemDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [defaultLocale] = useLocalStorage("cms.settings.defaultLocale", "en");
   const [items, setItems] = useLocalStorage("cms.catalogueItems", seedCatalogueItems);
   const [categories] = useLocalStorage("cms.catalogueCategories", seedCatalogueCategories);
 
@@ -73,7 +75,7 @@ export default function CatalogueItemDetail() {
               onChange={(e) => update({ locale: e.target.value })}
               className="rounded-md border border-gray-300 bg-white h-9 px-3 text-sm uppercase"
             >
-              {LOCALE_LIST.map((l) => (
+              {orderLocales(defaultLocale).map((l) => (
                 <option key={l} value={l}>{l}</option>
               ))}
             </select>

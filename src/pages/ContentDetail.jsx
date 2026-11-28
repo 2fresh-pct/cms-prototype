@@ -4,6 +4,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { Smartphone, Globe, Radio, Tv, Mail, MessageSquare, Clock, History, ArrowLeft, MessageCircle, X, Languages, Send, FilePlus, Lock } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
+import { orderLocales } from "../lib/locales";
 import {
   seedEntries, seedContentTypes, seedUsers, seedTaxonomies, seedMedia, LOCALE_LIST, LOCALE_LABELS, LOCALE_NAMES, normalizeEntryGroupId,
   DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus,
@@ -534,7 +535,7 @@ function ContentDetailPage({ id }) {
               {langDialogOpen && (
                 <div role="dialog" aria-label={t("Languages")} className="wf-pop absolute right-0 top-full z-50 mt-2 w-96 rounded-lg border border-gray-300 bg-white p-3">
                 <div className="space-y-2">
-                  {LOCALE_LIST.map((l) => {
+                  {orderLocales(defaultLocale).map((l) => {
                     const isCurrent = l === entry.locale;
                     const sibling = isCurrent ? entry : siblings.find((s) => s.locale === l);
                     const step = sibling ? workflowSteps.find((s) => s.id === normalizeEntryStatus(sibling.status, workflowSteps)) : null;
@@ -877,7 +878,7 @@ function ContentDetailPage({ id }) {
                         <Link to={`/content/${u.entry.id}`} className="font-medium text-gray-900 underline-offset-2 hover:underline">{u.entry.title}</Link>
                         <span className="block text-xs text-gray-500">
                           {uType ? t(uType.name) : ""} · {u.how.map((h) => t(h === "embedded" ? "Embedded in text" : "Linked")).join(", ")}
-                          {u.locales.length > 0 && ` · ${u.locales.map((l) => LOCALE_LABELS[l] ?? l.toUpperCase()).join(" ")}`}
+                          {u.locales.length > 0 && ` · ${orderLocales(defaultLocale).filter((l) => u.locales.includes(l)).map((l) => LOCALE_LABELS[l] ?? l.toUpperCase()).join(" ")}`}
                         </span>
                       </li>
                     );
@@ -991,7 +992,7 @@ function ContentDetailPage({ id }) {
         channels={channels}
         initialChannelIds={publishedChannelIds}
         initialVersionIds={[entry.id]}
-        languageRows={LOCALE_LIST.map((l) => {
+        languageRows={orderLocales(defaultLocale).map((l) => {
           const version = l === entry.locale ? entry : siblings.find((sb) => sb.locale === l);
           const step = version && workflowSteps.find((st) => st.id === normalizeEntryStatus(version.status, workflowSteps));
           return { locale: l, versionIds: version ? [version.id] : [], pill: version ? { name: step?.name ?? version.status, color: step?.color } : null };

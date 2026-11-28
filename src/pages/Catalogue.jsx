@@ -2,7 +2,8 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
-import { seedCatalogueCategories, seedCatalogueItems, seedUsers, getUser, STATUS_LIST, LOCALE_LIST } from "../lib/seed";
+import { orderLocales } from "../lib/locales";
+import { seedCatalogueCategories, seedCatalogueItems, seedUsers, getUser, STATUS_LIST } from "../lib/seed";
 import Sidebar from "../components/Sidebar";
 import BulkActionBar from "../components/BulkActionBar";
 import DataTable from "../components/DataTable";
@@ -17,6 +18,7 @@ function formatDate(iso) {
 
 export default function Catalogue() {
   const navigate = useNavigate();
+  const [defaultLocale] = useLocalStorage("cms.settings.defaultLocale", "en");
   const [categories, setCategories] = useLocalStorage("cms.catalogueCategories", seedCatalogueCategories);
   const [items, setItems] = useLocalStorage("cms.catalogueItems", seedCatalogueItems);
   const users = useMemo(() => seedUsers(), []);
@@ -50,7 +52,7 @@ export default function Catalogue() {
   const filterFields = [
     { key: "status", label: "Status", options: STATUS_LIST.map((s) => ({ value: s, label: s })) },
     { key: "categoryId", label: "Category", options: categories.map((c) => ({ value: c.id, label: c.name })) },
-    { key: "locale", label: "Locale", options: LOCALE_LIST.map((l) => ({ value: l, label: l.toUpperCase() })) },
+    { key: "locale", label: "Locale", options: orderLocales(defaultLocale).map((l) => ({ value: l, label: l.toUpperCase() })) },
     { key: "authorId", label: "Author", options: users.map((u) => ({ value: u.id, label: u.name })) },
   ];
 

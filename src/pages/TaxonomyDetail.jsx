@@ -3,7 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Plus, Trash2, ArrowUp, ArrowDown, FolderPlus } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
-import { seedTaxonomies, updateTermInTree, addTermToTree, removeTermFromTree, moveTermInTree, countTerms, countTranslated, LOCALE_LIST, LOCALE_NAMES } from "../lib/seed";
+import { orderLocales } from "../lib/locales";
+import { seedTaxonomies, updateTermInTree, addTermToTree, removeTermFromTree, moveTermInTree, countTerms, countTranslated, LOCALE_NAMES } from "../lib/seed";
 import PageHeader from "../components/PageHeader";
 import DetailField from "../components/DetailField";
 import SegmentedControl from "../components/SegmentedControl";
@@ -174,7 +175,7 @@ export default function TaxonomyDetail() {
           </div>
           <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2">
             <SegmentedControl
-              options={LOCALE_LIST.map((l) => ({ value: l, label: LOCALE_NAMES[l] }))}
+              options={orderLocales(baseLocale).map((l) => ({ value: l, label: LOCALE_NAMES[l] }))}
               value={locale}
               onChange={setLocale}
             />

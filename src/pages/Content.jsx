@@ -4,9 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { Plus, Copy, Trash2, Send } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
+import { orderLocales } from "../lib/locales";
 import { sortTypes } from "../lib/typeOrder";
 import { typeIcon } from "../lib/typeIcons";
-import { seedEntries, seedContentTypes, seedUsers, LOCALE_LIST, LOCALE_LABELS, LOCALE_NAMES, normalizeEntryGroupId, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus, DEFAULT_CHANNELS, normalizeChannels, ALL_CHANNELS, isAllChannels, resolvePublishedChannelIds } from "../lib/seed";
+import { seedEntries, seedContentTypes, seedUsers, LOCALE_LABELS, LOCALE_NAMES, normalizeEntryGroupId, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus, DEFAULT_CHANNELS, normalizeChannels, ALL_CHANNELS, isAllChannels, resolvePublishedChannelIds } from "../lib/seed";
 import Sidebar from "../components/Sidebar";
 import DataTable from "../components/DataTable";
 import BulkActionsMenu from "../components/BulkActionsMenu";
@@ -323,7 +324,7 @@ export default function Content() {
         const present = localesByGroup[r.groupId] ?? new Set([r.locale]);
         return (
           <div className="flex items-center gap-1">
-            {LOCALE_LIST.map((l) => {
+            {orderLocales(defaultLocale).map((l) => {
               const isSelf = l === r.locale;
               const exists = present.has(l);
               return (
@@ -379,7 +380,7 @@ export default function Content() {
                 onChange={(e) => setActiveLocale(e.target.value)}
                 className="h-9 rounded-md border border-gray-300 bg-white px-3 text-sm font-medium text-gray-700 focus:border-violet-400 focus:outline-none"
               >
-                {LOCALE_LIST.map((l) => (
+                {orderLocales(defaultLocale).map((l) => (
                   <option key={l} value={l}>
                     {t(LOCALE_NAMES[l] ?? l.toUpperCase()) + (l === defaultLocale ? ` (${t("default")})` : "")}
                   </option>
@@ -418,7 +419,7 @@ export default function Content() {
           channels={channels}
           initialChannelIds={channels.map((c) => c.id).filter((id) => publishable.some((e) => resolvePublishedChannelIds(e.channels, channels).includes(id)))}
           initialVersionIds={publishable.map((e) => e.id)}
-          languageRows={LOCALE_LIST.map((l) => {
+          languageRows={orderLocales(defaultLocale).map((l) => {
             const inLanguage = publishable.filter((e) => e.locale === l);
             return { locale: l, versionIds: inLanguage.map((e) => e.id), count: inLanguage.length };
           })}

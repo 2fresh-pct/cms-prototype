@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Smartphone, Globe, Radio, Tv, Mail, MessageSquare } from "lucide-react";
 import { useI18n } from "../lib/i18n";
-import { LOCALE_LIST, LOCALE_LABELS, LOCALE_NAMES } from "../lib/seed";
+import { useLocalStorage } from "../lib/storage";
+import { orderLocales } from "../lib/locales";
+import { LOCALE_LABELS, LOCALE_NAMES } from "../lib/seed";
 import Modal from "./Modal";
 import DatePicker from "./DatePicker";
 import StatusPill from "./StatusPill";
@@ -39,6 +41,7 @@ export default function PublishDialog({
   open, onClose, title, channels, initialChannelIds, languageRows, initialVersionIds, texts, emptyLabel, usedFor, onConfirm,
 }) {
   const { t } = useI18n();
+  const [defaultLocale] = useLocalStorage("cms.settings.defaultLocale", "en");
   const [mode, setMode] = useState("now");
   const [scheduledAt, setScheduledAt] = useState("");
   const [channelIds, setChannelIds] = useState([]);
@@ -151,7 +154,7 @@ export default function PublishDialog({
       <div>
         <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-gray-400">{t("Languages")}</p>
         <div className="space-y-1">
-          {LOCALE_LIST.map((l) => {
+          {orderLocales(defaultLocale).map((l) => {
             const row = languageRows.find((r) => r.locale === l);
             if (!row || row.versionIds.length === 0) {
               return (
