@@ -85,7 +85,7 @@ function RepeatingList({ value, onCommit, blank, addLabel, renderItem, emptyHint
       ) : (
         <div className="space-y-2">
           {items.map((item, i) => (
-            <div key={i} className={card ? "flex items-center gap-2 rounded-md border border-gray-300 bg-[#fff] p-3" : "flex items-start gap-2"}>
+            <div key={i} className={card ? "flex items-start gap-2 rounded-md border border-gray-300 bg-[#fff] p-3" : "flex items-start gap-2"}>
               <div className="min-w-0 flex-1">
                 {renderItem(item, (patch) => setItems(items.map((it, idx) => (idx === i ? patch(it) : it))))}
               </div>
@@ -289,12 +289,14 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
       return (
         <RepeatingList value={value} onCommit={onChange} blank={{ label: "", from: "", to: "", note: "" }} addLabel="Add period" emptyHint="A range of dates with a note." card
           renderItem={(item, set) => (
-            <div className="flex flex-wrap items-center gap-2">
-              <input placeholder={t("Name (optional)")} aria-label={t("Name (optional)")} value={item.label ?? ""} onChange={(e) => set((it) => ({ ...it, label: e.target.value }))} className={`${INPUT_SM} w-60`} />
-              <DatePicker value={item.from} onChange={(v) => set((it) => ({ ...it, from: v }))} className={INPUT_SM} />
-              <span className="text-gray-400">–</span>
-              <DatePicker value={item.to} onChange={(v) => set((it) => ({ ...it, to: v }))} className={INPUT_SM} />
-              <input placeholder={t("Note")} value={item.note} onChange={(e) => set((it) => ({ ...it, note: e.target.value }))} className={`${INPUT_SM} min-w-32 flex-1`} />
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <input placeholder={t("Name (optional)")} aria-label={t("Name (optional)")} value={item.label ?? ""} onChange={(e) => set((it) => ({ ...it, label: e.target.value }))} className={`${INPUT_SM} w-60`} />
+                <DatePicker value={item.from} onChange={(v) => set((it) => ({ ...it, from: v }))} className={INPUT_SM} />
+                <span className="text-gray-400">–</span>
+                <DatePicker value={item.to} onChange={(v) => set((it) => ({ ...it, to: v }))} className={INPUT_SM} />
+              </div>
+              <input placeholder={t("Note")} aria-label={t("Note")} value={item.note} onChange={(e) => set((it) => ({ ...it, note: e.target.value }))} className={INPUT} />
             </div>
           )} />
       );
