@@ -9,7 +9,7 @@
 export const ADMISSION_TYPES = ["paid", "free", "link", "note", "unknown"];
 
 // Ticket types to choose from; any other text can be typed.
-export const TICKET_TYPES = ["Adult", "Reduced fare", "Student", "Child", "Senior", "Family", "Group ticket", "Basic", "Disabled (ZTP)"];
+export const TICKET_TYPES = ["Adult", "Reduced fare", "Student", "Child", "Senior", "Family", "Group ticket", "Disabled (ZTP)"];
 
 export const blankPrice = () => ({ ticket: "", price: "", note: "" });
 
